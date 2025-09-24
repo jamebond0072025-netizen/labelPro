@@ -4,51 +4,94 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Header } from '@/components/layout/header';
 import { AppSidebarNav } from '@/components/layout/sidebar-nav';
+import { Type } from 'lucide-react';
 
 export default function Home() {
   const templates = PlaceHolderImages.filter(img => img.id.startsWith('template'));
+  const heroImage = PlaceHolderImages.find(img => img.id === 'hero');
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-muted/40 md:block">
-        <AppSidebarNav />
-      </div>
-      <div className="flex flex-col">
-        <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
-          <div>
-            <h1 className="text-3xl font-headline font-bold mb-6">Template Gallery</h1>
-            <p className="text-muted-foreground mb-8 max-w-2xl">
-              Kickstart your project with one of our professionally designed templates. Click on any template to open it in the editor.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {templates.map(template => (
-                <Link href={`/dashboard/editor?template=${template.id}`} key={template.id}>
-                  <Card className="overflow-hidden group hover:shadow-lg transition-shadow duration-300">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-[5/7] w-full">
-                        <Image
-                          src={template.imageUrl}
-                          alt={template.description}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          data-ai-hint={template.imageHint}
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-sm truncate">{template.description}</h3>
-                        <Button variant="link" className="p-0 h-auto mt-1">Use Template</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+    <div className="flex flex-col min-h-screen bg-background">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+            <AppSidebarNav />
+        </div>
+      </header>
+      <main className="flex-1">
+        <section className="relative w-full py-12 md:py-24 lg:py-32 xl:py-48">
+            {heroImage && (
+                 <Image
+                    src={heroImage.imageUrl}
+                    alt={heroImage.description}
+                    fill
+                    className="object-cover object-center"
+                    data-ai-hint={heroImage.imageHint}
+                />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="container relative px-4 md:px-6 text-center text-foreground">
+                <div className="bg-background/70 backdrop-blur-sm rounded-xl p-8 inline-block">
+                    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl font-headline">
+                        Design professional labels in minutes.
+                    </h1>
+                    <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl mt-4">
+                        Create beautiful, print-ready labels for your products with our intuitive editor and AI-powered tools.
+                    </p>
+                    <div className="mt-8">
+                        <Button asChild size="lg">
+                            <Link href="/dashboard/editor">Start Designing Now</Link>
+                        </Button>
+                    </div>
+                </div>
             </div>
-          </div>
-        </main>
-      </div>
+        </section>
+
+        <section id="templates" className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+            <div className="container px-4 md:px-6">
+                 <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div className="space-y-2">
+                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Template Gallery</h2>
+                        <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                            Kickstart your project with one of our professionally designed templates. Click on any template to open it in the editor.
+                        </p>
+                    </div>
+                </div>
+                <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-12">
+                     {templates.map(template => (
+                        <Link href={`/dashboard/editor?template=${template.id}`} key={template.id}>
+                        <Card className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full">
+                            <CardContent className="p-0 flex flex-col">
+                            <div className="relative aspect-[5/7] w-full">
+                                <Image
+                                src={template.imageUrl}
+                                alt={template.description}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                data-ai-hint={template.imageHint}
+                                />
+                            </div>
+                            <div className="p-4 flex-grow flex flex-col">
+                                <h3 className="font-semibold text-sm truncate flex-grow">{template.description}</h3>
+                                <Button variant="link" className="p-0 h-auto mt-2 self-start">Use Template</Button>
+                            </div>
+                            </CardContent>
+                        </Card>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        </section>
+      </main>
+       <footer className="py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <div className="container mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <Type className="h-6 w-6 text-primary" />
+            <span className="font-semibold font-headline">LabelPro</span>
+          </Link>
+          <p className="text-xs text-muted-foreground">&copy; 2024 LabelPro. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }
