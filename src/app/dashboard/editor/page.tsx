@@ -11,8 +11,9 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight, Pin, PinOff } from 'lucide-react';
+import { PanelLeft, PanelRight, PanelLeftOpen, PanelRightOpen, Type, Image as ImageIcon, Barcode } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const initialObjects: CanvasObject[] = [
   {
@@ -50,8 +51,8 @@ export default function EditorPage() {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   
-  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<{
@@ -91,11 +92,11 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (!isDesktop) {
-        setIsLeftSidebarPinned(true);
-        setIsRightSidebarPinned(false);
+        setIsLeftSidebarOpen(false);
+        setIsRightSidebarOpen(false);
     } else {
-        setIsLeftSidebarPinned(false);
-        setIsRightSidebarPinned(true);
+        setIsLeftSidebarOpen(false);
+        setIsRightSidebarOpen(true);
     }
   }, [isDesktop]);
 
@@ -229,7 +230,7 @@ export default function EditorPage() {
   };
 
   const LeftSidebar = () => (
-    <div className="flex flex-col border-r bg-card h-full">
+    <div className="flex flex-col border-r bg-card h-full w-[240px]">
         <Toolbar onAddItem={handleAddItem} />
         <LayersPanel
             objects={objects}
@@ -248,27 +249,46 @@ export default function EditorPage() {
   
   const gridStyle: React.CSSProperties = {
       gridTemplateColumns: isDesktop 
-        ? `${isLeftSidebarPinned ? '240px' : '0px'} 1fr ${isRightSidebarPinned ? '300px' : '0px'}`
+        ? `${isLeftSidebarOpen ? '240px' : '56px'} 1fr ${isRightSidebarOpen ? '300px' : '56px'}`
         : '1fr'
   };
 
+  const tools = [
+    { type: 'text', icon: Type, label: 'Text' },
+    { type: 'image', icon: ImageIcon, label: 'Image' },
+    { type: 'barcode', icon: Barcode, label: 'Barcode' },
+  ] as const;
+
   return (
-    <div className="grid h-full transition-all duration-300" style={gridStyle}>
-        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden", isLeftSidebarPinned ? 'w-[240px]' : 'w-0')}>
-            <LeftSidebar />
+    <TooltipProvider>
+    <div className="grid h-full transition-all duration-300 bg-muted" style={gridStyle}>
+        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isLeftSidebarOpen ? 'w-[240px]' : 'w-[56px]')}>
+            {isLeftSidebarOpen ? (
+                <LeftSidebar />
+            ) : (
+                <div className="flex flex-col items-center gap-2 p-2 border-r h-full bg-card">
+                   {tools.map((tool) => (
+                     <Tooltip key={tool.type}>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => handleAddItem(tool.type)}>
+                                <tool.icon className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                            <p>{tool.label}</p>
+                        </TooltipContent>
+                     </Tooltip>
+                   ))}
+                </div>
+            )}
+             <div className="hidden lg:block absolute top-2 z-10" style={{ right: isLeftSidebarOpen ? '0.5rem' : 'auto', left: isLeftSidebarOpen ? 'auto': '0.5rem' }}>
+                <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}>
+                    {isLeftSidebarOpen ? <PanelLeft className="h-5 w-5" /> : <PanelRightOpen className="h-5 w-5" />}
+                </Button>
+            </div>
         </div>
 
         <div className="bg-muted flex items-center justify-center p-4 relative" onClick={deselectObject}>
-            <div className="absolute top-2 left-2 z-10 hidden lg:flex gap-2">
-                 <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}>
-                    {isLeftSidebarPinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
-                 </Button>
-            </div>
-            <div className="absolute top-2 right-2 z-10 hidden lg:flex gap-2">
-                 <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarPinned(!isRightSidebarPinned)}>
-                    {isRightSidebarPinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
-                 </Button>
-            </div>
             <div
                 ref={canvasRef}
                 className="relative w-full h-full max-w-[500px] max-h-[700px] bg-white shadow-lg overflow-hidden"
@@ -288,8 +308,17 @@ export default function EditorPage() {
             </div>
         </div>
         
-        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden", isRightSidebarPinned ? 'w-[300px]' : 'w-0')}>
-            <RightSidebar />
+        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isRightSidebarOpen ? 'w-[300px]' : 'w-[56px]')}>
+            {isRightSidebarOpen ? <RightSidebar /> : (
+                <div className="flex flex-col items-center gap-2 p-2 border-l h-full bg-card">
+                    {/* Placeholder for collapsed right sidebar content if any */}
+                </div>
+            )}
+             <div className="hidden lg:block absolute top-2 z-10" style={{ left: '0.5rem' }}>
+                <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}>
+                    {isRightSidebarOpen ? <PanelRight className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+                </Button>
+            </div>
         </div>
 
         {!isDesktop && (
@@ -317,5 +346,6 @@ export default function EditorPage() {
             </>
         )}
     </div>
+    </TooltipProvider>
   );
 }
