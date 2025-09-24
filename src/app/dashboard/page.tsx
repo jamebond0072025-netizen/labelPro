@@ -9,9 +9,5 @@ export default function DashboardPage() {
     router.replace('/dashboard/editor');
   }, [router]);
 
-  return (
-    <div className="flex items-center justify-center h-full">
-      <p>Loading your dashboard...</p>
-    </div>
-  );
+  return null;
 }
