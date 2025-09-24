@@ -11,7 +11,7 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight, PanelLeftOpen, PanelRightOpen, Type, Image as ImageIcon, Barcode, Pin, PinOff } from 'lucide-react';
+import { PanelLeft, PanelRight, Type, Image as ImageIcon, Barcode, Pin, PinOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -290,9 +290,12 @@ export default function EditorPage() {
                    ))}
                 </div>
             )}
-             <div className="hidden lg:block absolute top-2 z-10" style={{ right: isLeftSidebarOpen ? '0.5rem' : 'auto', left: isLeftSidebarOpen ? 'auto': '0.5rem' }}>
+             <div className="hidden lg:block absolute top-2 z-10" style={{ right: isLeftSidebarOpen ? '0.5rem' : '-2.5rem' }}>
                 <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}>
-                    {isLeftSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />}
+                    {isLeftSidebarOpen ? 
+                        (isLeftSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />)
+                        : <PanelLeft className="h-5 w-5" />
+                    }
                 </Button>
             </div>
         </div>
@@ -327,9 +330,12 @@ export default function EditorPage() {
                     {/* Placeholder for collapsed right sidebar icon */}
                 </div>
             )}
-             <div className="hidden lg:block absolute top-2 z-10" style={{ left: '0.5rem' }}>
+             <div className="hidden lg:block absolute top-2 z-10" style={{ left: isRightSidebarOpen ? '0.5rem' : '-2.5rem' }}>
                 <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarPinned(!isRightSidebarPinned)}>
-                    {isRightSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />}
+                    {isRightSidebarOpen ?
+                        (isRightSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />)
+                        : <PanelRight className="h-5 w-5" />
+                    }
                 </Button>
             </div>
         </div>
