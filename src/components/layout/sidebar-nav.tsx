@@ -2,7 +2,6 @@
 
 import {
   LayoutGrid,
-  Sparkles,
   Type,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +16,6 @@ import {
 
 const navItems = [
   { href: '/dashboard/editor', icon: LayoutGrid, label: 'Editor' },
-  { href: '/dashboard/ai-assistant', icon: Sparkles, label: 'AI Assistant' },
 ];
 
 export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
