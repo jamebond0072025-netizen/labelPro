@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { PropertiesPanel } from '@/components/editor/properties-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelRight, Pin, PinOff } from 'lucide-react';
+import { PanelRight } from 'lucide-react';
 import type { CanvasObject } from '@/lib/types';
 
 interface RightSidebarProps {
@@ -39,31 +39,11 @@ export function RightSidebar({ selectedObject, onUpdate, isSheet = false }: Righ
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {isOpen ? (
-          <PropertiesPanel selectedObject={selectedObject} onUpdate={onUpdate} />
-        ) : (
-          <div className="flex flex-col items-center gap-2 p-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setIsHovered(true)}>
-                  <PanelRight className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p>Properties</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
         <div className="absolute top-2 left-2 z-10">
           <Tooltip>
             <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
-                    {isPinned ? (
-                    <Pin className="h-5 w-5" />
-                    ) : (
-                    <PinOff className="h-5 w-5 text-muted-foreground" />
-                    )}
+                    <PanelRight className={cn("h-5 w-5", isPinned && "text-primary")} />
                 </Button>
             </TooltipTrigger>
              <TooltipContent side="left">
@@ -71,6 +51,13 @@ export function RightSidebar({ selectedObject, onUpdate, isSheet = false }: Righ
             </TooltipContent>
           </Tooltip>
         </div>
+        {isOpen ? (
+          <PropertiesPanel selectedObject={selectedObject} onUpdate={onUpdate} />
+        ) : (
+          <div className="flex flex-col items-center gap-2 p-2 pt-14">
+            {/* Icons can be placed here for collapsed view if needed */}
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );

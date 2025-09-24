@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { LayersPanel } from '@/components/editor/layers-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeft, Pin, PinOff } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import type { CanvasObject } from '@/lib/types';
 
 interface LeftSidebarProps {
@@ -51,6 +51,18 @@ export function LeftSidebar({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        <div className="absolute top-2 right-2 z-10">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
+                 <PanelLeft className={cn("h-5 w-5", isPinned && "text-primary")} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>{isPinned ? 'Unpin' : 'Pin'} Layers Panel</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         {isOpen ? (
           <LayersPanel
             objects={objects}
@@ -59,35 +71,10 @@ export function LeftSidebar({
             onLayerAction={onLayerAction}
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 p-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setIsHovered(true)}>
-                  <PanelLeft className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Layers</p>
-              </TooltipContent>
-            </Tooltip>
+          <div className="flex flex-col items-center gap-2 p-2 pt-14">
+            {/* Icons can be placed here for collapsed view if needed */}
           </div>
         )}
-        <div className="absolute top-2 right-2 z-10">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
-                {isPinned ? (
-                  <Pin className="h-5 w-5" />
-                ) : (
-                  <PinOff className="h-5 w-5 text-muted-foreground" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>{isPinned ? 'Unpin' : 'Pin'} Layers Panel</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
       </div>
     </TooltipProvider>
   );
