@@ -2,12 +2,14 @@
 
 import { CanvasObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Layers, Type, Image as ImageIcon, Barcode, Eye, EyeOff } from 'lucide-react';
+import { Layers, Type, Image as ImageIcon, Barcode, Trash2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface LayersPanelProps {
   objects: CanvasObject[];
   selectedObjectId: string | null;
   onSelectObject: (id: string) => void;
+  onLayerAction: (action: 'delete') => void;
 }
 
 const getObjectDisplayName = (object: CanvasObject) => {
@@ -36,7 +38,7 @@ const getObjectIcon = (object: CanvasObject) => {
     }
 }
 
-export function LayersPanel({ objects, selectedObjectId, onSelectObject }: LayersPanelProps) {
+export function LayersPanel({ objects, selectedObjectId, onSelectObject, onLayerAction }: LayersPanelProps) {
   const reversedObjects = [...objects].reverse();
 
   return (
@@ -48,7 +50,7 @@ export function LayersPanel({ objects, selectedObjectId, onSelectObject }: Layer
             key={obj.id}
             onClick={() => onSelectObject(obj.id)}
             className={cn(
-              'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2',
+              'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 group',
               'hover:bg-muted',
               selectedObjectId === obj.id ? 'bg-muted' : 'bg-transparent'
             )}
@@ -57,6 +59,16 @@ export function LayersPanel({ objects, selectedObjectId, onSelectObject }: Layer
                 {getObjectIcon(obj)}
                 <span className="truncate">{getObjectDisplayName(obj)}</span>
             </div>
+             {selectedObjectId === obj.id && (
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            )}
           </button>
         ))}
       </div>
