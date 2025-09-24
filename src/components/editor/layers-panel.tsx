@@ -40,7 +40,7 @@ export function LayersPanel({ objects, selectedObjectId, onSelectObject }: Layer
   const reversedObjects = [...objects].reverse();
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
+    <div className="flex-1 p-4 pt-12 overflow-y-auto">
       <h3 className="text-lg font-headline font-semibold mb-4">Layers</h3>
       <div className="space-y-1">
         {reversedObjects.map((obj) => (

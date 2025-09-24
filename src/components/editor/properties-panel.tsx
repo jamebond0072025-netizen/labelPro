@@ -23,7 +23,7 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   if (!selectedObject) {
     return (
-      <div className="p-4 border-l h-full bg-card flex items-center justify-center">
+      <div className="p-4 pt-12 border-l h-full bg-card flex items-center justify-center">
         <p className="text-sm text-muted-foreground">Select an object to edit</p>
       </div>
     );
@@ -84,7 +84,7 @@ export function PropertiesPanel({
   };
 
   return (
-    <div className="p-4 border-l bg-card h-full space-y-4 overflow-y-auto">
+    <div className="p-4 pt-12 border-l bg-card h-full space-y-4 overflow-y-auto">
       <h3 className="text-lg font-headline font-semibold capitalize">
         {selectedObject.type} Properties
       </h3>
