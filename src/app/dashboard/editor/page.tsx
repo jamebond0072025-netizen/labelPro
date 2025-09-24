@@ -50,8 +50,8 @@ export default function EditorPage() {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   
-  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(true);
-  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
+  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<{
@@ -88,6 +88,16 @@ export default function EditorPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!isDesktop) {
+        setIsLeftSidebarPinned(true);
+        setIsRightSidebarPinned(false);
+    } else {
+        setIsLeftSidebarPinned(false);
+        setIsRightSidebarPinned(true);
+    }
+  }, [isDesktop]);
 
   const handleAddItem = (type: 'text' | 'image' | 'barcode') => {
     const newId = `${type}${Date.now()}`;
