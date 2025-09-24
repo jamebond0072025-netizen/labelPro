@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LabelPro',
+  title: 'Label Designer',
   description: 'Design and generate professional labels with ease.',
 };
 

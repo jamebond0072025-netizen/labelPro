@@ -26,7 +26,7 @@ export default function Icon() {
           fontFamily: 'Poppins, sans-serif'
         }}
       >
-        L
+        D
       </div>
     ),
     {

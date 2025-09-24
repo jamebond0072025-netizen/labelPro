@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/tooltip';
 
 const navItems = [
-  { href: '/dashboard/editor', icon: LayoutGrid, label: 'Editor' },
+  { href: '/dashboard/editor', icon: LayoutGrid, label: 'Canvas' },
 ];
 
 export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
@@ -29,14 +29,14 @@ export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
         <div className="bg-primary h-8 w-8 rounded-lg flex items-center justify-center">
             <Type className="h-5 w-5 text-primary-foreground" />
         </div>
-        {!isMobile && <span className="font-bold font-headline text-lg">LabelPro</span>}
+        {!isMobile && <span className="font-bold font-headline text-lg">Label Designer</span>}
     </Link>
   );
 
   const nav = (
     <nav className={cn("flex flex-col gap-1 px-2", isMobile && 'grid gap-6 text-lg font-medium mt-6')}>
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href);
           const linkContent = (
              <span
                 className={cn(

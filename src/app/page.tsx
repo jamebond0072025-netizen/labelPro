@@ -17,11 +17,11 @@ export default function Home() {
             <div className="flex items-center justify-between w-full">
                 <Link href="/" className="flex items-center gap-2">
                     <Type className="h-6 w-6 text-primary" />
-                    <span className="font-semibold font-headline">LabelPro</span>
+                    <span className="font-semibold font-headline">Label Designer</span>
                 </Link>
                 <nav className="flex items-center gap-4 sm:gap-6">
                     <Link className="text-sm font-medium hover:underline underline-offset-4" href="/#templates">Templates</Link>
-                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/editor">Editor</Link>
+                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/editor">Canvas</Link>
                 </nav>
             </div>
         </div>
@@ -95,9 +95,9 @@ export default function Home() {
         <div className="container mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <Type className="h-6 w-6 text-primary" />
-            <span className="font-semibold font-headline">LabelPro</span>
+            <span className="font-semibold font-headline">Label Designer</span>
           </Link>
-          <p className="text-xs text-muted-foreground">&copy; 2024 LabelPro. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">&copy; 2024 Label Designer. All rights reserved.</p>
         </div>
       </footer>
     </div>
