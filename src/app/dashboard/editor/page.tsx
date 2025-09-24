@@ -51,8 +51,9 @@ export default function EditorPage() {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
+  const [isLeftSidebarHovered, setIsLeftSidebarHovered] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<{
@@ -66,6 +67,9 @@ export default function EditorPage() {
 
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  const isLeftSidebarOpen = isLeftSidebarPinned || isLeftSidebarHovered;
+  const isRightSidebarOpen = isRightSidebarPinned;
 
   useEffect(() => {
     const templateId = searchParams.get('template');
@@ -92,11 +96,11 @@ export default function EditorPage() {
 
   useEffect(() => {
     if (!isDesktop) {
-        setIsLeftSidebarOpen(false);
-        setIsRightSidebarOpen(false);
+        setIsLeftSidebarPinned(false);
+        setIsRightSidebarPinned(false);
     } else {
-        setIsLeftSidebarOpen(false);
-        setIsRightSidebarOpen(true);
+        setIsLeftSidebarPinned(false);
+        setIsRightSidebarPinned(true);
     }
   }, [isDesktop]);
 
@@ -262,7 +266,11 @@ export default function EditorPage() {
   return (
     <TooltipProvider>
     <div className="grid h-full transition-all duration-300 bg-muted" style={gridStyle}>
-        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isLeftSidebarOpen ? 'w-[240px]' : 'w-[56px]')}>
+        <div 
+            className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isLeftSidebarOpen ? 'w-[240px]' : 'w-[56px]')}
+            onMouseEnter={() => !isLeftSidebarPinned && setIsLeftSidebarHovered(true)}
+            onMouseLeave={() => !isLeftSidebarPinned && setIsLeftSidebarHovered(false)}
+        >
             {isLeftSidebarOpen ? (
                 <LeftSidebar />
             ) : (
@@ -282,7 +290,7 @@ export default function EditorPage() {
                 </div>
             )}
              <div className="hidden lg:block absolute top-2 z-10" style={{ right: isLeftSidebarOpen ? '0.5rem' : 'auto', left: isLeftSidebarOpen ? 'auto': '0.5rem' }}>
-                <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}>
                     {isLeftSidebarOpen ? <PanelLeft className="h-5 w-5" /> : <PanelRightOpen className="h-5 w-5" />}
                 </Button>
             </div>
@@ -315,7 +323,7 @@ export default function EditorPage() {
                 </div>
             )}
              <div className="hidden lg:block absolute top-2 z-10" style={{ left: '0.5rem' }}>
-                <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarPinned(!isRightSidebarPinned)}>
                     {isRightSidebarOpen ? <PanelRight className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
                 </Button>
             </div>
