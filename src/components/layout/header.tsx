@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Download, Menu, Share2, FileDown, Type } from 'lucide-react';
+import { Download, Menu, Share2, FileDown, Type, Pin, PinOff } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 

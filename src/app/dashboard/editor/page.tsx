@@ -11,7 +11,7 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight, PanelLeftOpen, PanelRightOpen, Type, Image as ImageIcon, Barcode } from 'lucide-react';
+import { PanelLeft, PanelRight, PanelLeftOpen, PanelRightOpen, Type, Image as ImageIcon, Barcode, Pin, PinOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -54,6 +54,7 @@ export default function EditorPage() {
   const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(false);
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
   const [isLeftSidebarHovered, setIsLeftSidebarHovered] = useState(false);
+  const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<{
@@ -69,7 +70,7 @@ export default function EditorPage() {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const isLeftSidebarOpen = isLeftSidebarPinned || isLeftSidebarHovered;
-  const isRightSidebarOpen = isRightSidebarPinned;
+  const isRightSidebarOpen = isRightSidebarPinned || isRightSidebarHovered;
 
   useEffect(() => {
     const templateId = searchParams.get('template');
@@ -291,7 +292,7 @@ export default function EditorPage() {
             )}
              <div className="hidden lg:block absolute top-2 z-10" style={{ right: isLeftSidebarOpen ? '0.5rem' : 'auto', left: isLeftSidebarOpen ? 'auto': '0.5rem' }}>
                 <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}>
-                    {isLeftSidebarOpen ? <PanelLeft className="h-5 w-5" /> : <PanelRightOpen className="h-5 w-5" />}
+                    {isLeftSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />}
                 </Button>
             </div>
         </div>
@@ -316,15 +317,19 @@ export default function EditorPage() {
             </div>
         </div>
         
-        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isRightSidebarOpen ? 'w-[300px]' : 'w-[56px]')}>
+        <div 
+          className={cn("hidden lg:block transition-all duration-300 overflow-hidden relative", isRightSidebarOpen ? 'w-[300px]' : 'w-[56px]')}
+          onMouseEnter={() => !isRightSidebarPinned && setIsRightSidebarHovered(true)}
+          onMouseLeave={() => !isRightSidebarPinned && setIsRightSidebarHovered(false)}
+        >
             {isRightSidebarOpen ? <RightSidebar /> : (
                 <div className="flex flex-col items-center gap-2 p-2 border-l h-full bg-card">
-                    {/* Placeholder for collapsed right sidebar content if any */}
+                    {/* Placeholder for collapsed right sidebar icon */}
                 </div>
             )}
              <div className="hidden lg:block absolute top-2 z-10" style={{ left: '0.5rem' }}>
                 <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarPinned(!isRightSidebarPinned)}>
-                    {isRightSidebarOpen ? <PanelRight className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+                    {isRightSidebarPinned ? <Pin className="h-5 w-5" /> : <PinOff className="h-5 w-5 text-muted-foreground" />}
                 </Button>
             </div>
         </div>
