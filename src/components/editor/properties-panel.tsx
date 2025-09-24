@@ -23,8 +23,10 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   if (!selectedObject) {
     return (
-      <div className="p-4 pt-12 border-l h-full bg-card flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Select an object to edit</p>
+      <div className="p-4 pt-12 border-l h-full bg-card">
+        <div className="flex items-center justify-center h-full">
+            <p className="text-sm text-muted-foreground">Select an object to edit</p>
+        </div>
       </div>
     );
   }
