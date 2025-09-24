@@ -40,42 +40,42 @@ export default function EditorPage() {
   };
   
   return (
-    <div className="flex flex-col h-full">
-      <EditorToolbar
-        onAddItem={handleAddItem}
-        onClearAll={handleClearAll}
-        onLayerAction={handleLayerAction}
-        onZoom={setZoom}
-        zoom={zoom}
-        hasSelectedObject={!!selectedObjectId}
-      />
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden" onClick={deselectObject}>
-        {isDesktop ? (
-            <LeftSidebar
-                objects={objects}
-                selectedObjectId={selectedObjectId}
-                onSelectObject={setSelectedObjectId}
-                onLayerAction={handleLayerAction}
-            />
-        ) : (
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-10 bg-background/80">
-                        <PanelLeft className="h-5 w-5"/>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[260px]">
-                    <LeftSidebar
-                        objects={objects}
-                        selectedObjectId={selectedObjectId}
-                        onSelectObject={setSelectedObjectId}
-                        onLayerAction={handleLayerAction}
-                        isSheet
-                    />
-                </SheetContent>
-            </Sheet>
-        )}
+    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden" onClick={deselectObject}>
+      {isDesktop ? (
+          <LeftSidebar
+              objects={objects}
+              selectedObjectId={selectedObjectId}
+              onSelectObject={setSelectedObjectId}
+              onLayerAction={handleLayerAction}
+          />
+      ) : (
+          <Sheet>
+              <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-10 bg-background/80">
+                      <PanelLeft className="h-5 w-5"/>
+                  </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[260px]">
+                  <LeftSidebar
+                      objects={objects}
+                      selectedObjectId={selectedObjectId}
+                      onSelectObject={setSelectedObjectId}
+                      onLayerAction={handleLayerAction}
+                      isSheet
+                  />
+              </SheetContent>
+          </Sheet>
+      )}
 
+      <div className="flex flex-col overflow-hidden">
+        <EditorToolbar
+          onAddItem={handleAddItem}
+          onClearAll={handleClearAll}
+          onLayerAction={handleLayerAction}
+          onZoom={setZoom}
+          zoom={zoom}
+          hasSelectedObject={!!selectedObjectId}
+        />
         <EditorCanvas
           canvasRef={canvasRef}
           objects={objects}
@@ -84,22 +84,22 @@ export default function EditorPage() {
           onUpdateObject={handleUpdateObject}
           zoom={zoom}
         />
-        
-        {isDesktop ? (
-            <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} />
-        ) : (
-             <Sheet>
-                <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-10 bg-background/80">
-                        <PanelRight className="h-5 w-5"/>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="p-0 w-[300px]">
-                    <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} isSheet />
-                </SheetContent>
-            </Sheet>
-        )}
       </div>
+      
+      {isDesktop ? (
+          <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} />
+      ) : (
+           <Sheet>
+              <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-10 bg-background/80">
+                      <PanelRight className="h-5 w-5"/>
+                  </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="p-0 w-[300px]">
+                  <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} isSheet />
+              </SheetContent>
+          </Sheet>
+      )}
     </div>
   );
 }
