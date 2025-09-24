@@ -274,7 +274,7 @@ export default function EditorPage() {
   const selectedObject = objects.find((obj) => obj.id === selectedObjectId);
 
   const deselectObject = (e: React.MouseEvent) => {
-    if (e.target === canvasRef.current) {
+    if (e.target === canvasRef.current?.parentElement) {
       setSelectedObjectId(null);
     }
   };
@@ -337,7 +337,7 @@ export default function EditorPage() {
             </div>
         </div>
 
-        <div className="bg-muted flex flex-col items-center justify-center p-4 relative" onClick={deselectObject}>
+        <div className="bg-muted flex flex-col relative" onClick={deselectObject}>
             <EditorToolbar
                 onAddItem={handleAddItem}
                 onClearAll={handleClearAll}
@@ -346,7 +346,7 @@ export default function EditorPage() {
                 zoom={zoom}
                 hasSelectedObject={!!selectedObjectId}
             />
-            <div className="w-full h-full flex items-center justify-center overflow-auto p-4">
+            <div className="flex-1 w-full flex items-center justify-center overflow-auto p-4">
                 <div
                     ref={canvasRef}
                     className="relative w-full h-full max-w-[500px] max-h-[700px] bg-white shadow-lg overflow-hidden"
