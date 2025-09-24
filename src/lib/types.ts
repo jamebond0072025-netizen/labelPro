@@ -1,0 +1,30 @@
+export interface BaseObject {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  opacity: number;
+}
+
+export interface TextObject extends BaseObject {
+  type: 'text';
+  text: string;
+  fontSize: number;
+  fontWeight: 'normal' | 'bold';
+  fontFamily: string;
+  color: string;
+}
+
+export interface ImageObject extends BaseObject {
+  type: 'image';
+  src: string;
+}
+
+export interface BarcodeObject extends BaseObject {
+  type: 'barcode';
+  value: string;
+}
+
+export type CanvasObject = TextObject | ImageObject | BarcodeObject;

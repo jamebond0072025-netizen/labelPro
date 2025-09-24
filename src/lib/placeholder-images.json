@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero",
+      "description": "A designer's desk with label design tools and samples.",
+      "imageUrl": "https://images.unsplash.com/photo-1626196607758-266f19558d3f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkZXNpZ25lciUyMGRlc2t8ZW58MHx8fHwxNzU4NjQyMjUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "designer desk"
+    },
+    {
+      "id": "template1",
+      "description": "Minimalist coffee bag label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1691017296011-ea9532242c7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtaW5pbWFsaXN0JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "minimalist label"
+    },
+    {
+      "id": "template2",
+      "description": "Vibrant and colorful juice bottle label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1623228297208-e63a7a2c096f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx2aWJyYW50JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vibrant label"
+    },
+    {
+      "id": "template3",
+      "description": "Elegant wine bottle label template with script font.",
+      "imageUrl": "https://images.unsplash.com/photo-1697115355219-310cbdde03f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlbGVnYW50JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "elegant label"
+    },
+    {
+      "id": "template4",
+      "description": "Modern skincare product label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1733248113980-a7842d2273fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBsYWJlbHxlbnwwfHx8fDE3NTg3MzM0ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern label"
+    },
+    {
+      "id": "template5",
+      "description": "Rustic craft beer can label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1753568013889-3ed0d665b7a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxydXN0aWMlMjBsYWJlbHxlbnwwfHx8fDE3NTg3MzM0ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rustic label"
+    },
+    {
+      "id": "template6",
+      "description": "Organic honey jar label template with a hand-drawn look.",
+      "imageUrl": "https://images.unsplash.com/photo-1612092554096-107746384543?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvcmdhbmljJTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "organic label"
+    },
+    {
+      "id": "product1",
+      "description": "A bottle of olive oil",
+      "imageUrl": "https://images.unsplash.com/photo-1527756898251-203e9ce0d9c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxvbGl2ZSUyMG9pbHxlbnwwfHx8fDE3NTg3MTE2MDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "olive oil"
+    },
+    {
+      "id": "product2",
+      "description": "A jar of strawberry jam",
+      "imageUrl": "https://images.unsplash.com/photo-1626283833508-905aad8f976e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdHJhd2JlcnJ5JTIwamFtfGVufDB8fHx8MTc1ODcyODA0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "strawberry jam"
+    },
+    {
+      "id": "product3",
+      "description": "A bar of artisanal soap",
+      "imageUrl": "https://images.unsplash.com/photo-1750271336429-8b0a507785c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YXJ0aXNhbmFsJTIwc29hcHxlbnwwfHx8fDE3NTg2NTkyODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "artisanal soap"
+    }
+  ]
 }
