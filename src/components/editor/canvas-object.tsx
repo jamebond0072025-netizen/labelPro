@@ -1,10 +1,12 @@
 'use client';
 
-import { CanvasObject as CanvasObjectType, TextObject } from '@/lib/types';
+import React from 'react';
+import { CanvasObject as CanvasObjectType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { BarcodeSvg } from './barcode-svg';
 import { RotateCcw } from 'lucide-react';
+import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-interactions';
 
 interface CanvasObjectProps {
   object: CanvasObjectType;
@@ -13,8 +15,8 @@ interface CanvasObjectProps {
   onInteractionStart: (
     e: React.PointerEvent,
     id: string,
-    type: 'drag' | 'resize' | 'rotate',
-    handle: 'nw' | 'ne' | 'sw' | 'se' | 'rotate' | 'body'
+    type: InteractionType,
+    handle: InteractionHandle
   ) => void;
 }
 
@@ -57,8 +59,8 @@ export function CanvasObject({
           <Image
             src={object.src}
             alt="Canvas image"
-            layout="fill"
-            objectFit="cover"
+            fill
+            className="object-cover"
             draggable={false}
           />
         );
@@ -69,7 +71,7 @@ export function CanvasObject({
     }
   };
 
-  const handlePointerDown = (e: React.PointerEvent, type: 'drag' | 'resize' | 'rotate', handle: 'nw' | 'ne' | 'sw' | 'se' | 'rotate' | 'body') => {
+  const handlePointerDown = (e: React.PointerEvent, type: InteractionType, handle: InteractionHandle) => {
     e.stopPropagation();
     onInteractionStart(e, object.id, type, handle);
   };
@@ -83,7 +85,7 @@ export function CanvasObject({
       }}
       onPointerDown={(e) => handlePointerDown(e, 'drag', 'body')}
       className={cn(
-        'outline-none',
+        'outline-none select-none',
         isSelected && 'outline-accent outline-dashed outline-1'
       )}
     >

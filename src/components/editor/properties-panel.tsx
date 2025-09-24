@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
@@ -86,77 +87,79 @@ export function PropertiesPanel({
   };
 
   return (
-    <div className="p-4 pt-12 border-l bg-card h-full space-y-4 overflow-y-auto">
-      <h3 className="text-lg font-headline font-semibold capitalize">
-        {selectedObject.type} Properties
-      </h3>
+    <ScrollArea className="h-full">
+      <div className="p-4 pt-12 bg-card h-full space-y-4">
+        <h3 className="text-lg font-headline font-semibold capitalize">
+          {selectedObject.type} Properties
+        </h3>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-2">
-          <Label htmlFor="pos-x">X</Label>
-          <Input
-            id="pos-x"
-            type="number"
-            value={Math.round(selectedObject.x)}
-            onChange={(e) => handleUpdate({ x: parseInt(e.target.value, 10) })}
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="pos-x">X</Label>
+            <Input
+              id="pos-x"
+              type="number"
+              value={Math.round(selectedObject.x)}
+              onChange={(e) => handleUpdate({ x: parseInt(e.target.value, 10) })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pos-y">Y</Label>
+            <Input
+              id="pos-y"
+              type="number"
+              value={Math.round(selectedObject.y)}
+              onChange={(e) => handleUpdate({ y: parseInt(e.target.value, 10) })}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="size-w">W</Label>
+            <Input
+              id="size-w"
+              type="number"
+              value={Math.round(selectedObject.width)}
+              onChange={(e) =>
+                handleUpdate({ width: parseInt(e.target.value, 10) })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="size-h">H</Label>
+            <Input
+              id="size-h"
+              type="number"
+              value={Math.round(selectedObject.height)}
+              onChange={(e) =>
+                handleUpdate({ height: parseInt(e.target.value, 10) })
+              }
+            />
+          </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="pos-y">Y</Label>
+          <Label htmlFor="rotation">Rotation</Label>
           <Input
-            id="pos-y"
+            id="rotation"
             type="number"
-            value={Math.round(selectedObject.y)}
-            onChange={(e) => handleUpdate({ y: parseInt(e.target.value, 10) })}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-2">
-          <Label htmlFor="size-w">W</Label>
-          <Input
-            id="size-w"
-            type="number"
-            value={Math.round(selectedObject.width)}
+            value={Math.round(selectedObject.rotation)}
             onChange={(e) =>
-              handleUpdate({ width: parseInt(e.target.value, 10) })
+              handleUpdate({ rotation: parseInt(e.target.value, 10) })
             }
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="size-h">H</Label>
-          <Input
-            id="size-h"
-            type="number"
-            value={Math.round(selectedObject.height)}
-            onChange={(e) =>
-              handleUpdate({ height: parseInt(e.target.value, 10) })
-            }
+          <Label>Opacity</Label>
+          <Slider
+            value={[selectedObject.opacity]}
+            max={1}
+            step={0.01}
+            onValueChange={(value) => handleUpdate({ opacity: value[0] })}
           />
         </div>
-      </div>
-       <div className="space-y-2">
-        <Label htmlFor="rotation">Rotation</Label>
-        <Input
-          id="rotation"
-          type="number"
-          value={Math.round(selectedObject.rotation)}
-          onChange={(e) =>
-            handleUpdate({ rotation: parseInt(e.target.value, 10) })
-          }
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>Opacity</Label>
-        <Slider
-          value={[selectedObject.opacity]}
-          max={1}
-          step={0.01}
-          onValueChange={(value) => handleUpdate({ opacity: value[0] })}
-        />
-      </div>
 
-      {renderTextProperties()}
-    </div>
+        {renderTextProperties()}
+      </div>
+    </ScrollArea>
   );
 }

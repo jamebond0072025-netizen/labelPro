@@ -4,6 +4,7 @@ import { CanvasObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Layers, Type, Image as ImageIcon, Barcode, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface LayersPanelProps {
   objects: CanvasObject[];
@@ -42,36 +43,42 @@ export function LayersPanel({ objects, selectedObjectId, onSelectObject, onLayer
   const reversedObjects = [...objects].reverse();
 
   return (
-    <div className="flex-1 p-4 pt-12 overflow-y-auto">
-      <h3 className="text-lg font-headline font-semibold mb-4">Layers</h3>
-      <div className="space-y-1">
-        {reversedObjects.map((obj) => (
-          <button
-            key={obj.id}
-            onClick={() => onSelectObject(obj.id)}
-            className={cn(
-              'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 group',
-              'hover:bg-muted',
-              selectedObjectId === obj.id ? 'bg-muted' : 'bg-transparent'
-            )}
-          >
-            <div className="flex items-center gap-2 truncate">
-                {getObjectIcon(obj)}
-                <span className="truncate">{getObjectDisplayName(obj)}</span>
-            </div>
-             {selectedObjectId === obj.id && (
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                    onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
-                >
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            )}
-          </button>
-        ))}
+    <ScrollArea className="h-full">
+      <div className="p-4 pt-12">
+        <h3 className="text-lg font-headline font-semibold mb-4">Layers</h3>
+        <div className="space-y-1">
+          {reversedObjects.map((obj) => (
+            <button
+              key={obj.id}
+              onClick={() => onSelectObject(obj.id)}
+              className={cn(
+                'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 group',
+                'hover:bg-muted',
+                selectedObjectId === obj.id ? 'bg-muted' : 'bg-transparent'
+              )}
+            >
+              <div className="flex items-center gap-2 truncate">
+                  {getObjectIcon(obj)}
+                  <span className="truncate">{getObjectDisplayName(obj)}</span>
+              </div>
+              {selectedObjectId === obj.id && (
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
+                      title="Delete Layer"
+                  >
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
+              )}
+            </button>
+          ))}
+          {reversedObjects.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-4">No layers yet.</p>
+          )}
+        </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }

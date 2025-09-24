@@ -5,7 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ import {
   Trash2,
   ZoomIn,
   ZoomOut,
-  Layers,
   ChevronsUp,
   ChevronsDown,
 } from 'lucide-react';
@@ -53,7 +51,7 @@ export function EditorToolbar({
     hasSelectedObject
 }: EditorToolbarProps) {
   return (
-    <div className="w-full bg-card border-b p-2 flex items-center justify-between gap-2">
+    <div className="w-full bg-card border-b p-2 flex items-center justify-between gap-2 z-20">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" disabled>
           <Undo />
@@ -81,19 +79,19 @@ export function EditorToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
          <Separator orientation="vertical" className="h-8" />
-        <Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelectedObject}>
+        <Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelectedObject} title="Bring Forward">
           <ChevronsUp />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onLayerAction('send-backward')} disabled={!hasSelectedObject}>
+        <Button variant="ghost" size="icon" onClick={() => onLayerAction('send-backward')} disabled={!hasSelectedObject} title="Send Backward">
           <ChevronsDown />
         </Button>
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => onZoom(zoom + 0.1)}>
+        <Button variant="ghost" size="icon" onClick={() => onZoom(zoom + 0.1)} title="Zoom In">
           <ZoomIn />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onZoom(Math.max(0.1, zoom - 0.1))}>
+        <Button variant="ghost" size="icon" onClick={() => onZoom(Math.max(0.1, zoom - 0.1))} title="Zoom Out">
           <ZoomOut />
         </Button>
         <div className="w-12 text-center text-sm">{Math.round(zoom * 100)}%</div>
