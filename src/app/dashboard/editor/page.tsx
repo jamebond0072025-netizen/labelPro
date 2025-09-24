@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Toolbar } from '@/components/editor/toolbar';
 import { PropertiesPanel } from '@/components/editor/properties-panel';
+import { LayersPanel } from '@/components/editor/layers-panel';
 import { CanvasObject as CanvasObjectComponent } from '@/components/editor/canvas-object';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -210,7 +211,14 @@ export default function EditorPage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_300px] h-[calc(100vh-56px)] overflow-hidden">
-      <Toolbar onAddItem={handleAddItem} />
+      <div className="flex flex-col border-r bg-card h-full">
+        <Toolbar onAddItem={handleAddItem} />
+        <LayersPanel
+            objects={objects}
+            selectedObjectId={selectedObjectId}
+            onSelectObject={setSelectedObjectId}
+        />
+      </div>
 
       <div className="bg-muted flex items-center justify-center p-4" onClick={deselectObject}>
         <div

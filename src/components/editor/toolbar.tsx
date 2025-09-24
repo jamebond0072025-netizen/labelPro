@@ -9,7 +9,7 @@ interface ToolbarProps {
 
 export function Toolbar({ onAddItem }: ToolbarProps) {
   return (
-    <div className="p-4 border-r bg-card h-full">
+    <div className="p-4 border-b">
       <h3 className="text-lg font-headline font-semibold mb-4">Tools</h3>
       <div className="grid gap-2">
         <Button variant="outline" className="justify-start" onClick={() => onAddItem('text')}>
