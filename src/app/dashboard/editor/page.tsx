@@ -11,7 +11,8 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight } from 'lucide-react';
+import { PanelLeft, PanelRight, Pin, PinOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const initialObjects: CanvasObject[] = [
   {
@@ -49,6 +50,9 @@ export default function EditorPage() {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   
+  const [isLeftSidebarPinned, setIsLeftSidebarPinned] = useState(true);
+  const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(false);
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const interactionRef = useRef<{
     id: string;
@@ -231,34 +235,50 @@ export default function EditorPage() {
         onUpdate={handleUpdateObject}
       />
   )
+  
+  const gridStyle: React.CSSProperties = {
+      gridTemplateColumns: isDesktop 
+        ? `${isLeftSidebarPinned ? '240px' : '0px'} 1fr ${isRightSidebarPinned ? '300px' : '0px'}`
+        : '1fr'
+  };
 
   return (
-    <div className="grid lg:grid-cols-[240px_1fr_300px] h-full">
-        <div className="hidden lg:block">
+    <div className="grid h-full transition-all duration-300" style={gridStyle}>
+        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden", isLeftSidebarPinned ? 'w-[240px]' : 'w-0')}>
             <LeftSidebar />
         </div>
 
         <div className="bg-muted flex items-center justify-center p-4 relative" onClick={deselectObject}>
+            <div className="absolute top-2 left-2 z-10 hidden lg:flex gap-2">
+                 <Button variant="ghost" size="icon" onClick={() => setIsLeftSidebarPinned(!isLeftSidebarPinned)}>
+                    {isLeftSidebarPinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
+                 </Button>
+            </div>
+            <div className="absolute top-2 right-2 z-10 hidden lg:flex gap-2">
+                 <Button variant="ghost" size="icon" onClick={() => setIsRightSidebarPinned(!isRightSidebarPinned)}>
+                    {isRightSidebarPinned ? <PinOff className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
+                 </Button>
+            </div>
             <div
-            ref={canvasRef}
-            className="relative w-full h-full max-w-[500px] max-h-[700px] bg-white shadow-lg overflow-hidden"
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp}
+                ref={canvasRef}
+                className="relative w-full h-full max-w-[500px] max-h-[700px] bg-white shadow-lg overflow-hidden"
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
             >
-            {objects.map((obj) => (
-                <CanvasObjectComponent
-                key={obj.id}
-                object={obj}
-                isSelected={selectedObjectId === obj.id}
-                onSelect={setSelectedObjectId}
-                onInteractionStart={handleInteractionStart}
-                />
-            ))}
+                {objects.map((obj) => (
+                    <CanvasObjectComponent
+                    key={obj.id}
+                    object={obj}
+                    isSelected={selectedObjectId === obj.id}
+                    onSelect={setSelectedObjectId}
+                    onInteractionStart={handleInteractionStart}
+                    />
+                ))}
             </div>
         </div>
         
-        <div className="hidden lg:block">
+        <div className={cn("hidden lg:block transition-all duration-300 overflow-hidden", isRightSidebarPinned ? 'w-[300px]' : 'w-0')}>
             <RightSidebar />
         </div>
 
