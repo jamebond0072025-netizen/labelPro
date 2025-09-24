@@ -209,7 +209,7 @@ export default function EditorPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_300px] h-[calc(100vh-100px)] overflow-hidden">
+    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_300px] h-[calc(100vh-56px)] overflow-hidden">
       <Toolbar onAddItem={handleAddItem} />
 
       <div className="bg-muted flex items-center justify-center p-4" onClick={deselectObject}>

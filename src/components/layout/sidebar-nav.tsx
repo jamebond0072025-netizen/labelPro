@@ -18,7 +18,7 @@ import {
 
 const navItems = [
   { href: '/dashboard/editor', icon: LayoutGrid, label: 'Editor' },
-  { href: '/dashboard/templates', icon: GalleryHorizontal, label: 'Templates' },
+  { href: '/', icon: GalleryHorizontal, label: 'Templates' },
   { href: '/dashboard/ai-assistant', icon: Sparkles, label: 'AI Assistant' },
 ];
 
