@@ -2,12 +2,16 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Toolbar } from '@/components/editor/toolbar';
 import { PropertiesPanel } from '@/components/editor/properties-panel';
 import { LayersPanel } from '@/components/editor/layers-panel';
 import { CanvasObject as CanvasObjectComponent } from '@/components/editor/canvas-object';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { PanelLeft, PanelRight } from 'lucide-react';
 
 const initialObjects: CanvasObject[] = [
   {
@@ -56,6 +60,7 @@ export default function EditorPage() {
   } | null>(null);
 
   const searchParams = useSearchParams();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
     const templateId = searchParams.get('template');
@@ -209,41 +214,78 @@ export default function EditorPage() {
     }
   };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] lg:grid-cols-[240px_1fr_300px] h-[calc(100vh-56px)] overflow-hidden">
-      <div className="flex flex-col border-r bg-card h-full">
+  const LeftSidebar = () => (
+    <div className="flex flex-col border-r bg-card h-full">
         <Toolbar onAddItem={handleAddItem} />
         <LayersPanel
             objects={objects}
             selectedObjectId={selectedObjectId}
             onSelectObject={setSelectedObjectId}
         />
-      </div>
+    </div>
+  )
 
-      <div className="bg-muted flex items-center justify-center p-4" onClick={deselectObject}>
-        <div
-          ref={canvasRef}
-          className="relative w-[500px] h-[700px] bg-white shadow-lg overflow-hidden"
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        >
-          {objects.map((obj) => (
-            <CanvasObjectComponent
-              key={obj.id}
-              object={obj}
-              isSelected={selectedObjectId === obj.id}
-              onSelect={setSelectedObjectId}
-              onInteractionStart={handleInteractionStart}
-            />
-          ))}
-        </div>
-      </div>
-
-      <PropertiesPanel
+  const RightSidebar = () => (
+     <PropertiesPanel
         selectedObject={selectedObject}
         onUpdate={handleUpdateObject}
       />
+  )
+
+  return (
+    <div className="grid lg:grid-cols-[240px_1fr_300px] h-full">
+        <div className="hidden lg:block">
+            <LeftSidebar />
+        </div>
+
+        <div className="bg-muted flex items-center justify-center p-4 relative" onClick={deselectObject}>
+            <div
+            ref={canvasRef}
+            className="relative w-full h-full max-w-[500px] max-h-[700px] bg-white shadow-lg overflow-hidden"
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
+            >
+            {objects.map((obj) => (
+                <CanvasObjectComponent
+                key={obj.id}
+                object={obj}
+                isSelected={selectedObjectId === obj.id}
+                onSelect={setSelectedObjectId}
+                onInteractionStart={handleInteractionStart}
+                />
+            ))}
+            </div>
+        </div>
+        
+        <div className="hidden lg:block">
+            <RightSidebar />
+        </div>
+
+        {!isDesktop && (
+            <>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon" className="lg:hidden fixed top-16 left-2 z-10 bg-background/80">
+                            <PanelLeft className="h-5 w-5"/>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 w-[260px]">
+                        <LeftSidebar />
+                    </SheetContent>
+                </Sheet>
+                <Sheet>
+                    <SheetTrigger asChild>
+                         <Button variant="ghost" size="icon" className="lg:hidden fixed top-16 right-2 z-10 bg-background/80">
+                            <PanelRight className="h-5 w-5"/>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="p-0 w-[300px]">
+                       <RightSidebar />
+                    </SheetContent>
+                </Sheet>
+            </>
+        )}
     </div>
   );
 }
