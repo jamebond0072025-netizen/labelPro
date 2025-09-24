@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  GalleryHorizontal,
   LayoutGrid,
   Sparkles,
   Type,
@@ -18,11 +17,10 @@ import {
 
 const navItems = [
   { href: '/dashboard/editor', icon: LayoutGrid, label: 'Editor' },
-  { href: '/dashboard/templates', icon: GalleryHorizontal, label: 'Templates' },
   { href: '/dashboard/ai-assistant', icon: Sparkles, label: 'AI Assistant' },
 ];
 
-export function AppSidebarNav({ isMobile = false, isHomepage = false }: { isMobile?: boolean, isHomepage?: boolean }) {
+export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
 
   const brand = (
@@ -33,21 +31,9 @@ export function AppSidebarNav({ isMobile = false, isHomepage = false }: { isMobi
         <div className="bg-primary h-8 w-8 rounded-lg flex items-center justify-center">
             <Type className="h-5 w-5 text-primary-foreground" />
         </div>
-        {(!isMobile || isHomepage) && <span className="font-bold font-headline text-lg">LabelPro</span>}
+        {!isMobile && <span className="font-bold font-headline text-lg">LabelPro</span>}
     </Link>
   );
-
-  if (isHomepage) {
-    return (
-        <div className="flex items-center justify-between w-full">
-            {brand}
-            <nav className="flex items-center gap-4 sm:gap-6">
-                <Link className="text-sm font-medium hover:underline underline-offset-4" href="/#templates">Templates</Link>
-                <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/editor">Editor</Link>
-            </nav>
-        </div>
-    )
-  }
 
   const nav = (
     <nav className={cn("flex flex-col gap-1 px-2", isMobile && 'grid gap-6 text-lg font-medium mt-6')}>

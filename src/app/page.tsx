@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppSidebarNav } from '@/components/layout/sidebar-nav';
 import { Type } from 'lucide-react';
 
 export default function Home() {
@@ -15,7 +14,16 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
-            <AppSidebarNav />
+            <div className="flex items-center justify-between w-full">
+                <Link href="/" className="flex items-center gap-2">
+                    <Type className="h-6 w-6 text-primary" />
+                    <span className="font-semibold font-headline">LabelPro</span>
+                </Link>
+                <nav className="flex items-center gap-4 sm:gap-6">
+                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/#templates">Templates</Link>
+                    <Link className="text-sm font-medium hover:underline underline-offset-4" href="/dashboard/editor">Editor</Link>
+                </nav>
+            </div>
         </div>
       </header>
       <main className="flex-1">
