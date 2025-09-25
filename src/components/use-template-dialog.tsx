@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Input } from './ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 
 interface UseTemplateDialogProps {
@@ -35,6 +36,52 @@ interface UseTemplateDialogProps {
 }
 
 type Step = 'upload-data' | 'map-fields' | 'manual-data';
+
+interface TemplatePlaceholder {
+    key: string;
+    type: 'text' | 'image' | 'barcode';
+}
+
+const ImageInput = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                onChange(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-1">
+            <Input
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Image URL or upload"
+                className="h-8 flex-1"
+            />
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => fileInputRef.current?.click()}
+            >
+                <Upload className="h-4 w-4" />
+            </Button>
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+            />
+        </div>
+    );
+};
 
 
 export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogProps) {
@@ -49,7 +96,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const [parsedData, setParsedData] = useState<Record<string, any>[] | null>(null);
     const [dataKeys, setDataKeys] = useState<string[]>([]);
     
-    const [templatePlaceholders, setTemplatePlaceholders] = useState<string[]>([]);
+    const [templatePlaceholders, setTemplatePlaceholders] = useState<TemplatePlaceholder[]>([]);
     const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
     const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
     const [manualData, setManualData] = useState<Record<string, any>[]>([{}]);
@@ -62,15 +109,18 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             const res = await fetch(template.templateUrl);
             const templateData: { objects: CanvasObject[] } = await res.json();
             const placeholders = templateData.objects
-                .map(obj => 'key' in obj ? obj.key : null)
-                .filter((key): key is string => key !== null && key !== undefined);
+                .filter((obj): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
+                .map(obj => ({
+                    key: obj.key,
+                    type: obj.type,
+                }));
             
-            const uniquePlaceholders = [...new Set(placeholders)];
+            const uniquePlaceholders = Array.from(new Map(placeholders.map(p => [p.key, p])).values());
             setTemplatePlaceholders(uniquePlaceholders);
             
             // Initialize manual data with keys
             const initialRow: Record<string, string> = {};
-            uniquePlaceholders.forEach(p => initialRow[p] = '');
+            uniquePlaceholders.forEach(p => initialRow[p.key] = '');
             setManualData([initialRow]);
 
         } catch (error) {
@@ -98,10 +148,10 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             const initialMapping: Record<string, string> = {};
             templatePlaceholders.forEach(placeholder => {
                 // Auto-map if a data key matches the placeholder key
-                if (dataKeys.includes(placeholder)) {
-                    initialMapping[placeholder] = placeholder;
+                if (dataKeys.includes(placeholder.key)) {
+                    initialMapping[placeholder.key] = placeholder.key;
                 } else {
-                    initialMapping[placeholder] = '';
+                    initialMapping[placeholder.key] = '';
                 }
             });
             setFieldMapping(initialMapping);
@@ -221,7 +271,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 return;
             }
 
-            const isMappingComplete = Object.values(fieldMapping).every(v => v !== '');
+            const isMappingComplete = templatePlaceholders.every(p => fieldMapping[p.key]);
 
             if (!isMappingComplete) {
                 toast({ variant: 'destructive', title: 'Mapping Incomplete', description: 'Please map all template fields.'});
@@ -254,14 +304,14 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const handleManualDataChange = (rowIndex: number, key: string, value: string) => {
         setManualData(prev => {
             const newData = [...prev];
-            newData[rowIndex][key] = value;
+            newData[rowIndex] = {...newData[rowIndex], [key]: value};
             return newData;
         });
     }
 
     const addManualRow = () => {
         const newRow: Record<string, string> = {};
-        templatePlaceholders.forEach(p => newRow[p] = '');
+        templatePlaceholders.forEach(p => newRow[p.key] = '');
         setManualData(prev => [...prev, newRow]);
     }
 
@@ -271,13 +321,13 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
 
     const unmappedPlaceholders = useMemo(() => {
-        return templatePlaceholders.filter(p => !fieldMapping[p]);
+        return templatePlaceholders.filter(p => !fieldMapping[p.key]);
     }, [templatePlaceholders, fieldMapping]);
 
     const renderUploadData = () => (
         <>
             <DialogHeader>
-                <DialogTitle>Provide Your Data</DialogTitle>
+                <DialogTitle>Use Template: {template.description}</DialogTitle>
                 <DialogDescription>
                     Upload a data file (JSON, CSV, Excel) or paste JSON to populate your labels. The data should be an array of objects.
                 </DialogDescription>
@@ -341,7 +391,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderMapFields = () => (
          <>
             <DialogHeader>
-                <DialogTitle>Map Your Data Fields</DialogTitle>
+                <DialogTitle>Map Fields for: {template.description}</DialogTitle>
                 <DialogDescription>
                     Match the placeholders in your template to the fields from your data source. Fields with matching names have been pre-selected.
                 </DialogDescription>
@@ -354,15 +404,15 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                         <Skeleton className="h-8 w-full" />
                     </div>
                 ) : templatePlaceholders.map(placeholder => (
-                    <div key={placeholder} className="grid grid-cols-2 items-center gap-4">
-                        <Label htmlFor={`map-${placeholder}`} className="text-right">
-                           <code>{`{{${placeholder}}}`}</code>
+                    <div key={placeholder.key} className="grid grid-cols-2 items-center gap-4">
+                        <Label htmlFor={`map-${placeholder.key}`} className="text-right">
+                           <code>{`{{${placeholder.key}}}`}</code>
                         </Label>
                         <Select
-                            value={fieldMapping[placeholder]}
-                            onValueChange={(value) => handleMappingChange(placeholder, value)}
+                            value={fieldMapping[placeholder.key]}
+                            onValueChange={(value) => handleMappingChange(placeholder.key, value)}
                         >
-                            <SelectTrigger id={`map-${placeholder}`}>
+                            <SelectTrigger id={`map-${placeholder.key}`}>
                                 <SelectValue placeholder="Select a data field..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -391,7 +441,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderManualData = () => (
         <>
             <DialogHeader>
-                <DialogTitle>Enter Your Data Manually</DialogTitle>
+                <DialogTitle>Enter Data for: {template.description}</DialogTitle>
                 <DialogDescription>
                    Add rows and fill in the data for each label you want to create.
                 </DialogDescription>
@@ -406,20 +456,27 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            {templatePlaceholders.map(key => <TableHead key={key}>{key}</TableHead>)}
+                            {templatePlaceholders.map(p => <TableHead key={p.key}>{p.key}</TableHead>)}
                             <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {manualData.map((row, rowIndex) => (
                             <TableRow key={rowIndex}>
-                                {templatePlaceholders.map(key => (
-                                    <TableCell key={key}>
-                                        <Input 
-                                            value={row[key] || ''}
-                                            onChange={(e) => handleManualDataChange(rowIndex, key, e.target.value)}
-                                            className="h-8"
-                                        />
+                                {templatePlaceholders.map(p => (
+                                    <TableCell key={p.key}>
+                                        {p.type === 'image' ? (
+                                            <ImageInput
+                                                value={row[p.key] || ''}
+                                                onChange={(value) => handleManualDataChange(rowIndex, p.key, value)}
+                                            />
+                                        ) : (
+                                            <Input 
+                                                value={row[p.key] || ''}
+                                                onChange={(e) => handleManualDataChange(rowIndex, p.key, e.target.value)}
+                                                className="h-8"
+                                            />
+                                        )}
                                     </TableCell>
                                 ))}
                                 <TableCell>
