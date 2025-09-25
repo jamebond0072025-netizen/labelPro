@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <main className="flex-1">
-        <section id="templates" className="w-full py-12 md:py-16 lg:py-20">
+        <section id="templates" className="w-full py-8">
             <div className="container px-4 md:px-6">
                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                     <div className="space-y-2">
