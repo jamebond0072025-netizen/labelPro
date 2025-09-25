@@ -16,6 +16,7 @@ import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
 import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Textarea } from '../ui/textarea';
 
 
 interface PropertiesPanelProps {
@@ -65,10 +66,11 @@ export function PropertiesPanel({
       <>
         <div className="space-y-2">
           <Label htmlFor="text-content">Text</Label>
-          <Input
+          <Textarea
             id="text-content"
             value={textObject.text}
             onChange={(e) => handleTextUpdate({ text: e.target.value })}
+            rows={3}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
