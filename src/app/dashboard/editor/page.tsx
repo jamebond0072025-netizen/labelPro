@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -25,6 +26,7 @@ export default function EditorPage() {
     backgroundColor: '#FFFFFF',
     backgroundImage: '',
   });
+  const [editingObjectId, setEditingObjectId] = useState<string | null>(null);
 
   const {
     objects,
@@ -45,6 +47,20 @@ export default function EditorPage() {
   };
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectIds[selectedObjectIds.length - 1]);
+
+  const handleDeselectAll = () => {
+    setSelectedObjectIds([]);
+    setEditingObjectId(null);
+  }
+
+  const handleObjectDoubleClick = (id: string) => {
+    const object = objects.find(obj => obj.id === id);
+    if (object && object.type === 'text') {
+      setEditingObjectId(id);
+      // Deselect other objects when starting to edit
+      setSelectedObjectIds([id]);
+    }
+  }
   
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden">
@@ -88,12 +104,18 @@ export default function EditorPage() {
           canvasRef={canvasRef}
           objects={objects}
           selectedObjectIds={selectedObjectIds}
-          onSelectObject={(id) => setSelectedObjectIds(id ? [id] : [])}
+          onSelectObject={(id) => {
+            setSelectedObjectIds(id ? [id] : []);
+            setEditingObjectId(null);
+          }}
           onUpdateObject={handleUpdateObject}
           zoom={zoom}
           canvasSettings={canvasSettings}
-          onDeselectAll={() => setSelectedObjectIds([])}
+          onDeselectAll={handleDeselectAll}
           onSetSelectedObjectIds={setSelectedObjectIds}
+          editingObjectId={editingObjectId}
+          onObjectDoubleClick={handleObjectDoubleClick}
+          onStopEditing={() => setEditingObjectId(null)}
         />
       </div>
       

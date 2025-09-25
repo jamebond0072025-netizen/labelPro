@@ -1,3 +1,4 @@
+
 export interface BaseObject {
   id: string;
   x: number;
@@ -36,3 +37,8 @@ export interface CanvasSettings {
   backgroundColor: string;
   backgroundImage?: string;
 }
+
+export type Alignment = 
+  | 'left' | 'center' | 'right' 
+  | 'top' | 'middle' | 'bottom'
+  | 'distribute-horizontally' | 'distribute-vertically';

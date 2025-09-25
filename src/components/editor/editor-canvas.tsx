@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -15,6 +16,9 @@ interface EditorCanvasProps {
   canvasSettings: CanvasSettings;
   onDeselectAll: () => void;
   onSetSelectedObjectIds: (ids: string[]) => void;
+  editingObjectId: string | null;
+  onObjectDoubleClick: (id: string) => void;
+  onStopEditing: () => void;
 }
 
 export function EditorCanvas({
@@ -27,6 +31,9 @@ export function EditorCanvas({
   canvasSettings,
   onDeselectAll,
   onSetSelectedObjectIds,
+  editingObjectId,
+  onObjectDoubleClick,
+  onStopEditing,
 }: EditorCanvasProps) {
   const { 
     handleInteractionStart, 
@@ -62,7 +69,10 @@ export function EditorCanvas({
   return (
     <div 
       className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative"
-      onPointerDown={(e) => handleInteractionStart(e, null, 'marquee', 'body')}
+      onPointerDown={(e) => {
+        if (editingObjectId) return;
+        handleInteractionStart(e, null, 'marquee', 'body')
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onDeselectAll();
@@ -82,8 +92,13 @@ export function EditorCanvas({
             key={obj.id}
             object={obj}
             isSelected={selectedObjectIds.includes(obj.id)}
+            isEditing={obj.id === editingObjectId}
             onSelect={onSelectObject}
             onInteractionStart={handleInteractionStart}
+            onDoubleClick={onObjectDoubleClick}
+            onUpdate={onUpdateObject}
+            onStopEditing={onStopEditing}
+            zoom={zoom}
           />
         ))}
         {selectionBox && (

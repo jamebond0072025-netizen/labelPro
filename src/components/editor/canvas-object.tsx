@@ -1,7 +1,8 @@
+
 'use client';
 
-import React from 'react';
-import { CanvasObject as CanvasObjectType } from '@/lib/types';
+import React, { useRef, useEffect } from 'react';
+import { CanvasObject as CanvasObjectType, TextObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { BarcodeSvg } from './barcode-svg';
@@ -11,6 +12,7 @@ import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-inte
 interface CanvasObjectProps {
   object: CanvasObjectType;
   isSelected: boolean;
+  isEditing: boolean;
   onSelect: (id: string | null) => void;
   onInteractionStart: (
     e: React.PointerEvent,
@@ -18,6 +20,10 @@ interface CanvasObjectProps {
     type: InteractionType,
     handle: InteractionHandle
   ) => void;
+  onDoubleClick: (id: string) => void;
+  onUpdate: (id: string, newProps: Partial<CanvasObjectType>) => void;
+  onStopEditing: () => void;
+  zoom: number;
 }
 
 const getJustifyContent = (textAlign: 'left' | 'center' | 'right' = 'center') => {
@@ -34,9 +40,23 @@ const getJustifyContent = (textAlign: 'left' | 'center' | 'right' = 'center') =>
 export function CanvasObject({
   object,
   isSelected,
+  isEditing,
   onSelect,
   onInteractionStart,
+  onDoubleClick,
+  onUpdate,
+  onStopEditing,
+  zoom,
 }: CanvasObjectProps) {
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isEditing && textAreaRef.current) {
+      textAreaRef.current.focus();
+      textAreaRef.current.select();
+    }
+  }, [isEditing]);
+  
   const style: React.CSSProperties = {
     position: 'absolute',
     left: object.x,
@@ -49,6 +69,10 @@ export function CanvasObject({
   };
 
   const renderObjectContent = () => {
+    if (object.type === 'text' && isEditing) {
+      return renderTextEditor(object);
+    }
+    
     switch (object.type) {
       case 'text':
         const textStyle: React.CSSProperties = {
@@ -63,10 +87,11 @@ export function CanvasObject({
           justifyContent: getJustifyContent(object.textAlign),
           textAlign: object.textAlign,
           padding: '0 5px',
-          whiteSpace: 'nowrap',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
           overflow: 'hidden'
         };
-        return <div style={textStyle}>{object.text}</div>;
+        return <div style={textStyle} onDoubleClick={() => onDoubleClick(object.id)}>{object.text}</div>;
       case 'image':
         return (
           <Image
@@ -84,7 +109,36 @@ export function CanvasObject({
     }
   };
 
+  const renderTextEditor = (textObject: TextObject) => {
+    const textStyle: React.CSSProperties = {
+      fontSize: textObject.fontSize,
+      fontWeight: textObject.fontWeight,
+      fontFamily: textObject.fontFamily,
+      color: textObject.color,
+      textAlign: textObject.textAlign,
+      lineHeight: 1.2,
+      padding: '0 5px',
+    };
+
+    return (
+        <textarea
+            ref={textAreaRef}
+            value={textObject.text}
+            onChange={(e) => onUpdate(textObject.id, { text: e.target.value })}
+            onBlur={onStopEditing}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.currentTarget.blur();
+              }
+            }}
+            className="absolute inset-0 w-full h-full bg-transparent resize-none border-none outline-none overflow-hidden"
+            style={textStyle}
+        />
+    )
+  }
+
   const handlePointerDown = (e: React.PointerEvent, type: InteractionType, handle: InteractionHandle) => {
+    if (isEditing) return;
     e.stopPropagation();
     onInteractionStart(e, object.id, type, handle);
   };
@@ -95,11 +149,11 @@ export function CanvasObject({
       onPointerDown={(e) => handlePointerDown(e, 'drag', 'body')}
       className={cn(
         'outline-none select-none',
-        isSelected && 'outline-accent outline-dashed outline-1'
+        isSelected && !isEditing && 'outline-accent outline-dashed outline-1'
       )}
     >
       {renderObjectContent()}
-      {isSelected && (
+      {isSelected && !isEditing &&(
         <>
           {/* Resize Handles */}
           <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-accent rounded-full cursor-nwse-resize" onPointerDown={(e) => handlePointerDown(e, 'resize', 'nw')} />
