@@ -1,6 +1,7 @@
+
 'use client';
 
-import { CanvasObject, TextObject, BarcodeObject, CanvasSettings } from '@/lib/types';
+import { CanvasObject, TextObject, BarcodeObject, CanvasSettings, ImageObject } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
@@ -61,13 +62,34 @@ export function PropertiesPanel({
   const handleBarcodeUpdate = (props: Partial<BarcodeObject>) => {
     onUpdate(selectedObject.id, props);
   };
+  
+  const handleImageUpdate = (props: Partial<ImageObject>) => {
+    onUpdate(selectedObject.id, props);
+  };
+
+  const renderPlaceholderKeyProperty = () => {
+    if (!('key' in selectedObject) || !selectedObject.key) return null;
+    
+    return (
+        <div className="space-y-2">
+            <Label htmlFor="placeholder-key">Placeholder Key</Label>
+            <Input
+                id="placeholder-key"
+                value={selectedObject.key}
+                onChange={(e) => handleUpdate({ key: e.target.value })}
+            />
+        </div>
+    );
+  }
 
   const renderTextProperties = () => {
     if (selectedObject.type !== 'text') return null;
     const textObject = selectedObject as TextObject;
+    const isPlaceholder = textObject.key !== undefined;
 
     return (
       <>
+        {renderPlaceholderKeyProperty()}
         <div className="space-y-2">
           <Label htmlFor="text-content">Text</Label>
           <Textarea
@@ -75,6 +97,7 @@ export function PropertiesPanel({
             value={textObject.text}
             onChange={(e) => handleTextUpdate({ text: e.target.value })}
             rows={3}
+            disabled={isPlaceholder}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -143,16 +166,29 @@ export function PropertiesPanel({
     const barcodeObject = selectedObject as BarcodeObject;
 
     return (
-      <div className="space-y-2">
-        <Label htmlFor="barcode-value">Barcode Value</Label>
-        <Input
-          id="barcode-value"
-          value={barcodeObject.value}
-          onChange={(e) => handleBarcodeUpdate({ value: e.target.value })}
-        />
-      </div>
+      <>
+        {renderPlaceholderKeyProperty()}
+        <div className="space-y-2">
+          <Label htmlFor="barcode-value">Barcode Value</Label>
+          <Input
+            id="barcode-value"
+            value={barcodeObject.value}
+            onChange={(e) => handleBarcodeUpdate({ value: e.target.value })}
+          />
+        </div>
+      </>
     );
   };
+  
+  const renderImageProperties = () => {
+    if (selectedObject.type !== 'image') return null;
+    
+    return (
+        <>
+            {renderPlaceholderKeyProperty()}
+        </>
+    )
+  }
 
 
   return (
@@ -228,6 +264,7 @@ export function PropertiesPanel({
         </div>
 
         {renderTextProperties()}
+        {renderImageProperties()}
         {renderBarcodeProperties()}
       </div>
     </ScrollArea>

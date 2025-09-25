@@ -17,16 +17,19 @@ export interface TextObject extends BaseObject {
   fontFamily: string;
   color: string;
   textAlign: 'left' | 'center' | 'right';
+  key?: string;
 }
 
 export interface ImageObject extends BaseObject {
   type: 'image';
   src: string;
+  key?: string;
 }
 
 export interface BarcodeObject extends BaseObject {
   type: 'barcode';
   value: string;
+  key?: string;
 }
 
 export type CanvasObject = TextObject | ImageObject | BarcodeObject;
