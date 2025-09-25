@@ -67,6 +67,7 @@ export default function PrintPreviewPage() {
     setIsPrinting(true);
     const printSheet = document.getElementById('print-sheet');
     if (!printSheet) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Print container not found.' });
         setIsPrinting(false);
         return;
     }
@@ -76,34 +77,27 @@ export default function PrintPreviewPage() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Temporarily apply scaling for capture
+    // Capture the canvas at its natural size without screen scaling
     const originalTransform = printSheet.style.transform;
-    printSheet.style.transform = `scale(${layout.scale})`;
+    printSheet.style.transform = ''; // Remove transform for capture
 
     const canvas = await html2canvas(printSheet, {
-        scale: 2, // Higher scale for better quality
-        // Ensure the canvas capture area is based on the scaled element
-        width: printSheet.offsetWidth * layout.scale,
-        height: printSheet.offsetHeight * layout.scale,
+        scale: 2, // Use a higher scale for better resolution
+        // Allow canvas to be its natural size
     });
-    
-    // Restore original transform
-    printSheet.style.transform = originalTransform;
 
+    printSheet.style.transform = originalTransform; // Restore transform
 
     const imgData = canvas.toDataURL('image/png');
     
+    // Calculate image dimensions to fit on the PDF page while maintaining aspect ratio
     const canvasAspectRatio = canvas.width / canvas.height;
-    const pdfAspectRatio = pdfWidth / pdfHeight;
+    let imgWidth = pdfWidth;
+    let imgHeight = imgWidth / canvasAspectRatio;
 
-    let imgWidth, imgHeight;
-
-    if (canvasAspectRatio > pdfAspectRatio) {
-        imgWidth = pdfWidth;
-        imgHeight = pdfWidth / canvasAspectRatio;
-    } else {
+    if (imgHeight > pdfHeight) {
         imgHeight = pdfHeight;
-        imgWidth = pdfHeight * canvasAspectRatio;
+        imgWidth = imgHeight * canvasAspectRatio;
     }
 
     const x = (pdfWidth - imgWidth) / 2;
