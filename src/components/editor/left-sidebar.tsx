@@ -38,7 +38,7 @@ export function LeftSidebar({
 
   const sidebarContent = (
       <div className="h-full flex flex-col pt-12">
-        <Accordion type="single" collapsible defaultValue="layers" className="w-full px-4">
+        <Accordion type="multiple" defaultValue={['layers', 'data']} className="w-full px-4">
             <AccordionItem value="layers">
                 <AccordionTrigger>
                     <div className="flex items-center gap-2">
