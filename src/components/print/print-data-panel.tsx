@@ -64,7 +64,7 @@ export function PrintDataPanel({
     <TooltipProvider>
       <div
         className={cn(
-          "bg-card border-r relative transition-all duration-300 print:hidden",
+          "bg-card border-r relative transition-all duration-300 print-hidden",
           isOpen ? 'w-[300px]' : 'w-[56px]'
         )}
         onMouseEnter={() => setIsHovered(true)}

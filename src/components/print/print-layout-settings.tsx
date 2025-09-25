@@ -79,7 +79,7 @@ export function PrintLayoutSettings({
     <TooltipProvider>
       <div
         className={cn(
-          "bg-card border-l relative transition-all duration-300 print:hidden",
+          "bg-card border-l relative transition-all duration-300 print-hidden",
           isOpen ? 'w-[300px]' : 'w-[56px]'
         )}
         onMouseEnter={() => setIsHovered(true)}
