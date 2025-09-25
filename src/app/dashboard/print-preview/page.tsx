@@ -111,7 +111,7 @@ export default function PrintPreviewPage() {
             width: pageSize.width,
             height: pageSize.height,
             gridTemplateColumns: `repeat(auto-fill, minmax(${templateJson.settings.width}px, 1fr))`,
-            gridTemplateRows: `repeat(auto-fill, ${templateJson.settings.height}px)`,
+            gridAutoRows: `${templateJson.settings.height}px`,
         }}
         >
         {data.map((itemData, index) => (
@@ -127,7 +127,7 @@ export default function PrintPreviewPage() {
 
       <style jsx global>{`
         @page {
-          size: ${pageSize.name.split(' ')[0]};
+          size: ${pageSize.width} ${pageSize.height};
           margin: 1cm;
         }
         @media print {
@@ -139,6 +139,9 @@ export default function PrintPreviewPage() {
             margin: 0;
             page-break-after: always;
             page-break-inside: avoid;
+          }
+          .label-container {
+             page-break-inside: avoid;
           }
           .print\:hidden {
             display: none;
@@ -156,7 +159,6 @@ export default function PrintPreviewPage() {
         .label-container {
             overflow: hidden;
             box-sizing: border-box;
-            page-break-inside: avoid;
         }
       `}</style>
     </div>
