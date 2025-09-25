@@ -89,7 +89,7 @@ export function DataPanel({ objects, onReplaceData }: DataPanelProps) {
                             <Copy className="h-4 w-4" />
                         </Button>
                         <pre className="bg-muted rounded-md p-4 text-xs overflow-x-auto">
-                            <code>{jsonSchemaString}</code>
+                            <code className="whitespace-pre-wrap break-words">{jsonSchemaString}</code>
                         </pre>
                     </div>
                 </div>
