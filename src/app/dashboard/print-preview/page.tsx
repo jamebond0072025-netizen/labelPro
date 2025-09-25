@@ -5,21 +5,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrint } from '@/contexts/print-context';
 import { Button } from '@/components/ui/button';
-import { Printer, ArrowLeft, PanelLeft, PanelRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, PanelLeft, PanelRight, Loader2 } from 'lucide-react';
 import { LabelPreview } from '@/components/label-preview';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { PrintDataPanel } from '@/components/print/print-data-panel';
 import { PrintLayoutSettings } from '@/components/print/print-layout-settings';
-import jsPDF from 'jspdf';
-import { toPng } from 'html-to-image';
 
 
-const pageSizes = [
+export const pageSizes = [
   { name: 'A4 (210mm x 297mm)', width: '210mm', height: '297mm', pdf: { orientation: 'p', unit: 'mm', format: 'a4' } },
   { name: 'Letter (8.5" x 11")', width: '8.5in', height: '11in', pdf: { orientation: 'p', unit: 'in', format: 'letter' } },
   { name: 'Legal (8.5" x 14")', width: '8.5in', height: '14in', pdf: { orientation: 'p', unit: 'in', format: 'legal' } },
@@ -27,7 +23,7 @@ const pageSizes = [
 
 export default function PrintPreviewPage() {
   const router = useRouter();
-  const { template, data } = usePrint();
+  const { template, data, setPrintPageSettings } = usePrint();
   const { toast } = useToast();
   const [templateJson, setTemplateJson] = useState<{ settings: CanvasSettings; objects: CanvasObject[] } | null>(null);
   const [pageSize, setPageSize] = useState(pageSizes[0]);
@@ -37,7 +33,6 @@ export default function PrintPreviewPage() {
     rowGap: 0,
     columnGap: 0,
   });
-  const [isPrinting, setIsPrinting] = useState(false);
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
@@ -64,62 +59,10 @@ export default function PrintPreviewPage() {
     }
   }, [template, router, toast]);
 
-  const handleDownloadPdf = async () => {
-    setIsPrinting(true);
-    const printSheet = document.getElementById('print-sheet');
-    if (!printSheet) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Print container not found.' });
-        setIsPrinting(false);
-        return;
-    }
-    
-    try {
-        const { orientation, unit, format } = pageSize.pdf;
-        const pdf = new jsPDF(orientation, unit, format);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        // Temporarily reset zoom for capture, but keep label scaling
-        const printContainer = document.getElementById('print-container');
-        const originalTransform = printContainer ? printContainer.style.transform : '';
-        if (printContainer) printContainer.style.transform = '';
-        
-        const dataUrl = await toPng(printSheet, {
-          quality: 1,
-          pixelRatio: 2,
-        });
-
-        if (printContainer) printContainer.style.transform = originalTransform;
-
-        const tempImage = new Image();
-        tempImage.src = dataUrl;
-        await new Promise(resolve => tempImage.onload = resolve);
-        
-        const imgWidth = pdfWidth;
-        const imgHeight = (tempImage.height * imgWidth) / tempImage.width;
-        
-        let heightLeft = imgHeight;
-        let position = 0;
-        
-        pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-        
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
-        }
-
-        pdf.save('labels.pdf');
-
-    } catch (e) {
-        console.error(e);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate PDF.' });
-    } finally {
-        setIsPrinting(false);
-    }
-  };
+  useEffect(() => {
+    // Pass settings to context for header button to use
+    setPrintPageSettings({ pageSize, layout });
+  }, [pageSize, layout, setPrintPageSettings]);
 
 
   if (!template || !templateJson) {
@@ -157,33 +100,6 @@ export default function PrintPreviewPage() {
 
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">
-        <div className="w-full max-w-5xl flex justify-between items-center mb-4 print-hidden">
-            <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-            </Button>
-            <div className='flex items-center gap-4'>
-                <div className="flex items-center gap-2">
-                    <Label htmlFor="page-size">Page Size</Label>
-                    <Select value={pageSize.name} onValueChange={handleSizeChange}>
-                        <SelectTrigger id="page-size" className="w-[220px]">
-                            <SelectValue placeholder="Select a size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {pageSizes.map(size => (
-                                <SelectItem key={size.name} value={size.name}>
-                                    {size.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button onClick={handleDownloadPdf} disabled={isPrinting}>
-                {isPrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
-                 {isPrinting ? 'Generating...' : 'Download PDF'}
-                </Button>
-            </div>
-        </div>
-
         <div id="print-container" style={{ transform: `scale(${layout.zoom})`, transformOrigin: 'top center' }}>
           <div 
               id="print-sheet" 
@@ -233,7 +149,12 @@ export default function PrintPreviewPage() {
         {mainContent}
 
         {isDesktop ? (
-            <PrintLayoutSettings layout={layout} onLayoutChange={handleLayoutChange} />
+            <PrintLayoutSettings 
+              layout={layout} 
+              onLayoutChange={handleLayoutChange} 
+              pageSize={pageSize.name}
+              onPageSizeChange={handleSizeChange}
+            />
         ) : (
             <Sheet>
               <SheetTrigger asChild>
@@ -242,7 +163,13 @@ export default function PrintPreviewPage() {
                   </Button>
               </SheetTrigger>
               <SheetContent side="right" className="p-0 w-[300px]">
-                  <PrintLayoutSettings layout={layout} onLayoutChange={handleLayoutChange} isSheet/>
+                  <PrintLayoutSettings 
+                    layout={layout} 
+                    onLayoutChange={handleLayoutChange} 
+                    isSheet
+                    pageSize={pageSize.name}
+                    onPageSizeChange={handleSizeChange}
+                  />
               </SheetContent>
           </Sheet>
         )}

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { ScrollArea } from '../ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 interface PrintDataPanelProps {
     data: Record<string, any>[];
@@ -26,7 +27,7 @@ export function PrintDataPanel({
   const [isPinned, setIsPinned] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   
-  const jsonString = useMemo(() => JSON.stringify(data, null, 2), [data]);
+  const headers = data.length > 0 ? Object.keys(data[0]) : [];
 
   const isOpen = isPinned || isHovered;
 
@@ -42,9 +43,24 @@ export function PrintDataPanel({
                       </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                        <pre className="bg-muted rounded-md p-2 text-xs overflow-x-auto">
-                            <code className="whitespace-pre-wrap break-words">{jsonString}</code>
-                        </pre>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            {headers.map(header => <TableHead key={header}>{header}</TableHead>)}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {data.map((row, rowIndex) => (
+                            <TableRow key={rowIndex}>
+                              {headers.map(header => (
+                                <TableCell key={`${rowIndex}-${header}`} className="text-xs">
+                                  {String(row[header])}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                   </AccordionContent>
               </AccordionItem>
           </Accordion>

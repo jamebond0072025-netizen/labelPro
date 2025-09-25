@@ -11,6 +11,8 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { pageSizes } from '@/app/dashboard/print-preview/page';
 
 interface PrintLayoutSettingsProps {
     layout: {
@@ -20,12 +22,16 @@ interface PrintLayoutSettingsProps {
         columnGap: number;
     };
     onLayoutChange: (newLayout: Partial<PrintLayoutSettingsProps['layout']>) => void;
+    pageSize: string;
+    onPageSizeChange: (value: string) => void;
     isSheet?: boolean;
 }
 
 export function PrintLayoutSettings({ 
   layout,
   onLayoutChange,
+  pageSize,
+  onPageSizeChange,
   isSheet = false 
 }: PrintLayoutSettingsProps) {
   const [isPinned, setIsPinned] = useState(true);
@@ -36,6 +42,25 @@ export function PrintLayoutSettings({
   const content = (
     <div className="p-4 pt-12 space-y-4">
         <h3 className="text-lg font-headline font-semibold">Layout Settings</h3>
+
+        <div className="space-y-2">
+            <Label htmlFor="page-size">Page Size</Label>
+            <Select value={pageSize} onValueChange={onPageSizeChange}>
+                <SelectTrigger id="page-size" className="w-full">
+                    <SelectValue placeholder="Select a size" />
+                </SelectTrigger>
+                <SelectContent>
+                    {pageSizes.map(size => (
+                        <SelectItem key={size.name} value={size.name}>
+                            {size.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+
+        <Separator />
+        
          <div className="space-y-2">
             <Label>Zoom ({Math.round(layout.zoom * 100)}%)</Label>
             <Slider
