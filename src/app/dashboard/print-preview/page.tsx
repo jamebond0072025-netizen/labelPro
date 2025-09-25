@@ -47,7 +47,14 @@ export default function PrintPreviewPage() {
     } else if (template.templateUrl) {
       fetch(template.templateUrl)
         .then(res => res.json())
-        .then(setTemplateJson)
+        .then(data => {
+            const settingsWithOriginals = {
+                ...data.settings,
+                originalWidth: data.settings.width,
+                originalHeight: data.settings.height
+            };
+            setTemplateJson({ ...data, settings: settingsWithOriginals });
+        })
         .catch(() => {
             toast({
                 variant: 'destructive',
@@ -72,8 +79,8 @@ export default function PrintPreviewPage() {
     const effectivePageWidth = pageSize.pxWidth - (pagePadding * 2);
     const effectivePageHeight = pageSize.pxHeight - (pagePadding * 2);
 
-    const scaledLabelWidth = templateJson.settings.width * layout.labelScale;
-    const scaledLabelHeight = templateJson.settings.height * layout.labelScale;
+    const scaledLabelWidth = (templateJson.settings.originalWidth || templateJson.settings.width) * layout.labelScale;
+    const scaledLabelHeight = (templateJson.settings.originalHeight || templateJson.settings.height) * layout.labelScale;
 
     if (scaledLabelWidth <= 0 || scaledLabelHeight <= 0) return [[]];
     
@@ -125,8 +132,8 @@ export default function PrintPreviewPage() {
     setLayout(prev => ({...prev, ...newLayout}));
   }
   
-  const scaledLabelWidth = templateJson.settings.width * layout.labelScale;
-  const scaledLabelHeight = templateJson.settings.height * layout.labelScale;
+  const scaledLabelWidth = (templateJson.settings.originalWidth || templateJson.settings.width) * layout.labelScale;
+  const scaledLabelHeight = (templateJson.settings.originalHeight || templateJson.settings.height) * layout.labelScale;
 
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">

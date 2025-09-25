@@ -33,6 +33,9 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
     });
   }, [objects, data]);
 
+  const originalWidth = settings.originalWidth || settings.width;
+  const scale = settings.width / originalWidth;
+
   React.useEffect(() => {
     populatedObjects.forEach(object => {
       if (object.type === 'barcode' && barcodeRefs.current.has(object.id)) {
@@ -58,77 +61,85 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
   const canvasStyle: React.CSSProperties = {
     width: settings.width,
     height: settings.height,
-    backgroundColor: settings.backgroundColor,
-    backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : 'none',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
     position: 'relative',
     overflow: 'hidden',
   };
 
-  const xScale = settings.width / (settings.originalWidth || settings.width);
-  const yScale = settings.height / (settings.originalHeight || settings.height);
+  const scaledContentStyle: React.CSSProperties = {
+    width: originalWidth,
+    height: settings.originalHeight || settings.height,
+    backgroundColor: settings.backgroundColor,
+    backgroundImage: settings.backgroundImage ? `url(${settings.backgroundImage})` : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    transform: `scale(${scale})`,
+    transformOrigin: 'top left',
+    position: 'absolute',
+  };
 
 
   return (
     <div style={canvasStyle}>
-      {populatedObjects.map(obj => {
-        const style: React.CSSProperties = {
-          position: 'absolute',
-          left: obj.x * xScale,
-          top: obj.y * yScale,
-          width: obj.width * xScale,
-          height: obj.height * yScale,
-          transform: `rotate(${obj.rotation}deg)`,
-          transformOrigin: 'top left',
-          opacity: obj.opacity,
-        };
+      <div style={scaledContentStyle}>
+        {populatedObjects.map(obj => {
+            const style: React.CSSProperties = {
+            position: 'absolute',
+            left: obj.x,
+            top: obj.y,
+            width: obj.width,
+            height: obj.height,
+            transform: `rotate(${obj.rotation}deg)`,
+            transformOrigin: 'center center',
+            opacity: obj.opacity,
+            boxSizing: 'border-box'
+            };
 
-        if (obj.type === 'text') {
-          const textObject = obj as TextObject;
-          const textStyle: React.CSSProperties = {
-            ...style,
-            fontSize: textObject.fontSize * Math.min(xScale, yScale),
-            fontWeight: textObject.fontWeight,
-            fontFamily: textObject.fontFamily,
-            color: textObject.color,
-            textAlign: textObject.textAlign,
-            padding: '0 5px',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: textObject.textAlign,
-          };
-          return <div key={obj.id} style={textStyle}><div>{textObject.text}</div></div>;
-        }
+            if (obj.type === 'text') {
+            const textObject = obj as TextObject;
+            const textStyle: React.CSSProperties = {
+                ...style,
+                fontSize: textObject.fontSize,
+                fontWeight: textObject.fontWeight,
+                fontFamily: textObject.fontFamily,
+                color: textObject.color,
+                textAlign: textObject.textAlign,
+                padding: '0 5px',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: textObject.textAlign,
+            };
+            return <div key={obj.id} style={textStyle}><div>{textObject.text}</div></div>;
+            }
 
-        if (obj.type === 'image') {
-          const imageObject = obj as ImageObject;
-          return (
-            <div key={obj.id} style={style}>
-              <Image
-                src={imageObject.src}
-                alt=""
-                layout="fill"
-                objectFit="contain"
-              />
-            </div>
-          );
-        }
+            if (obj.type === 'image') {
+            const imageObject = obj as ImageObject;
+            return (
+                <div key={obj.id} style={style}>
+                <Image
+                    src={imageObject.src}
+                    alt=""
+                    layout="fill"
+                    objectFit="contain"
+                />
+                </div>
+            );
+            }
 
-        if (obj.type === 'barcode') {
-          return (
-            <div key={obj.id} style={style}>
-              <div className='w-full h-full flex items-center justify-center' style={{ backgroundColor: 'transparent' }}>
-                <svg ref={el => barcodeRefs.current.set(obj.id, el)} width="100%" height="100%"/>
-              </div>
-            </div>
-          );
-        }
+            if (obj.type === 'barcode') {
+            return (
+                <div key={obj.id} style={style}>
+                <div className='w-full h-full flex items-center justify-center' style={{ backgroundColor: 'transparent' }}>
+                    <svg ref={el => barcodeRefs.current.set(obj.id, el)} width="100%" height="100%"/>
+                </div>
+                </div>
+            );
+            }
 
-        return null;
-      })}
+            return null;
+        })}
+      </div>
     </div>
   );
 }
