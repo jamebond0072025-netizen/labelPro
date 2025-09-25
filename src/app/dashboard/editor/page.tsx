@@ -11,6 +11,7 @@ import { useCanvasObjects } from '@/hooks/use-canvas-objects';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, PanelRight } from 'lucide-react';
+import type { CanvasSettings } from '@/lib/types';
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
@@ -28,7 +29,16 @@ export default function EditorPage() {
   } = useCanvasObjects(templateId);
 
   const [zoom, setZoom] = useState(1);
+  const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>({
+    width: 500,
+    height: 700,
+    backgroundColor: '#FFFFFF',
+  });
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  const handleUpdateCanvasSettings = (newSettings: Partial<CanvasSettings>) => {
+    setCanvasSettings(prev => ({ ...prev, ...newSettings }));
+  };
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectId);
 
@@ -83,11 +93,17 @@ export default function EditorPage() {
           onSelectObject={setSelectedObjectId}
           onUpdateObject={handleUpdateObject}
           zoom={zoom}
+          canvasSettings={canvasSettings}
         />
       </div>
       
       {isDesktop ? (
-          <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} />
+          <RightSidebar 
+            selectedObject={selectedObject} 
+            onUpdate={handleUpdateObject}
+            canvasSettings={canvasSettings}
+            onUpdateCanvasSettings={handleUpdateCanvasSettings}
+          />
       ) : (
            <Sheet>
               <SheetTrigger asChild>
@@ -96,7 +112,13 @@ export default function EditorPage() {
                   </Button>
               </SheetTrigger>
               <SheetContent side="right" className="p-0 w-[300px]">
-                  <RightSidebar selectedObject={selectedObject} onUpdate={handleUpdateObject} isSheet />
+                  <RightSidebar 
+                    selectedObject={selectedObject} 
+                    onUpdate={handleUpdateObject} 
+                    canvasSettings={canvasSettings}
+                    onUpdateCanvasSettings={handleUpdateCanvasSettings}
+                    isSheet 
+                  />
               </SheetContent>
           </Sheet>
       )}

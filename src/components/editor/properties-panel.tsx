@@ -1,6 +1,6 @@
 'use client';
 
-import { CanvasObject, TextObject } from '@/lib/types';
+import { CanvasObject, TextObject, CanvasSettings } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
@@ -12,17 +12,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '../ui/scroll-area';
+import { CanvasProperties } from './canvas-properties';
 
 interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
+  canvasSettings?: CanvasSettings;
+  onUpdateCanvasSettings?: (newSettings: Partial<CanvasSettings>) => void;
 }
 
 export function PropertiesPanel({
   selectedObject,
   onUpdate,
+  canvasSettings,
+  onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
   if (!selectedObject) {
+    if (canvasSettings && onUpdateCanvasSettings) {
+      return (
+        <CanvasProperties
+          settings={canvasSettings}
+          onUpdate={onUpdateCanvasSettings}
+        />
+      );
+    }
     return (
       <div className="p-4 pt-12 border-l h-full bg-card">
         <div className="flex items-center justify-center h-full">

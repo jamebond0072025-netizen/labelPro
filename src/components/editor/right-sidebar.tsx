@@ -6,15 +6,23 @@ import { PropertiesPanel } from '@/components/editor/properties-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PanelRight } from 'lucide-react';
-import type { CanvasObject } from '@/lib/types';
+import type { CanvasObject, CanvasSettings } from '@/lib/types';
 
 interface RightSidebarProps {
   selectedObject: CanvasObject | undefined;
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
+  canvasSettings: CanvasSettings;
+  onUpdateCanvasSettings: (newSettings: Partial<CanvasSettings>) => void;
   isSheet?: boolean;
 }
 
-export function RightSidebar({ selectedObject, onUpdate, isSheet = false }: RightSidebarProps) {
+export function RightSidebar({ 
+  selectedObject, 
+  onUpdate, 
+  canvasSettings,
+  onUpdateCanvasSettings,
+  isSheet = false 
+}: RightSidebarProps) {
   const [isPinned, setIsPinned] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -25,6 +33,8 @@ export function RightSidebar({ selectedObject, onUpdate, isSheet = false }: Righ
         <PropertiesPanel
             selectedObject={selectedObject}
             onUpdate={onUpdate}
+            canvasSettings={canvasSettings}
+            onUpdateCanvasSettings={onUpdateCanvasSettings}
         />
     )
   }
@@ -52,7 +62,12 @@ export function RightSidebar({ selectedObject, onUpdate, isSheet = false }: Righ
           </Tooltip>
         </div>
         {isOpen ? (
-          <PropertiesPanel selectedObject={selectedObject} onUpdate={onUpdate} />
+          <PropertiesPanel 
+            selectedObject={selectedObject} 
+            onUpdate={onUpdate} 
+            canvasSettings={canvasSettings}
+            onUpdateCanvasSettings={onUpdateCanvasSettings}
+          />
         ) : (
           <div className="flex flex-col items-center gap-2 p-2 pt-14">
             {/* Icons can be placed here for collapsed view if needed */}

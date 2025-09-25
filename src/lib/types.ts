@@ -28,3 +28,9 @@ export interface BarcodeObject extends BaseObject {
 }
 
 export type CanvasObject = TextObject | ImageObject | BarcodeObject;
+
+export interface CanvasSettings {
+  width: number;
+  height: number;
+  backgroundColor: string;
+}
