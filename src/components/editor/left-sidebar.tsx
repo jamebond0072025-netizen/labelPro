@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import type { CanvasObject } from '@/lib/types';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface LeftSidebarProps {
   objects: CanvasObject[];
@@ -39,37 +40,39 @@ export function LeftSidebar({
   const isOpen = isPinned || isHovered;
 
   const sidebarContent = (
-      <div className="h-full flex flex-col pt-12">
-        <Accordion type="multiple" defaultValue={['layers', 'data']} className="w-full px-4">
-            <AccordionItem value="layers">
-                <AccordionTrigger>
-                    <div className="flex items-center gap-2">
-                        <Layers className="h-4 w-4" />
-                        <span>Layers</span>
-                    </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                    <LayersPanel
-                        objects={objects}
-                        selectedObjectIds={selectedObjectIds}
-                        onSelectObject={onSelectObject}
-                        onLayerAction={onLayerAction}
-                    />
-                </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="data">
-                 <AccordionTrigger>
-                    <div className="flex items-center gap-2">
-                        <Database className="h-4 w-4" />
-                        <span>Data Schema</span>
-                    </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                    <DataPanel objects={objects} onReplaceData={onReplaceData} />
-                </AccordionContent>
-            </AccordionItem>
-        </Accordion>
-      </div>
+      <ScrollArea className="h-full">
+        <div className="h-full flex flex-col pt-12">
+          <Accordion type="multiple" defaultValue={['layers', 'data']} className="w-full px-4">
+              <AccordionItem value="layers">
+                  <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                          <Layers className="h-4 w-4" />
+                          <span>Layers</span>
+                      </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                      <LayersPanel
+                          objects={objects}
+                          selectedObjectIds={selectedObjectIds}
+                          onSelectObject={onSelectObject}
+                          onLayerAction={onLayerAction}
+                      />
+                  </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="data">
+                  <AccordionTrigger>
+                      <div className="flex items-center gap-2">
+                          <Database className="h-4 w-4" />
+                          <span>Data Schema</span>
+                      </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                      <DataPanel objects={objects} onReplaceData={onReplaceData} />
+                  </AccordionContent>
+              </AccordionItem>
+          </Accordion>
+        </div>
+      </ScrollArea>
   );
 
   if (isSheet) {

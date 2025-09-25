@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PanelRight } from 'lucide-react';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface RightSidebarProps {
   selectedObject: CanvasObject | undefined;
@@ -28,14 +30,20 @@ export function RightSidebar({
 
   const isOpen = isPinned || isHovered;
 
+  const propertiesPanelContent = (
+    <PropertiesPanel
+      selectedObject={selectedObject}
+      onUpdate={onUpdate}
+      canvasSettings={canvasSettings}
+      onUpdateCanvasSettings={onUpdateCanvasSettings}
+    />
+  );
+  
   if (isSheet) {
     return (
-        <PropertiesPanel
-            selectedObject={selectedObject}
-            onUpdate={onUpdate}
-            canvasSettings={canvasSettings}
-            onUpdateCanvasSettings={onUpdateCanvasSettings}
-        />
+      <ScrollArea className="h-full">
+        {propertiesPanelContent}
+      </ScrollArea>
     )
   }
 
@@ -62,12 +70,9 @@ export function RightSidebar({
           </Tooltip>
         </div>
         {isOpen ? (
-          <PropertiesPanel 
-            selectedObject={selectedObject} 
-            onUpdate={onUpdate} 
-            canvasSettings={canvasSettings}
-            onUpdateCanvasSettings={onUpdateCanvasSettings}
-          />
+          <ScrollArea className="h-full">
+            {propertiesPanelContent}
+          </ScrollArea>
         ) : (
           <div className="flex flex-col items-center gap-2 p-2 pt-14">
             {/* Icons can be placed here for collapsed view if needed */}
