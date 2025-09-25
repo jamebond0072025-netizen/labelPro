@@ -32,7 +32,8 @@ export default function PrintPreviewPage() {
   const [templateJson, setTemplateJson] = useState<{ settings: CanvasSettings; objects: CanvasObject[] } | null>(null);
   const [pageSize, setPageSize] = useState(pageSizes[0]);
   const [layout, setLayout] = useState({
-    scale: 1,
+    zoom: 1,
+    labelScale: 1,
     rowGap: 0,
     columnGap: 0,
   });
@@ -78,16 +79,17 @@ export default function PrintPreviewPage() {
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
-        // Remove scaling transform for capture
-        const originalTransform = printSheet.style.transform;
-        printSheet.style.transform = '';
+        // Temporarily reset zoom for capture, but keep label scaling
+        const printContainer = document.getElementById('print-container');
+        const originalTransform = printContainer ? printContainer.style.transform : '';
+        if (printContainer) printContainer.style.transform = '';
         
         const dataUrl = await toPng(printSheet, {
           quality: 1,
           pixelRatio: 2,
         });
 
-        printSheet.style.transform = originalTransform;
+        if (printContainer) printContainer.style.transform = originalTransform;
 
         const tempImage = new Image();
         tempImage.src = dataUrl;
@@ -150,7 +152,8 @@ export default function PrintPreviewPage() {
     setLayout(prev => ({...prev, ...newLayout}));
   }
   
-  const scaledLabelWidth = templateJson.settings.width;
+  const scaledLabelWidth = templateJson.settings.width * layout.labelScale;
+  const scaledLabelHeight = templateJson.settings.height * layout.labelScale;
 
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">
@@ -181,7 +184,7 @@ export default function PrintPreviewPage() {
             </div>
         </div>
 
-        <div id="print-container" style={{ transform: `scale(${layout.scale})`, transformOrigin: 'top center' }}>
+        <div id="print-container" style={{ transform: `scale(${layout.zoom})`, transformOrigin: 'top center' }}>
           <div 
               id="print-sheet" 
               className="sheet bg-white shadow-lg"
@@ -194,12 +197,14 @@ export default function PrintPreviewPage() {
               }}
               >
               {data.map((itemData, index) => (
-              <div key={index} className="label-container">
-                  <LabelPreview
-                      objects={templateJson.objects}
-                      settings={templateJson.settings}
-                      data={itemData}
-                  />
+              <div key={index} className="label-container" style={{ width: scaledLabelWidth, height: scaledLabelHeight }}>
+                  <div style={{ transform: `scale(${layout.labelScale})`, transformOrigin: 'top left', width: templateJson.settings.width, height: templateJson.settings.height }}>
+                    <LabelPreview
+                        objects={templateJson.objects}
+                        settings={templateJson.settings}
+                        data={itemData}
+                    />
+                  </div>
               </div>
               ))}
           </div>
@@ -291,8 +296,6 @@ export default function PrintPreviewPage() {
         .label-container {
             overflow: hidden;
             box-sizing: border-box;
-            width: ${templateJson.settings.width}px;
-            height: ${templateJson.settings.height}px;
             display: flex;
             justify-content: center;
             align-items: center;

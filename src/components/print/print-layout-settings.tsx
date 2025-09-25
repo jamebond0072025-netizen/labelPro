@@ -10,10 +10,12 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Slider } from '../ui/slider';
+import { Separator } from '../ui/separator';
 
 interface PrintLayoutSettingsProps {
     layout: {
-        scale: number;
+        zoom: number;
+        labelScale: number;
         rowGap: number;
         columnGap: number;
     };
@@ -35,13 +37,24 @@ export function PrintLayoutSettings({
     <div className="p-4 pt-12 space-y-4">
         <h3 className="text-lg font-headline font-semibold">Layout Settings</h3>
          <div className="space-y-2">
-            <Label>Scale ({Math.round(layout.scale * 100)}%)</Label>
+            <Label>Zoom ({Math.round(layout.zoom * 100)}%)</Label>
             <Slider
-                value={[layout.scale]}
+                value={[layout.zoom]}
                 max={2}
                 min={0.1}
                 step={0.05}
-                onValueChange={(value) => onLayoutChange({ scale: value[0] })}
+                onValueChange={(value) => onLayoutChange({ zoom: value[0] })}
+            />
+        </div>
+        <Separator />
+        <div className="space-y-2">
+            <Label>Label Scale ({Math.round(layout.labelScale * 100)}%)</Label>
+            <Slider
+                value={[layout.labelScale]}
+                max={2}
+                min={0.1}
+                step={0.05}
+                onValueChange={(value) => onLayoutChange({ labelScale: value[0] })}
             />
         </div>
          <div className="grid grid-cols-2 gap-2">

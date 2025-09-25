@@ -44,7 +44,7 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
               width: 2,
               height: object.height - 20,
               displayValue: true,
-              background: "#FFFFFF",
+              background: "transparent",
               margin: 10,
             });
           } catch (e) {
@@ -64,8 +64,6 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
     backgroundPosition: 'center',
     position: 'relative',
     overflow: 'hidden',
-    transform: 'scale(1)',
-    transformOrigin: 'top left',
   };
 
   return (
@@ -115,7 +113,7 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
         if (obj.type === 'barcode') {
           return (
             <div key={obj.id} style={style}>
-              <div className='w-full h-full flex items-center justify-center' style={{ backgroundColor: '#FFFFFF' }}>
+              <div className='w-full h-full flex items-center justify-center' style={{ backgroundColor: 'transparent' }}>
                 <svg ref={el => barcodeRefs.current.set(obj.id, el)} />
               </div>
             </div>
@@ -127,4 +125,3 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
     </div>
   );
 }
-
