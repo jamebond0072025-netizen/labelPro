@@ -1,56 +1,87 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { CanvasObject } from '@/lib/types';
 
-export type InteractionType = 'drag' | 'resize' | 'rotate';
+export type InteractionType = 'drag' | 'resize' | 'rotate' | 'marquee';
 export type InteractionHandle = 'nw' | 'ne' | 'sw' | 'se' | 'rotate' | 'body';
+
+type SelectionBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function isIntersecting(rect1: DOMRect, rect2: DOMRect) {
+  return !(
+    rect1.right < rect2.left ||
+    rect1.left > rect2.right ||
+    rect1.bottom < rect2.top ||
+    rect1.top > rect2.bottom
+  );
+}
 
 export const useEditorInteractions = (
   objects: CanvasObject[],
   onUpdateObject: (id: string, newProps: Partial<CanvasObject>) => void,
-  setSelectedObjectId: (id: string | null) => void,
+  onSelectObject: (id: string | null) => void,
   zoom: number,
-  canvasRef: React.RefObject<HTMLDivElement>
+  canvasRef: React.RefObject<HTMLDivElement>,
+  onSetSelectedObjectIds: (ids: string[]) => void
 ) => {
   const interactionRef = useRef<{
-    id: string;
+    id: string | null;
     type: InteractionType;
     handle: InteractionHandle;
     startX: number;
     startY: number;
-    originalObject: CanvasObject;
+    originalObject?: CanvasObject;
+    initialSelectedIds?: string[];
   } | null>(null);
+
+  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
 
   const handleInteractionStart = (
     e: React.PointerEvent,
-    id: string,
+    id: string | null,
     type: InteractionType,
     handle: InteractionHandle
   ) => {
-    e.preventDefault();
+    // Only allow marquee with left click on canvas background
+    if (type === 'marquee' && (id !== null || e.button !== 0)) return;
+
     const target = e.target as HTMLElement;
     target.setPointerCapture(e.pointerId);
 
-    const object = objects.find((obj) => obj.id === id);
-    if (!object || !canvasRef.current) return;
-
+    if (canvasRef.current === null) return;
     const canvasRect = canvasRef.current.getBoundingClientRect();
+    const startX = (e.clientX - canvasRect.left) / zoom;
+    const startY = (e.clientY - canvasRect.top) / zoom;
 
+    if (type === 'marquee') {
+      interactionRef.current = { id: null, type, handle, startX, startY };
+      setSelectionBox({ x: startX, y: startY, width: 0, height: 0 });
+      onSetSelectedObjectIds([]);
+      return;
+    }
+
+    const object = objects.find((obj) => obj.id === id);
+    if (!object) return;
+    
+    onSelectObject(id);
     interactionRef.current = {
       id,
       type,
       handle,
-      startX: (e.clientX - canvasRect.left) / zoom,
-      startY: (e.clientY - canvasRect.top) / zoom,
+      startX,
+      startY,
       originalObject: { ...object },
     };
-    setSelectedObjectId(id);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!interactionRef.current || !canvasRef.current) return;
-    e.preventDefault();
 
     const { id, type, handle, startX, startY, originalObject } = interactionRef.current;
     const canvasRect = canvasRef.current.getBoundingClientRect();
@@ -61,12 +92,14 @@ export const useEditorInteractions = (
 
     switch (type) {
       case 'drag':
+        if (!id || !originalObject) break;
         onUpdateObject(id, {
           x: originalObject.x + deltaX,
           y: originalObject.y + deltaY,
         });
         break;
       case 'resize':
+        if (!id || !originalObject) break;
         let newWidth = originalObject.width;
         let newHeight = originalObject.height;
         let newX = originalObject.x;
@@ -91,6 +124,7 @@ export const useEditorInteractions = (
         });
         break;
       case 'rotate':
+        if (!id || !originalObject) break;
         const centerX = originalObject.x + originalObject.width / 2;
         const centerY = originalObject.y + originalObject.height / 2;
         const startAngle = Math.atan2(startY - centerY, startX - centerX);
@@ -100,18 +134,52 @@ export const useEditorInteractions = (
           rotation: originalObject.rotation + angleDiff,
         });
         break;
+      case 'marquee':
+        const x = Math.min(startX, mouseX);
+        const y = Math.min(startY, mouseY);
+        const width = Math.abs(deltaX);
+        const height = Math.abs(deltaY);
+        setSelectionBox({ x, y, width, height });
+        break;
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (!interactionRef.current) return;
-    e.preventDefault();
+    
+    if (interactionRef.current.type === 'marquee' && selectionBox) {
+        const selectedIds = objects.filter(obj => {
+            const objRect = {
+                left: obj.x,
+                top: obj.y,
+                right: obj.x + obj.width,
+                bottom: obj.y + obj.height
+            };
+            const marqueeRect = {
+                left: selectionBox.x,
+                top: selectionBox.y,
+                right: selectionBox.x + selectionBox.width,
+                bottom: selectionBox.y + selectionBox.height
+            };
+
+            return !(
+                objRect.right < marqueeRect.left ||
+                objRect.left > marqueeRect.right ||
+                objRect.bottom < marqueeRect.top ||
+                objRect.top > marqueeRect.bottom
+            );
+        }).map(obj => obj.id);
+
+        onSetSelectedObjectIds(selectedIds);
+    }
+    
     const target = e.target as HTMLElement;
     if(target.hasPointerCapture(e.pointerId)) {
         target.releasePointerCapture(e.pointerId);
     }
     interactionRef.current = null;
+    setSelectionBox(null);
   };
 
-  return { handleInteractionStart, handlePointerMove, handlePointerUp };
+  return { handleInteractionStart, handlePointerMove, handlePointerUp, selectionBox };
 };

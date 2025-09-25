@@ -8,7 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 
 interface LayersPanelProps {
   objects: CanvasObject[];
-  selectedObjectId: string | null;
+  selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
   onLayerAction: (action: 'delete') => void;
 }
@@ -39,7 +39,7 @@ const getObjectIcon = (object: CanvasObject) => {
     }
 }
 
-export function LayersPanel({ objects, selectedObjectId, onSelectObject, onLayerAction }: LayersPanelProps) {
+export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLayerAction }: LayersPanelProps) {
   const reversedObjects = [...objects].reverse();
 
   return (
@@ -54,14 +54,14 @@ export function LayersPanel({ objects, selectedObjectId, onSelectObject, onLayer
               className={cn(
                 'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 group',
                 'hover:bg-muted',
-                selectedObjectId === obj.id ? 'bg-muted' : 'bg-transparent'
+                selectedObjectIds.includes(obj.id) ? 'bg-muted' : 'bg-transparent'
               )}
             >
               <div className="flex items-center gap-2 truncate">
                   {getObjectIcon(obj)}
                   <span className="truncate">{getObjectDisplayName(obj)}</span>
               </div>
-              {selectedObjectId === obj.id && (
+              {selectedObjectIds.includes(obj.id) && (
                   <Button 
                       variant="ghost" 
                       size="icon" 

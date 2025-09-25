@@ -19,8 +19,8 @@ export default function EditorPage() {
   
   const {
     objects,
-    selectedObjectId,
-    setSelectedObjectId,
+    selectedObjectIds,
+    setSelectedObjectIds,
     handleAddItem,
     handleClearAll,
     handleLayerAction,
@@ -40,15 +40,15 @@ export default function EditorPage() {
     setCanvasSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  const selectedObject = objects.find((obj) => obj.id === selectedObjectId);
+  const selectedObject = objects.find((obj) => obj.id === selectedObjectIds[selectedObjectIds.length - 1]);
   
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden">
       {isDesktop ? (
           <LeftSidebar
               objects={objects}
-              selectedObjectId={selectedObjectId}
-              onSelectObject={setSelectedObjectId}
+              selectedObjectIds={selectedObjectIds}
+              onSelectObject={(id) => setSelectedObjectIds([id])}
               onLayerAction={handleLayerAction}
           />
       ) : (
@@ -61,8 +61,8 @@ export default function EditorPage() {
               <SheetContent side="left" className="p-0 w-[260px]">
                   <LeftSidebar
                       objects={objects}
-                      selectedObjectId={selectedObjectId}
-                      onSelectObject={setSelectedObjectId}
+                      selectedObjectIds={selectedObjectIds}
+                      onSelectObject={(id) => setSelectedObjectIds([id])}
                       onLayerAction={handleLayerAction}
                       isSheet
                   />
@@ -77,17 +77,18 @@ export default function EditorPage() {
           onLayerAction={handleLayerAction}
           onZoom={setZoom}
           zoom={zoom}
-          hasSelectedObject={!!selectedObjectId}
+          hasSelectedObject={selectedObjectIds.length > 0}
         />
         <EditorCanvas
           canvasRef={canvasRef}
           objects={objects}
-          selectedObjectId={selectedObjectId}
-          onSelectObject={setSelectedObjectId}
+          selectedObjectIds={selectedObjectIds}
+          onSelectObject={(id) => setSelectedObjectIds(id ? [id] : [])}
           onUpdateObject={handleUpdateObject}
           zoom={zoom}
           canvasSettings={canvasSettings}
-          onDeselectAll={() => setSelectedObjectId(null)}
+          onDeselectAll={() => setSelectedObjectIds([])}
+          onSetSelectedObjectIds={setSelectedObjectIds}
         />
       </div>
       

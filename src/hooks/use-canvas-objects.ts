@@ -35,7 +35,7 @@ const initialObjects: CanvasObject[] = [
 
 export const useCanvasObjects = (templateId: string | null) => {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
-  const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export const useCanvasObjects = (templateId: string | null) => {
           src: templateImage.imageUrl,
         };
         setObjects([newObject, ...initialObjects]);
-        setSelectedObjectId(null);
+        setSelectedObjectIds([]);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,20 +89,22 @@ export const useCanvasObjects = (templateId: string | null) => {
     }
 
     setObjects((prev) => [...prev, newObject]);
-    setSelectedObjectId(newId);
+    setSelectedObjectIds([newId]);
   };
 
   const handleClearAll = () => {
     setObjects([]);
-    setSelectedObjectId(null);
+    setSelectedObjectIds([]);
   };
 
   const handleLayerAction = (action: 'bring-forward' | 'send-backward' | 'delete') => {
-    if (!selectedObjectId) return;
+    if (selectedObjectIds.length === 0) return;
+    const selectedObjectId = selectedObjectIds[selectedObjectIds.length - 1];
+
 
     if (action === 'delete') {
-      setObjects(objects.filter(o => o.id !== selectedObjectId));
-      setSelectedObjectId(null);
+      setObjects(objects.filter(o => !selectedObjectIds.includes(o.id)));
+      setSelectedObjectIds([]);
       return;
     }
 
@@ -113,7 +115,7 @@ export const useCanvasObjects = (templateId: string | null) => {
     const objectToMove = newObjects.splice(currentIndex, 1)[0];
 
     if (action === 'bring-forward') {
-      const newIndex = Math.min(objects.length - 1, currentIndex + 1);
+      const newIndex = Math.min(objects.length, currentIndex + 1);
       newObjects.splice(newIndex, 0, objectToMove);
     } else if (action === 'send-backward') {
       const newIndex = Math.max(0, currentIndex - 1);
@@ -131,8 +133,8 @@ export const useCanvasObjects = (templateId: string | null) => {
   return {
     objects,
     setObjects,
-    selectedObjectId,
-    setSelectedObjectId,
+    selectedObjectIds,
+    setSelectedObjectIds,
     handleAddItem,
     handleClearAll,
     handleLayerAction,

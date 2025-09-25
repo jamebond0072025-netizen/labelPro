@@ -8,37 +8,45 @@ import type { CanvasObject, CanvasSettings } from '@/lib/types';
 interface EditorCanvasProps {
   canvasRef: React.RefObject<HTMLDivElement>;
   objects: CanvasObject[];
-  selectedObjectId: string | null;
+  selectedObjectIds: string[];
   onSelectObject: (id: string | null) => void;
   onUpdateObject: (id: string, newProps: Partial<CanvasObject>) => void;
   zoom: number;
   canvasSettings: CanvasSettings;
   onDeselectAll: () => void;
+  onSetSelectedObjectIds: (ids: string[]) => void;
 }
 
 export function EditorCanvas({
   canvasRef,
   objects,
-  selectedObjectId,
+  selectedObjectIds,
   onSelectObject,
   onUpdateObject,
   zoom,
   canvasSettings,
   onDeselectAll,
+  onSetSelectedObjectIds,
 }: EditorCanvasProps) {
-  const { handleInteractionStart, handlePointerMove, handlePointerUp } =
+  const { 
+    handleInteractionStart, 
+    handlePointerMove, 
+    handlePointerUp,
+    selectionBox 
+  } =
     useEditorInteractions(
       objects,
       onUpdateObject,
       onSelectObject,
       zoom,
-      canvasRef
+      canvasRef,
+      onSetSelectedObjectIds
     );
 
   return (
     <div 
       className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative"
-      onClick={onDeselectAll}
+      onPointerDown={(e) => handleInteractionStart(e, null, 'marquee', 'body')}
     >
       <div
         ref={canvasRef}
@@ -46,7 +54,6 @@ export function EditorCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        onClick={(e) => e.stopPropagation()}
         style={{
           width: canvasSettings.width,
           height: canvasSettings.height,
@@ -59,11 +66,22 @@ export function EditorCanvas({
           <CanvasObjectComponent
             key={obj.id}
             object={obj}
-            isSelected={selectedObjectId === obj.id}
+            isSelected={selectedObjectIds.includes(obj.id)}
             onSelect={onSelectObject}
             onInteractionStart={handleInteractionStart}
           />
         ))}
+        {selectionBox && (
+          <div
+            className="absolute border border-dashed border-primary bg-primary/20 pointer-events-none"
+            style={{
+              left: selectionBox.x,
+              top: selectionBox.y,
+              width: selectionBox.width,
+              height: selectionBox.height,
+            }}
+          />
+        )}
       </div>
     </div>
   );

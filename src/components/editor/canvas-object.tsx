@@ -11,10 +11,10 @@ import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-inte
 interface CanvasObjectProps {
   object: CanvasObjectType;
   isSelected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   onInteractionStart: (
     e: React.PointerEvent,
-    id: string,
+    id: string | null,
     type: InteractionType,
     handle: InteractionHandle
   ) => void;
@@ -79,10 +79,6 @@ export function CanvasObject({
   return (
     <div
       style={style}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(object.id);
-      }}
       onPointerDown={(e) => handlePointerDown(e, 'drag', 'body')}
       className={cn(
         'outline-none select-none',

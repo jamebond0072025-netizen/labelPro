@@ -10,7 +10,7 @@ import type { CanvasObject } from '@/lib/types';
 
 interface LeftSidebarProps {
   objects: CanvasObject[];
-  selectedObjectId: string | null;
+  selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
   onLayerAction: (action: 'delete') => void;
   isSheet?: boolean;
@@ -18,7 +18,7 @@ interface LeftSidebarProps {
 
 export function LeftSidebar({ 
     objects, 
-    selectedObjectId, 
+    selectedObjectIds, 
     onSelectObject, 
     onLayerAction,
     isSheet = false,
@@ -33,7 +33,7 @@ export function LeftSidebar({
         <div className="bg-card h-full">
             <LayersPanel
                 objects={objects}
-                selectedObjectId={selectedObjectId}
+                selectedObjectIds={selectedObjectIds}
                 onSelectObject={onSelectObject}
                 onLayerAction={onLayerAction}
             />
@@ -51,7 +51,7 @@ export function LeftSidebar({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-2 right-2 z-10 pt-1">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
@@ -66,7 +66,7 @@ export function LeftSidebar({
         {isOpen ? (
           <LayersPanel
             objects={objects}
-            selectedObjectId={selectedObjectId}
+            selectedObjectIds={selectedObjectIds}
             onSelectObject={onSelectObject}
             onLayerAction={onLayerAction}
           />
