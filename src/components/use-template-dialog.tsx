@@ -13,8 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import type { ImagePlaceholder } from "@/lib/placeholder-images"
 import { useRouter } from 'next/navigation';
-import { Package, FileText, Upload, ClipboardPaste, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Card, CardContent } from './ui/card';
+import { Upload, ClipboardPaste, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from './ui/textarea';
@@ -33,8 +32,7 @@ interface UseTemplateDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type Step = 'select-type' | 'upload-data' | 'map-fields';
-type LabelType = 'product' | 'custom' | null;
+type Step = 'upload-data' | 'map-fields';
 
 
 export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogProps) {
@@ -42,8 +40,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const { setTemplate, setData } = usePrint();
     const { toast } = useToast();
 
-    const [step, setStep] = useState<Step>('select-type');
-    const [labelType, setLabelType] = useState<LabelType>(null);
+    const [step, setStep] = useState<Step>('upload-data');
     const [fileName, setFileName] = useState<string | null>(null);
     const [jsonInput, setJsonInput] = useState('');
 
@@ -133,9 +130,10 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             } else if (extension === 'csv') {
                 const result = Papa.parse(content as string, { header: true, skipEmptyLines: true });
                 if (result.errors.length > 0) {
-                    const isMinorError = result.errors.every(e => e.code === 'TooFewFields' && e.row === result.data.length);
+                    const isMinorError = result.errors.every(e => e.code === 'TooFewFields' && e.row === result.data.length -1);
                     if (!isMinorError) {
-                        throw new Error(result.errors.map(e => e.message).join(', '));
+                         const errorMessages = result.errors.map(e => `Row ${e.row}: ${e.message}`).join('\n');
+                         throw new Error(errorMessages);
                     }
                 }
                 data = result.data as Record<string, any>[];
@@ -236,41 +234,6 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         return templatePlaceholders.filter(p => !fieldMapping[p]);
     }, [templatePlaceholders, fieldMapping]);
 
-    const renderSelectType = () => (
-        <>
-            <DialogHeader>
-                <DialogTitle>Select Label Type</DialogTitle>
-                <DialogDescription>
-                    Choose the type of label you want to create with the &quot;{template.description}&quot; template.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
-                <Card 
-                    className={cn("cursor-pointer hover:border-primary", labelType === 'product' && 'border-primary ring-2 ring-primary')}
-                    onClick={() => setLabelType('product')}
-                >
-                    <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                        <Package className="h-8 w-8 text-primary" />
-                        <span className="font-semibold">Product Label</span>
-                    </CardContent>
-                </Card>
-                <Card 
-                    className={cn("cursor-pointer hover:border-primary", labelType === 'custom' && 'border-primary ring-2 ring-primary')}
-                    onClick={() => setLabelType('custom')}
-                >
-                    <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                        <FileText className="h-8 w-8 text-primary" />
-                        <span className="font-semibold">Custom Label</span>
-                    </CardContent>
-                </Card>
-            </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button onClick={() => setStep('upload-data')} disabled={!labelType}>Next <ArrowRight className="ml-2 h-4 w-4" /></Button>
-            </DialogFooter>
-        </>
-    );
-
     const renderUploadData = () => (
         <>
             <DialogHeader>
@@ -280,7 +243,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-                <Tabs defaultValue="paste" className="w-full">
+                <Tabs defaultValue="upload" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="upload"><Upload className="mr-2 h-4 w-4" /> Upload File</TabsTrigger>
                         <TabsTrigger value="paste"><ClipboardPaste className="mr-2 h-4 w-4" /> Paste JSON</TabsTrigger>
@@ -324,7 +287,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 </p>
             </div>
              <DialogFooter>
-                <Button variant="outline" onClick={() => setStep('select-type')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                 <Button onClick={handleNextToMap} disabled={!fileName && !jsonInput}>
                     Map Fields <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -385,12 +348,9 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
       <DialogContent className={cn("sm:max-w-md", step === 'map-fields' && "sm:max-w-lg")}>
-        {step === 'select-type' && renderSelectType()}
         {step === 'upload-data' && renderUploadData()}
         {step === 'map-fields' && renderMapFields()}
       </DialogContent>
     </Dialog>
   );
 }
-
-    
