@@ -13,10 +13,12 @@ import {
 import { Button } from "@/components/ui/button"
 import type { ImagePlaceholder } from "@/lib/placeholder-images"
 import { useRouter } from 'next/navigation';
-import { Package, FileText, Upload } from 'lucide-react';
+import { Package, FileText, Upload, ClipboardPaste } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from './ui/textarea';
 
 
 interface UseTemplateDialogProps {
@@ -33,10 +35,12 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const [step, setStep] = useState<Step>('select-type');
     const [labelType, setLabelType] = useState<LabelType>(null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [jsonInput, setJsonInput] = useState('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setFileName(e.target.files[0].name);
+            setJsonInput(''); // Clear json input if a file is selected
         }
     };
     
@@ -78,35 +82,56 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderUploadData = () => (
         <>
             <DialogHeader>
-                <DialogTitle>Upload Your Data</DialogTitle>
+                <DialogTitle>Provide Your Data</DialogTitle>
                 <DialogDescription>
-                    Upload a data file to populate your labels. Accepted formats: .csv, .xls, .xlsx, .json
+                    Upload a data file or paste JSON to populate your labels.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-                <div className="flex items-center justify-center w-full">
-                    <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                            {fileName ? (
-                                <p className="text-sm text-foreground">{fileName}</p>
-                            ) : (
-                                <>
-                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p className="text-xs text-muted-foreground">CSV, XLS, XLSX or JSON</p>
-                                </>
-                            )}
+                <Tabs defaultValue="upload" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="upload"><Upload className="mr-2 h-4 w-4" /> Upload File</TabsTrigger>
+                        <TabsTrigger value="paste"><ClipboardPaste className="mr-2 h-4 w-4" /> Paste JSON</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upload">
+                         <div className="flex items-center justify-center w-full mt-4">
+                            <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                                    {fileName ? (
+                                        <p className="text-sm text-foreground">{fileName}</p>
+                                    ) : (
+                                        <>
+                                        <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p className="text-xs text-muted-foreground">CSV, XLS, XLSX or JSON</p>
+                                        </>
+                                    )}
+                                </div>
+                                <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .json" />
+                            </label>
                         </div>
-                        <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, .json" />
-                    </label>
-                </div>
+                    </TabsContent>
+                    <TabsContent value="paste">
+                        <Textarea 
+                            placeholder='{ "product_name": "My Awesome Product", "price": "$19.99" }'
+                            rows={8}
+                            className="mt-4"
+                            value={jsonInput}
+                            onChange={(e) => {
+                                setJsonInput(e.target.value);
+                                setFileName(null); // Clear file if pasting
+                            }}
+                        />
+                    </TabsContent>
+                </Tabs>
+               
                 <p className="text-xs text-center text-muted-foreground">
-                    Don&apos;t have a file? <Button variant="link" className="p-0 h-auto" onClick={() => router.push(`/dashboard/editor?template=${template.id}`)}>Skip and create manually.</Button>
+                    Don&apos;t have data? <Button variant="link" className="p-0 h-auto" onClick={() => router.push(`/dashboard/editor?template=${template.id}`)}>Skip and create manually.</Button>
                 </p>
             </div>
              <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('select-type')}>Back</Button>
-                <Button asChild disabled={!fileName}>
+                <Button asChild disabled={!fileName && !jsonInput}>
                     <Link href={`/dashboard/editor?template=${template.id}`}>Create Labels</Link>
                 </Button>
             </DialogFooter>
