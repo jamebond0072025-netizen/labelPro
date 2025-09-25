@@ -16,7 +16,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { PrintDataPanel } from '@/components/print/print-data-panel';
 import { PrintLayoutSettings } from '@/components/print/print-layout-settings';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 
 const pageSizes = [
@@ -71,41 +71,52 @@ export default function PrintPreviewPage() {
         setIsPrinting(false);
         return;
     }
-
-    const { orientation, unit, format } = pageSize.pdf;
-    const pdf = new jsPDF(orientation, unit, format);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    // Capture the canvas at its natural size without screen scaling
-    const originalTransform = printSheet.style.transform;
-    printSheet.style.transform = ''; // Remove transform for capture
-
-    const canvas = await html2canvas(printSheet, {
-        scale: 2, // Use a higher scale for better resolution
-        // Allow canvas to be its natural size
-    });
-
-    printSheet.style.transform = originalTransform; // Restore transform
-
-    const imgData = canvas.toDataURL('image/png');
     
-    // Calculate image dimensions to fit on the PDF page while maintaining aspect ratio
-    const canvasAspectRatio = canvas.width / canvas.height;
-    let imgWidth = pdfWidth;
-    let imgHeight = imgWidth / canvasAspectRatio;
+    try {
+        const { orientation, unit, format } = pageSize.pdf;
+        const pdf = new jsPDF(orientation, unit, format);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Remove scaling transform for capture
+        const originalTransform = printSheet.style.transform;
+        printSheet.style.transform = '';
+        
+        const dataUrl = await toPng(printSheet, {
+          quality: 1,
+          pixelRatio: 2,
+        });
 
-    if (imgHeight > pdfHeight) {
-        imgHeight = pdfHeight;
-        imgWidth = imgHeight * canvasAspectRatio;
+        printSheet.style.transform = originalTransform;
+
+        const tempImage = new Image();
+        tempImage.src = dataUrl;
+        await new Promise(resolve => tempImage.onload = resolve);
+        
+        const imgWidth = pdfWidth;
+        const imgHeight = (tempImage.height * imgWidth) / tempImage.width;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+
+        pdf.save('labels.pdf');
+
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate PDF.' });
+    } finally {
+        setIsPrinting(false);
     }
-
-    const x = (pdfWidth - imgWidth) / 2;
-    const y = (pdfHeight - imgHeight) / 2;
-
-    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-    pdf.save('labels.pdf');
-    setIsPrinting(false);
   };
 
 
