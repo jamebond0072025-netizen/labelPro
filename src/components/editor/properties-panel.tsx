@@ -1,6 +1,6 @@
 'use client';
 
-import { CanvasObject, TextObject, CanvasSettings } from '@/lib/types';
+import { CanvasObject, TextObject, BarcodeObject, CanvasSettings } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
@@ -55,6 +55,10 @@ export function PropertiesPanel({
   };
 
   const handleTextUpdate = (props: Partial<TextObject>) => {
+    onUpdate(selectedObject.id, props);
+  };
+  
+  const handleBarcodeUpdate = (props: Partial<BarcodeObject>) => {
     onUpdate(selectedObject.id, props);
   };
 
@@ -133,6 +137,23 @@ export function PropertiesPanel({
       </>
     );
   };
+  
+    const renderBarcodeProperties = () => {
+    if (selectedObject.type !== 'barcode') return null;
+    const barcodeObject = selectedObject as BarcodeObject;
+
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="barcode-value">Barcode Value</Label>
+        <Input
+          id="barcode-value"
+          value={barcodeObject.value}
+          onChange={(e) => handleBarcodeUpdate({ value: e.target.value })}
+        />
+      </div>
+    );
+  };
+
 
   return (
     <ScrollArea className="h-full">
@@ -207,6 +228,7 @@ export function PropertiesPanel({
         </div>
 
         {renderTextProperties()}
+        {renderBarcodeProperties()}
       </div>
     </ScrollArea>
   );

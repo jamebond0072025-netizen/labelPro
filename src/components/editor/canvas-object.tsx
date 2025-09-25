@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { CanvasObject as CanvasObjectType, TextObject } from '@/lib/types';
+import { CanvasObject as CanvasObjectType, TextObject, BarcodeObject as BarcodeObjectType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { BarcodeSvg } from './barcode-svg';
+import JsBarcode from 'jsbarcode';
 import { RotateCcw } from 'lucide-react';
 import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-interactions';
 
@@ -26,17 +26,6 @@ interface CanvasObjectProps {
   zoom: number;
 }
 
-const getJustifyContent = (textAlign: 'left' | 'center' | 'right' = 'center') => {
-    switch (textAlign) {
-        case 'left':
-            return 'flex-start';
-        case 'center':
-            return 'center';
-        case 'right':
-            return 'flex-end';
-    }
-}
-
 export function CanvasObject({
   object,
   isSelected,
@@ -49,6 +38,7 @@ export function CanvasObject({
   zoom,
 }: CanvasObjectProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const barcodeRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     if (isEditing && textAreaRef.current) {
@@ -57,6 +47,23 @@ export function CanvasObject({
     }
   }, [isEditing]);
   
+  useEffect(() => {
+    if (object.type === 'barcode' && barcodeRef.current) {
+      const barcodeObject = object as BarcodeObjectType;
+      try {
+        JsBarcode(barcodeRef.current, barcodeObject.value, {
+            width: 2,
+            height: object.height - 20,
+            displayValue: true,
+            background: "#FFFFFF",
+            margin: 10,
+        });
+      } catch (e) {
+        console.error('Invalid barcode value', e);
+      }
+    }
+  }, [object]);
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: object.x,
@@ -99,7 +106,11 @@ export function CanvasObject({
           />
         );
       case 'barcode':
-        return <BarcodeSvg value={object.value} />;
+        return (
+            <div className='w-full h-full flex items-center justify-center' style={{backgroundColor: '#FFFFFF'}}>
+                 <svg ref={barcodeRef} />
+            </div>
+        );
       default:
         return null;
     }
