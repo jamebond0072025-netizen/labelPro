@@ -9,48 +9,48 @@
     {
       "id": "template1",
       "description": "Minimalist coffee bag label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1691017296011-ea9532242c7e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtaW5pbWFsaXN0JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "minimalist label",
+      "imageUrl": "https://images.unsplash.com/photo-1511920183318-9d614fba01b2?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "coffee label",
       "width": 300,
       "height": 420
     },
     {
       "id": "template2",
-      "description": "Vibrant and colorful juice bottle label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1623228297208-e63a7a2c096f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx2aWJyYW50JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "vibrant label",
+      "description": "Vibrant juice bottle label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1543254333-5743a3739a7b?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "juice label",
       "width": 300,
       "height": 420
     },
     {
       "id": "template3",
-      "description": "Elegant wine bottle label template with script font.",
-      "imageUrl": "https://images.unsplash.com/photo-1697115355219-310cbdde03f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlbGVnYW50JTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "elegant label",
+      "description": "Elegant wine bottle label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1598302582173-8995a363a43f?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "wine label",
       "width": 300,
       "height": 420
     },
     {
       "id": "template4",
       "description": "Modern skincare product label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1733248113980-a7842d2273fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBsYWJlbHxlbnwwfHx8fDE3NTg3MzM0ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "modern label",
+      "imageUrl": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "skincare label",
       "width": 300,
       "height": 420
     },
     {
       "id": "template5",
       "description": "Rustic craft beer can label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1753568013889-3ed0d665b7a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxydXN0aWMlMjBsYWJlbHxlbnwwfHx8fDE3NTg3MzM0ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "rustic label",
+      "imageUrl": "https://images.unsplash.com/photo-1617886903339-b47c093a0a38?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "beer label",
       "width": 300,
       "height": 420
     },
     {
       "id": "template6",
-      "description": "Organic honey jar label template with a hand-drawn look.",
-      "imageUrl": "https://images.unsplash.com/photo-1612092554096-107746384543?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxvcmdhbmljJTIwbGFiZWx8ZW58MHx8fHwxNzU4NzMzNDgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "organic label",
+      "description": "Organic honey jar label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "honey label",
       "width": 300,
       "height": 420
     },
@@ -58,7 +58,7 @@
       "id": "template7",
       "description": "Bold soap packaging template.",
       "imageUrl": "https://images.unsplash.com/photo-1620916566398-39f193831425?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
-      "imageHint": "bold label",
+      "imageHint": "soap label",
       "width": 300,
       "height": 420
     },
