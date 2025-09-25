@@ -47,11 +47,13 @@ export function PropertiesPanel({
       );
     }
     return (
-      <div className="p-4 pt-12 border-l h-full bg-card">
-        <div className="flex items-center justify-center h-full">
-            <p className="text-sm text-muted-foreground">Select an object to edit</p>
+      <ScrollArea className="h-full">
+        <div className="p-4 pt-12 border-l h-full bg-card">
+          <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">Select an object to edit</p>
+          </div>
         </div>
-      </div>
+      </ScrollArea>
     );
   }
 
@@ -93,7 +95,6 @@ export function PropertiesPanel({
 
     return (
       <>
-        {renderPlaceholderKeyProperty()}
         {!isPlaceholder && (
             <div className="space-y-2">
             <Label htmlFor="text-content">Text</Label>
@@ -209,7 +210,6 @@ export function PropertiesPanel({
 
     return (
       <>
-        {renderPlaceholderKeyProperty()}
         {!isPlaceholder && (
             <div className="space-y-2">
             <Label htmlFor="barcode-value">Barcode Value</Label>
@@ -229,7 +229,6 @@ export function PropertiesPanel({
     
     return (
         <>
-            {renderPlaceholderKeyProperty()}
         </>
     )
   }
@@ -241,8 +240,10 @@ export function PropertiesPanel({
         <h3 className="text-lg font-headline font-semibold capitalize">
           {selectedObject.type} Properties
         </h3>
+        
+        {renderPlaceholderKeyProperty()}
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <div className="space-y-2">
             <Label htmlFor="pos-x">X</Label>
             <Input
