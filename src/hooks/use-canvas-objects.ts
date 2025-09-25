@@ -25,9 +25,15 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       if (!response.ok) {
         throw new Error(`Failed to fetch template: ${response.statusText}`);
       }
-      const templateData = await response.json();
+      const templateJsonString = await response.text();
+      // The designJson is a string with escaped quotes, so we need to parse it twice.
+      const parsedJsonString = JSON.parse(templateJsonString);
+      const templateData = JSON.parse(parsedJsonString);
+
+      // Assuming templateData has { settings, objects }
       onUpdateCanvasSettings(templateData.settings);
       setObjects(templateData.objects);
+
       setSelectedObjectIds([]);
       // Reset counters based on loaded objects
       const counters = { text: 0, image: 0, barcode: 0 };
@@ -42,6 +48,14 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
     } catch (error) {
       console.error("Error loading template:", error);
+       try {
+        const response = await fetch(url);
+        const directJson = await response.json();
+        onUpdateCanvasSettings(directJson.settings);
+        setObjects(directJson.objects);
+      } catch (e) {
+        console.error("Secondary attempt to load template failed:", e);
+      }
     }
   }, [onUpdateCanvasSettings]);
 
@@ -54,7 +68,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId, loadTemplate]);
+  }, [templateId]); // Removed loadTemplate from deps to avoid re-running on every render cycle
 
 
   const handleAddItem = (type: ItemType) => {
@@ -271,5 +285,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
   };
 };
+
+    
 
     

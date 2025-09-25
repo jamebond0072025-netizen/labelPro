@@ -97,8 +97,8 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const [dataKeys, setDataKeys] = useState<string[]>([]);
     
     const [templatePlaceholders, setTemplatePlaceholders] = useState<TemplatePlaceholder[]>([]);
-    const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
     const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+    const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
     const [manualData, setManualData] = useState<Record<string, any>[]>([{}]);
 
 
@@ -107,15 +107,18 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         setIsLoadingTemplate(true);
         try {
             const res = await fetch(template.templateUrl);
-            const templateData: { objects: CanvasObject[] } = await res.json();
+            const templateJsonString = await res.text();
+            const parsedJsonString = JSON.parse(templateJsonString);
+            const templateData = JSON.parse(parsedJsonString);
+
             const placeholders = templateData.objects
-                .filter((obj): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
-                .map(obj => ({
+                .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
+                .map((obj: any) => ({
                     key: obj.key,
                     type: obj.type,
                 }));
             
-            const uniquePlaceholders = Array.from(new Map(placeholders.map(p => [p.key, p])).values());
+            const uniquePlaceholders = Array.from(new Map(placeholders.map((p: any) => [p.key, p])).values());
             setTemplatePlaceholders(uniquePlaceholders);
             
             // Initialize manual data with keys
@@ -124,12 +127,30 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             setManualData([initialRow]);
 
         } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Failed to load template',
-                description: 'Could not fetch template placeholder keys.',
-            });
             console.error(error);
+             // Fallback for directly parsing JSON if double parsing fails
+            try {
+                const res = await fetch(template.templateUrl);
+                const templateData = await res.json();
+                const placeholders = templateData.objects
+                    .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
+                    .map((obj: any) => ({
+                        key: obj.key,
+                        type: obj.type,
+                    }));
+                const uniquePlaceholders = Array.from(new Map(placeholders.map((p: any) => [p.key, p])).values());
+                setTemplatePlaceholders(uniquePlaceholders);
+                const initialRow: Record<string, string> = {};
+                uniquePlaceholders.forEach(p => initialRow[p.key] = '');
+                setManualData([initialRow]);
+            } catch (finalError) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Failed to load template',
+                    description: 'Could not fetch template placeholder keys.',
+                });
+                console.error("Final template parsing error:", finalError);
+            }
         } finally {
             setIsLoadingTemplate(false);
         }
@@ -513,5 +534,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     </Dialog>
   );
 }
+
+    
 
     

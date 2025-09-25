@@ -1,4 +1,5 @@
 
+
 import data from './placeholder-images.json';
 
 export type ImagePlaceholder = {
@@ -11,7 +12,12 @@ export type ImagePlaceholder = {
   templateUrl?: string;
 };
 
-// This can now be an empty array as data is fetched from the API.
-export const PlaceHolderImages: ImagePlaceholder[] = [];
+// This is now populated from the API call in page.tsx
+export let PlaceHolderImages: ImagePlaceholder[] = [];
+
+// Function to update the placeholders, called from page.tsx
+export function setPlaceHolderImages(images: ImagePlaceholder[]) {
+  PlaceHolderImages = images;
+}
 
     

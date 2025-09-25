@@ -87,15 +87,21 @@ export default function Home() {
         if (!data || !Array.isArray(data)) {
            throw new Error("Received invalid data format from API. Expected an array.");
         }
-        const formattedTemplates = data.map((item: any) => ({
-          id: `template-${item.id}`,
-          description: item.name,
-          imageUrl: item.design || 'https://picsum.photos/seed/1/300/420', // Fallback image
-          imageHint: item.name,
-          width: item.width || 300,
-          height: item.height || 420,
-          templateUrl: item.designUrl || '' // URL to fetch the full template JSON
-        }));
+        const formattedTemplates = data.map((item: any) => {
+            // Create a Blob from the designJson string to create an object URL
+            const blob = new Blob([item.designJson], { type: 'application/json' });
+            const designUrl = URL.createObjectURL(blob);
+
+            return {
+                id: `template-${item.id}`,
+                description: item.name,
+                imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420',
+                imageHint: item.name,
+                width: 300, // Default width, can be updated later if available
+                height: 420, // Default height
+                templateUrl: designUrl, // URL to fetch the full template JSON from blob
+            }
+        });
         setTemplates(formattedTemplates);
       })
       .catch(err => {
@@ -250,5 +256,7 @@ export default function Home() {
     </div>
   );
 }
+
+    
 
     
