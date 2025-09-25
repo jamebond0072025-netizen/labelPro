@@ -89,7 +89,6 @@ export function CanvasObject({
           padding: '0 5px',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          overflow: 'hidden'
         };
         return <div style={textStyle} onDoubleClick={() => onDoubleClick(object.id)}>{object.text}</div>;
       case 'image':
@@ -131,7 +130,7 @@ export function CanvasObject({
                 e.currentTarget.blur();
               }
             }}
-            className="absolute inset-0 w-full h-full bg-transparent resize-none border-none outline-none overflow-hidden"
+            className="absolute inset-0 w-full h-full bg-transparent resize-none border-none outline-none"
             style={textStyle}
         />
     )
