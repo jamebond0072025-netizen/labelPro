@@ -60,7 +60,7 @@ export function CanvasObject({
             src={object.src}
             alt="Canvas image"
             fill
-            className="object-cover"
+            className="object-fill"
             draggable={false}
           />
         );
