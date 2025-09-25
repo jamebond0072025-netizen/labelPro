@@ -46,11 +46,12 @@ export function Header() {
         quality: 1,
         width: canvasSettings.width,
         height: canvasSettings.height,
-        // The 'style' property is crucial. It temporarily overrides the transform
-        // during capture to ensure we get a 1:1 pixel-perfect image.
         style: {
+          // Temporarily override the transform to ensure we get a 1:1 pixel-perfect image
           transform: 'scale(1)',
-          transformOrigin: 'center center',
+          // Ensure the node itself is sized correctly for capture
+          width: `${canvasSettings.width}px`,
+          height: `${canvasSettings.height}px`,
         }
       })
         .then((dataUrl) => {
