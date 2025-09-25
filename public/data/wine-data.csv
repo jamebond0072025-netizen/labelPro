@@ -1,0 +1,6 @@
+wine_name,vintage_year,wine_type,description,winery_name,bottle_volume,barcode_value
+"Crimson Peak Cabernet",2021,"Cabernet Sauvignon","A full-bodied red with notes of dark cherry, blackcurrant, and a hint of vanilla. Aged 18 months in French oak barrels.","Starlight Vineyards","750ml","850000000001"
+"Golden Ridge Chardonnay",2022,"Chardonnay","Crisp and refreshing, with flavors of green apple, citrus, and a creamy finish. Perfect for a warm summer evening.","Sunset Hills Winery","750ml","850000000002"
+"Whispering Pines Rosé",2023,"Rosé","A delicate and dry rosé with aromas of strawberry, watermelon, and a touch of floral notes. Enjoy chilled.","Mountain View Estates","750ml","850000000003"
+"Midnight Merlot",2020,"Merlot","Smooth and velvety, this merlot features flavors of plum, black cherry, and a hint of chocolate. Easy drinking and pairs well with many foods.","Riverbend Cellars","750ml","850000000004"
+"Azure Coast Sauvignon Blanc",2022,"Sauvignon Blanc","Zesty and aromatic with notes of grapefruit, lime, and a hint of passionfruit. A classic expression of Sauvignon Blanc.","Coastal Breeze Vineyards","750ml","850000000005"
