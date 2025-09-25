@@ -1,10 +1,17 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Download, Menu, Share2, FileDown, Type, Pin, PinOff } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Save, Image as ImageIcon, FileJson } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Type } from 'lucide-react';
 
 export function Header() {
   const pathname = usePathname();
@@ -24,14 +31,28 @@ export function Header() {
       </div>
       {isEditor && (
          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-            </Button>
-            <Button size="sm">
-                <FileDown className="mr-2 h-4 w-4" />
-                Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <ImageIcon className="mr-2" />
+                  Export as PNG
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <ImageIcon className="mr-2" />
+                  Export as JPEG
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <FileJson className="mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
          </div>
       )}
     </header>
