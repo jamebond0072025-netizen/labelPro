@@ -1,6 +1,8 @@
+
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
+import { PrintProvider } from '@/contexts/print-context';
 
 export const metadata: Metadata = {
   title: 'Label Designer',
@@ -22,7 +24,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Oswald:wght@400;700&family=Raleway:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <PrintProvider>
+          {children}
+        </PrintProvider>
         <Toaster />
       </body>
     </html>
