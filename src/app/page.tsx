@@ -64,7 +64,7 @@ export default function Home() {
                       </Button>
                     </div>
                 </div>
-                <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
                      {templatesToShow.map(template => (
                         <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                             <CardContent className="p-0 flex flex-col flex-1">
