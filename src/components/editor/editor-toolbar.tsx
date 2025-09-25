@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -6,6 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -34,9 +39,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Alignment } from '@/hooks/use-canvas-objects';
+import type { ItemType } from '@/lib/types';
 
 interface EditorToolbarProps {
-  onAddItem: (type: 'text' | 'image' | 'barcode') => void;
+  onAddItem: (type: ItemType) => void;
   onClearAll: () => void;
   onLayerAction: (action: 'bring-forward' | 'send-backward') => void;
   onZoom: (zoom: number) => void;
@@ -74,12 +80,36 @@ export function EditorToolbar({
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => onAddItem('text')}>
-          <Type className="mr-2" /> Text
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onAddItem('image')}>
-          <ImageIcon className="mr-2" /> Image
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+                <Type className="mr-2" /> Text
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => onAddItem('placeholder-text')}>
+                        Placeholder Text
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => onAddItem('static-text')}>
+                        Static Text
+                    </DropdownMenuItem>
+                </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+        </DropdownMenuSub>
+         <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+                <ImageIcon className="mr-2" /> Image
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => onAddItem('placeholder-image')}>
+                        Placeholder Image
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => onAddItem('static-image')}>
+                        Static Image
+                    </DropdownMenuItem>
+                </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+        </DropdownMenuSub>
         <DropdownMenuItem onClick={() => onAddItem('barcode')}>
           <Barcode className="mr-2" /> Barcode
         </DropdownMenuItem>
@@ -237,3 +267,5 @@ export function EditorToolbar({
     </TooltipProvider>
   );
 }
+
+    

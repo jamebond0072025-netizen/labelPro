@@ -42,3 +42,12 @@ export type Alignment =
   | 'left' | 'center' | 'right' 
   | 'top' | 'middle' | 'bottom'
   | 'distribute-horizontally' | 'distribute-vertically';
+
+export type ItemType =
+  | 'placeholder-text'
+  | 'static-text'
+  | 'placeholder-image'
+  | 'static-image'
+  | 'barcode';
+
+    

@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings } from '@/lib/types';
+import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const initialObjects: CanvasObject[] = [
@@ -68,20 +69,32 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   }, [templateId]);
 
 
-  const handleAddItem = (type: 'text' | 'image' | 'barcode') => {
+  const handleAddItem = (type: ItemType) => {
     const newId = `${type}${Date.now()}`;
     let newObject: CanvasObject;
     const canvasCenterX = (canvasRef.current?.offsetWidth || 0) / 2;
     const canvasCenterY = (canvasRef.current?.offsetHeight || 0) / 2;
 
     switch (type) {
-      case 'text':
+      case 'placeholder-text':
         newObject = {
           id: newId, type: 'text', x: canvasCenterX - 75, y: canvasCenterY - 20, width: 150, height: 40, rotation: 0, opacity: 1,
-          text: 'New Text', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
+          text: '{{placeholder}}', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
         } as TextObject;
         break;
-      case 'image':
+      case 'static-text':
+        newObject = {
+          id: newId, type: 'text', x: canvasCenterX - 75, y: canvasCenterY - 20, width: 150, height: 40, rotation: 0, opacity: 1,
+          text: 'Static Text', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
+        } as TextObject;
+        break;
+      case 'placeholder-image':
+        newObject = {
+          id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
+          src: 'https://placehold.co/100x100?text=Placeholder',
+        } as ImageObject;
+        break;
+      case 'static-image':
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
           src: PlaceHolderImages.find(img => img.id === 'product2')?.imageUrl || '',
@@ -138,8 +151,9 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   };
   
   const handleAlign = (alignment: Alignment) => {
+    if (selectedObjectIds.length === 0) return;
+
     const selectedObjects = objects.filter(obj => selectedObjectIds.includes(obj.id));
-    if (selectedObjects.length === 0) return;
   
     const newObjects = [...objects];
     const canvasWidth = canvasSettings.width;
@@ -211,3 +225,5 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
   };
 };
+
+    
