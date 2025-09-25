@@ -25,10 +25,13 @@ export default function EditorPage() {
     width: 500,
     height: 700,
     backgroundColor: '#FFFFFF',
-    backgroundImage: '',
   });
   const [editingObjectId, setEditingObjectId] = useState<string | null>(null);
 
+  const handleUpdateCanvasSettings = (newSettings: Partial<CanvasSettings>) => {
+    setCanvasSettings(prev => ({ ...prev, ...newSettings }));
+  };
+  
   const {
     objects,
     selectedObjectIds,
@@ -41,7 +44,7 @@ export default function EditorPage() {
     handleReplaceData,
     canvasRef,
     setObjects,
-  } = useCanvasObjects(templateId, canvasSettings);
+  } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
 
   const { setEditorState } = useEditor();
 
@@ -55,9 +58,6 @@ export default function EditorPage() {
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
-  const handleUpdateCanvasSettings = (newSettings: Partial<CanvasSettings>) => {
-    setCanvasSettings(prev => ({ ...prev, ...newSettings }));
-  };
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectIds[selectedObjectIds.length - 1]);
 

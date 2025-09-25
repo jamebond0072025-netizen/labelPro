@@ -1,0 +1,77 @@
+{
+  "settings": {
+    "width": 300,
+    "height": 420,
+    "backgroundColor": "#FFFFFF",
+    "backgroundImage": ""
+  },
+  "objects": [
+    {
+      "id": "text_1723567890123",
+      "type": "text",
+      "x": 25,
+      "y": 40,
+      "width": 250,
+      "height": 50,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{wine_name}}",
+      "fontSize": 36,
+      "fontWeight": "bold",
+      "fontFamily": "Playfair Display",
+      "color": "#1A232E",
+      "textAlign": "center",
+      "key": "wine_name"
+    },
+    {
+      "id": "text_1723567890124",
+      "type": "text",
+      "x": 125,
+      "y": 120,
+      "width": 50,
+      "height": 20,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{vintage}}",
+      "fontSize": 18,
+      "fontWeight": "normal",
+      "fontFamily": "PT Sans",
+      "color": "#4A5568",
+      "textAlign": "center",
+      "key": "vintage"
+    },
+    {
+        "id": "text_1723567890125",
+        "type": "text",
+        "x": 50,
+        "y": 180,
+        "width": 200,
+        "height": 100,
+        "rotation": 0,
+        "opacity": 1,
+        "text": "{{description}}",
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "fontFamily": "PT Sans",
+        "color": "#2D3748",
+        "textAlign": "center",
+        "key": "description"
+    },
+    {
+        "id": "text_1723567890126",
+        "type": "text",
+        "x": 50,
+        "y": 350,
+        "width": 200,
+        "height": 20,
+        "rotation": 0,
+        "opacity": 1,
+        "text": "PRODUCED IN NAPA VALLEY",
+        "fontSize": 10,
+        "fontWeight": "bold",
+        "fontFamily": "Montserrat",
+        "color": "#718096",
+        "textAlign": "center"
+    }
+  ]
+}

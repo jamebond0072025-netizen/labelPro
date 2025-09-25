@@ -7,12 +7,13 @@
       "imageHint": "designer desk"
     },
     {
-      "id": "template1",
-      "description": "Minimalist coffee bag label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1511920183318-9d614fba01b2?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
-      "imageHint": "coffee label",
+      "id": "template-wine-label",
+      "description": "Elegant wine bottle label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1598302582173-8995a363a43f?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "wine label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-wine-label.json"
     },
     {
       "id": "template2",
@@ -23,10 +24,10 @@
       "height": 420
     },
     {
-      "id": "template3",
-      "description": "Elegant wine bottle label template.",
-      "imageUrl": "https://images.unsplash.com/photo-1598302582173-8995a363a43f?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
-      "imageHint": "wine label",
+      "id": "template1",
+      "description": "Minimalist coffee bag label template.",
+      "imageUrl": "https://images.unsplash.com/photo-1511920183318-9d614fba01b2?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "coffee label",
       "width": 300,
       "height": 420
     },

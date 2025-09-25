@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -13,33 +13,48 @@ export type Alignment =
   | 'distribute-horizontally' | 'distribute-vertically';
 
 
-export const useCanvasObjects = (templateId: string | null, canvasSettings: CanvasSettings) => {
+export const useCanvasObjects = (templateId: string | null, canvasSettings: CanvasSettings, onUpdateCanvasSettings: (settings: Partial<CanvasSettings>) => void) => {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
 
+  const loadTemplate = useCallback(async (url: string) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch template: ${response.statusText}`);
+      }
+      const templateData = await response.json();
+      onUpdateCanvasSettings(templateData.settings);
+      setObjects(templateData.objects);
+      setSelectedObjectIds([]);
+      // Reset counters based on loaded objects
+      const counters = { text: 0, image: 0, barcode: 0 };
+      templateData.objects.forEach((obj: CanvasObject) => {
+        if (obj.key) {
+            if (obj.type === 'text') counters.text++;
+            if (obj.type === 'image') counters.image++;
+            if (obj.type === 'barcode') counters.barcode++;
+        }
+      });
+      objectCounters.current = counters;
+
+    } catch (error) {
+      console.error("Error loading template:", error);
+    }
+  }, [onUpdateCanvasSettings]);
+
+
   useEffect(() => {
     if (templateId) {
-      const templateImage = PlaceHolderImages.find(img => img.id === templateId);
-      if (templateImage && canvasRef.current) {
-        const canvasRect = canvasRef.current.getBoundingClientRect();
-        const newObject: ImageObject = {
-          id: `template_bg_${Date.now()}`,
-          type: 'image',
-          x: 0, y: 0,
-          width: canvasRect.width,
-          height: canvasRect.height,
-          rotation: 0,
-          opacity: 1,
-          src: templateImage.imageUrl,
-        };
-        setObjects([newObject]);
-        setSelectedObjectIds([]);
+      const template = PlaceHolderImages.find(img => img.id === templateId);
+      if (template?.templateUrl) {
+         loadTemplate(template.templateUrl);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]);
+  }, [templateId, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {
