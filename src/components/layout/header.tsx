@@ -12,10 +12,53 @@ import { Save, Image as ImageIcon, FileJson, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Type } from 'lucide-react';
+import { useEditor } from '@/contexts/editor-context';
+import { toPng, toJpeg } from 'html-to-image';
 
 export function Header() {
   const pathname = usePathname();
   const isEditor = pathname.includes('/editor');
+  const { editorState } = useEditor();
+
+  const handleExport = (format: 'png' | 'jpeg' | 'json') => {
+    if (!editorState) return;
+
+    const { canvasRef, objects, canvasSettings } = editorState;
+
+    if (format === 'json') {
+      const data = {
+        settings: canvasSettings,
+        objects: objects,
+      };
+      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+      const link = document.createElement("a");
+      link.href = jsonString;
+      link.download = "label-design.json";
+      link.click();
+      return;
+    }
+
+    if (canvasRef?.current) {
+      const options = {
+        quality: 0.95,
+        backgroundColor: canvasSettings.backgroundColor,
+      };
+      
+      const exporter = format === 'png' ? toPng : toJpeg;
+
+      exporter(canvasRef.current, options)
+        .then((dataUrl) => {
+          const link = document.createElement('a');
+          link.download = `label-design.${format}`;
+          link.href = dataUrl;
+          link.click();
+        })
+        .catch((err) => {
+          console.error('oops, something went wrong!', err);
+        });
+    }
+  };
+
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
@@ -43,15 +86,15 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('png')}>
                   <ImageIcon className="mr-2" />
                   Export as PNG
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('jpeg')}>
                   <ImageIcon className="mr-2" />
                   Export as JPEG
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('json')}>
                   <FileJson className="mr-2" />
                   Export as JSON
                 </DropdownMenuItem>

@@ -1,4 +1,5 @@
 import { Header } from '@/components/layout/header';
+import { EditorProvider } from '@/contexts/editor-context';
 
 export default function DashboardLayout({
   children,
@@ -6,11 +7,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full flex-col">
-      <Header />
-      <main className="flex-1 bg-background overflow-hidden flex">
-        {children}
-      </main>
-    </div>
+    <EditorProvider>
+      <div className="flex h-screen w-full flex-col">
+        <Header />
+        <main className="flex-1 bg-background overflow-hidden flex">
+          {children}
+        </main>
+      </div>
+    </EditorProvider>
   );
 }

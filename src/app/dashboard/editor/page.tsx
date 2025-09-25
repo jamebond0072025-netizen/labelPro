@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { EditorToolbar } from '@/components/editor/editor-toolbar';
@@ -13,7 +13,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, PanelRight } from 'lucide-react';
 import type { CanvasSettings } from '@/lib/types';
-import type { Alignment } from '@/lib/types';
+import { useEditor } from '@/contexts/editor-context';
+
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
@@ -38,7 +39,18 @@ export default function EditorPage() {
     handleUpdateObject,
     handleAlign,
     canvasRef,
+    setObjects,
   } = useCanvasObjects(templateId, canvasSettings);
+
+  const { setEditorState } = useEditor();
+
+   useEffect(() => {
+    setEditorState({
+      canvasRef,
+      objects,
+      canvasSettings,
+    });
+  }, [canvasRef, objects, canvasSettings, setEditorState]);
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
