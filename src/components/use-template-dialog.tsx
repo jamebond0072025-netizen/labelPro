@@ -67,12 +67,6 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             
             const uniquePlaceholders = [...new Set(placeholders)];
             setTemplatePlaceholders(uniquePlaceholders);
-
-            // Initialize mapping
-            const initialMapping: Record<string, string> = {};
-            uniquePlaceholders.forEach(p => { initialMapping[p] = ''});
-            setFieldMapping(initialMapping);
-
         } catch (error) {
             toast({
                 variant: 'destructive',
@@ -91,6 +85,22 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             fetchTemplatePlaceholders();
         }
     }, [step, templatePlaceholders, fetchTemplatePlaceholders]);
+
+    // Effect for automatic mapping
+    useEffect(() => {
+        if (templatePlaceholders.length > 0 && dataKeys.length > 0) {
+            const initialMapping: Record<string, string> = {};
+            templatePlaceholders.forEach(placeholder => {
+                // Auto-map if a data key matches the placeholder key
+                if (dataKeys.includes(placeholder)) {
+                    initialMapping[placeholder] = placeholder;
+                } else {
+                    initialMapping[placeholder] = '';
+                }
+            });
+            setFieldMapping(initialMapping);
+        }
+    }, [templatePlaceholders, dataKeys]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -123,10 +133,9 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             } else if (extension === 'csv') {
                 const result = Papa.parse(content as string, { header: true, skipEmptyLines: true });
                 if (result.errors.length > 0) {
-                    // Check for a specific "too few fields" error that might be a false positive on the last line
                     const isMinorError = result.errors.every(e => e.code === 'TooFewFields' && e.row === result.data.length);
                     if (!isMinorError) {
-                        throw new Error(result.errors[0].message);
+                        throw new Error(result.errors.map(e => e.message).join(', '));
                     }
                 }
                 data = result.data as Record<string, any>[];
@@ -157,6 +166,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             } else {
               setJsonInput(content as string);
             }
+            return data; // Return data for immediate use
 
         } catch (error) {
             const e = error as Error;
@@ -167,14 +177,16 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             });
             setParsedData(null);
             setDataKeys([]);
+            return null; // Return null on error
         }
     }
     
     const handleNextToMap = () => {
-        if (!parsedData) {
+        let currentData = parsedData;
+        if (!currentData) {
             if (jsonInput) {
-                handleDataInput(jsonInput, 'json');
-                if(!parsedData) return;
+                currentData = handleDataInput(jsonInput, 'json');
+                 if(!currentData) return; // Stop if parsing failed
             } else {
                 toast({
                     variant: 'destructive',
@@ -325,7 +337,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             <DialogHeader>
                 <DialogTitle>Map Your Data Fields</DialogTitle>
                 <DialogDescription>
-                    Match the placeholders in your template to the fields from your data source.
+                    Match the placeholders in your template to the fields from your data source. Fields with matching names have been pre-selected.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4 max-h-[50vh] overflow-y-auto pr-2">
@@ -380,7 +392,5 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     </Dialog>
   );
 }
-
-    
 
     
