@@ -39,14 +39,20 @@ export function Header() {
     }
 
     if (canvasRef?.current) {
-      const options = {
-        quality: 0.95,
-        backgroundColor: canvasSettings.backgroundColor,
-      };
-      
+      const node = canvasRef.current;
       const exporter = format === 'png' ? toPng : toJpeg;
 
-      exporter(canvasRef.current, options)
+      exporter(node, {
+        quality: 1,
+        width: canvasSettings.width,
+        height: canvasSettings.height,
+        // The 'style' property is crucial. It temporarily overrides the transform
+        // during capture to ensure we get a 1:1 pixel-perfect image.
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'center center',
+        }
+      })
         .then((dataUrl) => {
           const link = document.createElement('a');
           link.download = `label-design.${format}`;
