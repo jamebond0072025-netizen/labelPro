@@ -24,6 +24,8 @@ import type { CanvasObject } from '@/lib/types';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Skeleton } from './ui/skeleton';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 
 interface UseTemplateDialogProps {
@@ -93,38 +95,65 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
+            const extension = file.name.split('.').pop()?.toLowerCase() || '';
             setFileName(file.name);
             setJsonInput(''); // Clear json input if a file is selected
 
             const reader = new FileReader();
             reader.onload = (event) => {
-                const content = event.target?.result as string;
-                handleDataInput(content, file.name.split('.').pop() || '');
+                const content = event.target?.result;
+                if (content) {
+                    handleDataInput(content, extension);
+                }
             };
-            reader.readAsText(file);
+
+            if (extension === 'xls' || extension === 'xlsx') {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
         }
     };
 
-    const handleDataInput = (content: string, extension: string) => {
-        setJsonInput(content);
+    const handleDataInput = (content: string | ArrayBuffer, extension: string) => {
         try {
-            // For now, we only handle JSON. CSV/XLS would need a parser library.
+            let data: Record<string, any>[] = [];
             if (extension === 'json') {
-                const data = JSON.parse(content);
-                if (!Array.isArray(data) || data.length === 0) {
-                    throw new Error("JSON must be a non-empty array of objects.");
+                data = JSON.parse(content as string);
+            } else if (extension === 'csv') {
+                const result = Papa.parse(content as string, { header: true });
+                if (result.errors.length > 0) {
+                    throw new Error(result.errors[0].message);
                 }
-                setParsedData(data);
-                setDataKeys(Object.keys(data[0]));
+                data = result.data as Record<string, any>[];
+            } else if (extension === 'xls' || extension === 'xlsx') {
+                const workbook = XLSX.read(content, { type: 'buffer' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                data = XLSX.utils.sheet_to_json(worksheet);
             } else {
                  toast({
                     variant: 'destructive',
-                    title: 'File type not yet supported',
-                    description: 'Please upload a JSON file for now.',
+                    title: 'File type not supported',
+                    description: 'Please upload a JSON, CSV, or Excel file.',
                 })
                 setParsedData(null);
                 setDataKeys([]);
+                return;
             }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error("Data must be a non-empty array of objects.");
+            }
+
+            setParsedData(data);
+            setDataKeys(Object.keys(data[0]));
+             if(extension !== 'json'){
+              setJsonInput(JSON.stringify(data, null, 2));
+            } else {
+              setJsonInput(content as string);
+            }
+
         } catch (error) {
             const e = error as Error;
             toast({
@@ -139,12 +168,17 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     
     const handleNextToMap = () => {
         if (!parsedData) {
-            toast({
-                variant: 'destructive',
-                title: 'No Data Provided',
-                description: 'Please upload or paste data to proceed.',
-            });
-            return;
+            if (jsonInput) {
+                handleDataInput(jsonInput, 'json');
+                if(!parsedData) return;
+            } else {
+                toast({
+                    variant: 'destructive',
+                    title: 'No Data Provided',
+                    description: 'Please upload or paste data to proceed.',
+                });
+                return;
+            }
         }
         setStep('map-fields');
     }
@@ -226,7 +260,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             <DialogHeader>
                 <DialogTitle>Provide Your Data</DialogTitle>
                 <DialogDescription>
-                    Upload a data file or paste JSON to populate your labels. The data should be an array of objects.
+                    Upload a data file (JSON, CSV, Excel) or paste JSON to populate your labels. The data should be an array of objects.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
@@ -245,11 +279,11 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                                     ) : (
                                         <>
                                         <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                        <p className="text-xs text-muted-foreground">JSON</p>
+                                        <p className="text-xs text-muted-foreground">JSON, CSV, XLS, XLSX</p>
                                         </>
                                     )}
                                 </div>
-                                <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} accept=".json" />
+                                <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} accept=".json,.csv,.xls,.xlsx" />
                             </label>
                         </div>
                     </TabsContent>
@@ -260,8 +294,10 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                             className="mt-4"
                             value={jsonInput}
                             onChange={(e) => {
-                                handleDataInput(e.target.value, 'json');
+                                setJsonInput(e.target.value);
                                 setFileName(null);
+                                setParsedData(null);
+                                setDataKeys([]);
                             }}
                         />
                     </TabsContent>
@@ -273,7 +309,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             </div>
              <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('select-type')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                <Button onClick={handleNextToMap} disabled={!parsedData}>
+                <Button onClick={handleNextToMap} disabled={!fileName && !jsonInput}>
                     Map Fields <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
             </DialogFooter>
