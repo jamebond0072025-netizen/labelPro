@@ -22,14 +22,16 @@ export default function Home() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // IMPORTANT: Add origin check for security
+      // IMPORTANT: Add origin check for security. Allow localhost for development.
       if (event.origin !== 'http://localhost:3000' && event.origin !== 'http://localhost:9002' && !event.origin.includes('apexpath.com')) {
-         console.warn(`Message from untrusted origin blocked: ${event.origin}`);
-        // return;
+         console.warn(`[Label Designer] Message from untrusted origin blocked: ${event.origin}`);
+        return;
       }
       
       const { type, token, tenantId } = event.data;
+
       if (type === 'SET_AUTH' && token && tenantId) {
+        console.log('[Label Designer] SET_AUTH message received. Setting token and tenantId.');
         setToken(token);
         setTenantId(tenantId);
         localStorage.setItem('authToken', token); // Store for fast refresh
@@ -39,7 +41,7 @@ export default function Home() {
 
     window.addEventListener('message', handleMessage);
 
-    // Check for credentials on initial load
+    // Check for credentials on initial load from localStorage
     const initialToken = localStorage.getItem('authToken');
     const initialTenantId = localStorage.getItem('tenantId');
 
@@ -47,12 +49,13 @@ export default function Home() {
        setToken(initialToken);
        setTenantId(initialTenantId);
      } else {
+        // If no token after 3 seconds, assume an auth issue.
         const timer = setTimeout(() => {
-            if (!token) {
+            if (!localStorage.getItem('authToken')) { // Re-check localStorage
                 setIsLoading(false);
-                setError("Authentication token not provided. Please ensure you are logged in.");
+                setError("Authentication token not received. Please ensure you are logged in to the parent application.");
             }
-        }, 3000); // Wait 3 seconds for token
+        }, 3000); 
         return () => clearTimeout(timer);
      }
 
@@ -60,7 +63,7 @@ export default function Home() {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (token && tenantId) {
@@ -76,13 +79,13 @@ export default function Home() {
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`Authentication failed or API error. Status: ${response.status}`);
+          throw new Error(`API Error: ${response.status} ${response.statusText}. Please check credentials and network.`);
         }
         return response.json();
       })
       .then(data => {
         if (!data || !Array.isArray(data)) {
-           throw new Error("Received invalid data format from API.");
+           throw new Error("Received invalid data format from API. Expected an array.");
         }
         const formattedTemplates = data.map((item: any) => ({
           id: `template-${item.id}`,
@@ -96,19 +99,17 @@ export default function Home() {
         setTemplates(formattedTemplates);
       })
       .catch(err => {
-        console.error("Failed to fetch templates:", err);
+        console.error("[Label Designer] Failed to fetch templates:", err);
         setError(err.message || "Failed to load templates. Please ensure you are logged in and have access.");
       })
       .finally(() => {
         setIsLoading(false);
       });
-    } else {
-        if (!token || !tenantId) {
-            setIsLoading(false);
-            setError("Authentication failed. Please log in and try again.");
-        }
+    } else if (!isLoading && !error) {
+        // This case handles when the component has mounted but no token is available yet.
+        // It avoids showing an error immediately.
     }
-  }, [token, tenantId]);
+  }, [token, tenantId, isLoading, error]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
@@ -163,7 +164,7 @@ export default function Home() {
                 </>
             ) : error ? (
                 <div className="mt-12 text-center text-destructive border border-destructive/50 bg-destructive/10 p-6 rounded-lg max-w-2xl mx-auto">
-                  <h3 className="text-lg font-bold">Authentication Error</h3>
+                  <h3 className="text-lg font-bold">An Error Occurred</h3>
                   <p className="mt-2">{error}</p>
                 </div>
             ) : (
@@ -249,8 +250,5 @@ export default function Home() {
     </div>
   );
 }
-
-
-    
 
     
