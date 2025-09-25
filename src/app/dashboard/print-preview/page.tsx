@@ -111,7 +111,6 @@ export default function PrintPreviewPage() {
             width: pageSize.width,
             height: pageSize.height,
             gridTemplateColumns: `repeat(auto-fill, minmax(${templateJson.settings.width}px, 1fr))`,
-            gridAutoRows: `${templateJson.settings.height}px`,
         }}
         >
         {data.map((itemData, index) => (
@@ -138,7 +137,6 @@ export default function PrintPreviewPage() {
             box-shadow: none !important;
             margin: 0;
             page-break-after: always;
-            page-break-inside: avoid;
           }
           .label-container {
              page-break-inside: avoid;
@@ -149,6 +147,7 @@ export default function PrintPreviewPage() {
         }
         .sheet {
           display: grid;
+          grid-auto-rows: min-content;
           gap: 0;
           align-content: start;
           justify-content: start;
