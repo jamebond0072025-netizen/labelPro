@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrint } from '@/contexts/print-context';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelLeft, PanelRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, PanelLeft, PanelRight } from 'lucide-react';
 import { LabelPreview } from '@/components/label-preview';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -16,9 +16,9 @@ import { PrintLayoutSettings } from '@/components/print/print-layout-settings';
 
 
 export const pageSizes = [
-  { name: 'A4 (210mm x 297mm)', width: '210mm', height: '297mm', pdf: { orientation: 'p', unit: 'mm', format: 'a4' } },
-  { name: 'Letter (8.5" x 11")', width: '8.5in', height: '11in', pdf: { orientation: 'p', unit: 'in', format: 'letter' } },
-  { name: 'Legal (8.5" x 14")', width: '8.5in', height: '14in', pdf: { orientation: 'p', unit: 'in', format: 'legal' } },
+  { name: 'A4 (210mm x 297mm)', width: '210mm', height: '297mm', pdf: { orientation: 'p', unit: 'mm', format: 'a4' }, pxWidth: 794, pxHeight: 1123 },
+  { name: 'Letter (8.5" x 11")', width: '8.5in', height: '11in', pdf: { orientation: 'p', unit: 'in', format: 'letter' }, pxWidth: 816, pxHeight: 1056 },
+  { name: 'Legal (8.5" x 14")', width: '8.5in', height: '14in', pdf: { orientation: 'p', unit: 'in', format: 'legal' }, pxWidth: 816, pxHeight: 1344 },
 ];
 
 export default function PrintPreviewPage() {
@@ -65,6 +65,36 @@ export default function PrintPreviewPage() {
   }, [pageSize, layout, setPrintPageSettings]);
 
 
+  const pages = useMemo(() => {
+    if (!templateJson || !data) return [];
+    
+    const pagePadding = 37.8; // Approx 1cm in pixels
+    const effectivePageWidth = pageSize.pxWidth - (pagePadding * 2);
+    const effectivePageHeight = pageSize.pxHeight - (pagePadding * 2);
+
+    const scaledLabelWidth = templateJson.settings.width * layout.labelScale;
+    const scaledLabelHeight = templateJson.settings.height * layout.labelScale;
+
+    if (scaledLabelWidth <= 0 || scaledLabelHeight <= 0) return [];
+    
+    const cols = Math.floor((effectivePageWidth + layout.columnGap) / (scaledLabelWidth + layout.columnGap));
+    const rows = Math.floor((effectivePageHeight + layout.rowGap) / (scaledLabelHeight + layout.rowGap));
+    const labelsPerPage = cols * rows;
+
+    if (labelsPerPage <= 0) return [[]];
+
+    const numPages = Math.ceil(data.length / labelsPerPage);
+    const pagesArray = [];
+    for (let i = 0; i < numPages; i++) {
+        const start = i * labelsPerPage;
+        const end = start + labelsPerPage;
+        pagesArray.push(data.slice(start, end));
+    }
+    return pagesArray;
+
+  }, [templateJson, data, pageSize, layout]);
+
+
   if (!template || !templateJson) {
     return (
         <div className="flex-1 flex items-center justify-center">
@@ -101,27 +131,30 @@ export default function PrintPreviewPage() {
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">
         <div id="print-container" style={{ transform: `scale(${layout.zoom})`, transformOrigin: 'top center' }}>
-          <div 
-              id="print-sheet" 
-              className="sheet bg-white shadow-lg"
-              style={{ 
-                  width: pageSize.width,
-                  minHeight: pageSize.height,
-                  gap: `${layout.rowGap}px ${layout.columnGap}px`,
-              }}
-              >
-              {data.map((itemData, index) => (
-              <div key={index} className="label-container" style={{ width: scaledLabelWidth, height: scaledLabelHeight }}>
-                  <div style={{ transform: `scale(${layout.labelScale})`, transformOrigin: 'top left', width: templateJson.settings.width, height: templateJson.settings.height }}>
-                    <LabelPreview
-                        objects={templateJson.objects}
-                        settings={templateJson.settings}
-                        data={itemData}
-                    />
-                  </div>
-              </div>
-              ))}
-          </div>
+          {pages.map((pageData, pageIndex) => (
+            <div 
+                key={pageIndex}
+                id={`print-sheet-${pageIndex}`}
+                className="sheet bg-white shadow-lg mb-8"
+                style={{ 
+                    width: pageSize.width,
+                    minHeight: pageSize.height,
+                    gap: `${layout.rowGap}px ${layout.columnGap}px`,
+                }}
+                >
+                {pageData.map((itemData, index) => (
+                <div key={index} className="label-container" style={{ width: scaledLabelWidth, height: scaledLabelHeight }}>
+                    <div style={{ transform: `scale(${layout.labelScale})`, transformOrigin: 'top left', width: templateJson.settings.width, height: templateJson.settings.height }}>
+                      <LabelPreview
+                          objects={templateJson.objects}
+                          settings={templateJson.settings}
+                          data={itemData}
+                      />
+                    </div>
+                </div>
+                ))}
+            </div>
+          ))}
         </div>
     </div>
   )
@@ -185,22 +218,22 @@ export default function PrintPreviewPage() {
             display: none !important;
           }
           #print-container {
-            width: 100%;
-            height: auto;
-            padding: 0;
-            margin: 0;
+            width: 100% !important;
+            height: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
             transform: scale(1) !important;
           }
           .sheet {
             box-shadow: none !important;
-            margin: 0;
+            margin: 0 !important;
             page-break-after: always;
             width: 100% !important;
-            height: auto !important;
-            min-height: calc(${pageSize.height} - 2cm);
+            height: 100% !important;
           }
           .label-container {
              page-break-inside: avoid !important;
+             break-inside: avoid !important;
              display: flex;
              justify-content: center;
              align-items: center;
@@ -212,7 +245,7 @@ export default function PrintPreviewPage() {
         .sheet {
           display: flex;
           flex-wrap: wrap;
-          align-content: start;
+          align-content: flex-start;
           justify-content: center;
           overflow: hidden;
           padding: 1cm;

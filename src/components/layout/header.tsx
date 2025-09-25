@@ -16,7 +16,7 @@ import { Type } from 'lucide-react';
 import { useEditor } from '@/contexts/editor-context';
 import { usePrint } from '@/contexts/print-context';
 import { useToast } from '@/hooks/use-toast';
-import { toPng, toJpeg } from 'html-to-image';
+import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 
 
@@ -50,7 +50,8 @@ export function Header() {
 
     if (canvasRef?.current) {
       const node = canvasRef.current;
-      const exporter = format === 'png' ? toPng : toJpeg;
+      const exporter = format === 'png' ? toPng : (node: HTMLElement) => toPng(node, { quality: 1, backgroundColor: '#FFFFFF' });
+
 
       exporter(node, {
         quality: 1,
@@ -74,56 +75,40 @@ export function Header() {
     }
   };
 
-  const handleDownloadPdf = async () => {
+ const handleDownloadPdf = async () => {
     if (!printPageSettings) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Print settings not available.' });
-      return;
+        toast({ variant: 'destructive', title: 'Error', description: 'Print settings not available.' });
+        return;
     }
 
     setIsPrinting(true);
-    const printSheet = document.getElementById('print-sheet');
-    if (!printSheet) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Print container not found.' });
-        setIsPrinting(false);
-        return;
-    }
-    
+    const { pageSize } = printPageSettings;
+    const { orientation, unit, format } = pageSize.pdf;
+    const pdf = new jsPDF(orientation, unit, format);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    const sheets = Array.from(document.querySelectorAll('.sheet'));
+
     try {
-        const { pageSize } = printPageSettings;
-        const { orientation, unit, format } = pageSize.pdf;
-        const pdf = new jsPDF(orientation, unit, format);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        const printContainer = document.getElementById('print-container');
-        const originalTransform = printContainer ? printContainer.style.transform : '';
-        if (printContainer) printContainer.style.transform = '';
-        
-        const dataUrl = await toPng(printSheet, {
-          quality: 1,
-          pixelRatio: 2,
-        });
+        for (let i = 0; i < sheets.length; i++) {
+            const sheet = sheets[i] as HTMLElement;
+             if (i > 0) {
+                pdf.addPage();
+            }
+            
+            const dataUrl = await toPng(sheet, {
+                quality: 1,
+                pixelRatio: 2,
+                width: pageSize.pxWidth,
+                height: pageSize.pxHeight,
+                style: {
+                    // Ensure the content is visible for capture
+                    //transform: 'scale(1)',
+                }
+            });
 
-        if (printContainer) printContainer.style.transform = originalTransform;
-
-        const tempImage = new Image();
-        tempImage.src = dataUrl;
-        await new Promise(resolve => tempImage.onload = resolve);
-        
-        const imgWidth = pdfWidth;
-        const imgHeight = (tempImage.height * imgWidth) / tempImage.width;
-        
-        let heightLeft = imgHeight;
-        let position = 0;
-        
-        pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-        
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
         }
 
         pdf.save('labels.pdf');
