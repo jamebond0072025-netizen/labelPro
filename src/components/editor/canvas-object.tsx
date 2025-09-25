@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { CanvasObject as CanvasObjectType, TextObject, BarcodeObject as BarcodeObjectType } from '@/lib/types';
+import { CanvasObject as CanvasObjectType, TextObject, BarcodeObject as BarcodeObjectType, ImageObject as ImageObjectType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import JsBarcode from 'jsbarcode';
@@ -96,12 +96,15 @@ export function CanvasObject({
         };
         return <div style={textStyle} onDoubleClick={() => onDoubleClick(object.id)}>{object.text}</div>;
       case 'image':
+        const imageObject = object as ImageObjectType;
         return (
           <Image
-            src={object.src}
+            src={imageObject.src}
             alt="Canvas image"
-            fill
-            className="object-fill pointer-events-none"
+            width={imageObject.width}
+            height={imageObject.height}
+            className="w-full h-full pointer-events-none"
+            style={{ objectFit: 'fill' }}
             draggable={false}
           />
         );
