@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,19 +10,98 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, Pencil } from 'lucide-react';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
-
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
-  const allTemplates = PlaceHolderImages.filter(img => img.id.startsWith('template'));
+  const [templates, setTemplates] = useState<ImagePlaceholder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [token, setToken] = useState<string | null>(null);
+  const tenantId = '64'; // As per API example
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // IMPORTANT: Add origin check for security
+      if (event.origin !== 'http://localhost:3000' && event.origin !== 'http://localhost:9002' && !event.origin.includes('apexpath.com')) {
+         console.warn(`Message from untrusted origin blocked: ${event.origin}`);
+        // return;
+      }
+      
+      const { type, token } = event.data;
+      if (type === 'SET_TOKEN' && token) {
+        setToken(token);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Initial request in case token is already available (e.g. fast refresh)
+    const initialToken = localStorage.getItem('authToken');
+     if (initialToken) {
+       setToken(initialToken);
+     }
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (token && tenantId) {
+      setIsLoading(true);
+      setError(null);
+
+      fetch('https://crossbiz-api.apexpath.com/inventory-service/api/LabelTemplate', {
+        headers: {
+          'accept': '*/*',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Assuming the API returns an array of objects with a similar structure
+        const formattedTemplates = data.map((item: any) => ({
+          id: `template-${item.id}`,
+          description: item.name,
+          imageUrl: item.design || 'https://picsum.photos/seed/1/300/420', // Fallback image
+          imageHint: item.name,
+          width: item.width || 300,
+          height: item.height || 420,
+          templateUrl: item.designUrl || '' // URL to fetch the full template JSON
+        }));
+        setTemplates(formattedTemplates);
+      })
+      .catch(err => {
+        console.error("Failed to fetch templates:", err);
+        setError("Failed to load templates. Please ensure you are logged in and have access.");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+    } else {
+        setIsLoading(false);
+         if (!token) {
+            setError("Authentication token not provided.");
+        }
+    }
+  }, [token, tenantId]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
   const [useTemplate, setUseTemplate] = useState<ImagePlaceholder | null>(null);
 
   const filteredTemplates = useMemo(() => {
-    return allTemplates.filter(template =>
+    return templates.filter(template =>
       template.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [allTemplates, searchQuery]);
+  }, [templates, searchQuery]);
 
   const templatesToShow = filteredTemplates.slice(0, visibleCount);
 
@@ -64,48 +142,71 @@ export default function Home() {
                       </Button>
                     </div>
                 </div>
-                <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                     {templatesToShow.map(template => (
-                        <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-                            <CardContent className="p-0 flex flex-col flex-1">
-                                <div className="relative aspect-[10/14] w-full">
-                                    <Image
-                                        src={template.imageUrl}
-                                        alt={template.description}
-                                        fill
-                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                        data-ai-hint={template.imageHint}
-                                    />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
-                                        <Button size="sm" onClick={() => handleUse(template)} className="w-full">
-                                            Use
-                                        </Button>
-                                        <div className="flex flex-col sm:flex-row w-full gap-2">
-                                            <Button asChild size="sm" variant="secondary" className="w-full">
-                                                <Link href={`/dashboard/editor?template=${template.id}`}><Pencil className="mr-2 h-4 w-4" /> Edit</Link>
+                 {isLoading ? (
+                    <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <Card key={i}>
+                          <CardContent className="p-0">
+                            <Skeleton className="aspect-[10/14] w-full" />
+                            <div className="p-3 space-y-2">
+                              <Skeleton className="h-4 w-3/4" />
+                              <Skeleton className="h-3 w-1/2" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                ) : error ? (
+                    <div className="mt-12 text-center text-destructive">
+                      <p>{error}</p>
+                    </div>
+                ) : (
+                  <>
+                    <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                        {templatesToShow.map(template => (
+                            <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
+                                <CardContent className="p-0 flex flex-col flex-1">
+                                    <div className="relative aspect-[10/14] w-full">
+                                        <Image
+                                            src={template.imageUrl}
+                                            alt={template.description}
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={template.imageHint}
+                                            unoptimized // Use this if images are from an external source not configured in next.config.js
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                                            <Button size="sm" onClick={() => handleUse(template)} className="w-full">
+                                                Use
                                             </Button>
+                                            <div className="flex flex-col sm:flex-row w-full gap-2">
+                                                <Button asChild size="sm" variant="secondary" className="w-full">
+                                                    <Link href={`/dashboard/editor?template=${template.id}`}><Pencil className="mr-2 h-4 w-4" /> Edit</Link>
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="p-3 mt-auto">
-                                    <h3 className="font-semibold text-sm truncate">{template.description}</h3>
-                                    {template.width && template.height && (
-                                        <p className="text-xs text-muted-foreground">{template.width}px x {template.height}px</p>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-                {visibleCount < filteredTemplates.length && (
-                    <div className="mt-12 text-center">
-                        <Button onClick={handleLoadMore}>Load More Templates</Button>
+                                    <div className="p-3 mt-auto">
+                                        <h3 className="font-semibold text-sm truncate">{template.description}</h3>
+                                        {template.width && template.height && (
+                                            <p className="text-xs text-muted-foreground">{template.width}px x {template.height}px</p>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
-                )}
-                {filteredTemplates.length === 0 && (
-                    <div className="mt-12 text-center text-muted-foreground">
-                        No templates found for &quot;{searchQuery}&quot;.
-                    </div>
+                    {visibleCount < filteredTemplates.length && (
+                        <div className="mt-12 text-center">
+                            <Button onClick={handleLoadMore}>Load More Templates</Button>
+                        </div>
+                    )}
+                    {filteredTemplates.length === 0 && !isLoading && (
+                        <div className="mt-12 text-center text-muted-foreground">
+                            No templates found for &quot;{searchQuery}&quot;.
+                        </div>
+                    )}
+                  </>
                 )}
             </div>
         </section>
@@ -120,3 +221,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

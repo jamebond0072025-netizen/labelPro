@@ -1,3 +1,4 @@
+
 import data from './placeholder-images.json';
 
 export type ImagePlaceholder = {
@@ -10,4 +11,7 @@ export type ImagePlaceholder = {
   templateUrl?: string;
 };
 
-export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
+// This can now be an empty array as data is fetched from the API.
+export const PlaceHolderImages: ImagePlaceholder[] = [];
+
+    
