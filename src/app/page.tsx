@@ -18,7 +18,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const [token, setToken] = useState<string | null>(null);
-  const tenantId = '64'; // As per API example
+  const [tenantId, setTenantId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -28,22 +28,25 @@ export default function Home() {
         // return;
       }
       
-      const { type, token } = event.data;
-      if (type === 'SET_TOKEN' && token) {
+      const { type, token, tenantId } = event.data;
+      if (type === 'SET_TOKEN' && token && tenantId) {
         setToken(token);
+        setTenantId(tenantId);
         localStorage.setItem('authToken', token); // Store for fast refresh
+        localStorage.setItem('tenantId', tenantId);
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // Check for token on initial load
+    // Check for credentials on initial load
     const initialToken = localStorage.getItem('authToken');
-     if (initialToken) {
+    const initialTenantId = localStorage.getItem('tenantId');
+
+     if (initialToken && initialTenantId) {
        setToken(initialToken);
+       setTenantId(initialTenantId);
      } else {
-        // If no token, don't just wait, set loading to false and show error.
-        // This handles the case where the app is not in an iframe.
         const timer = setTimeout(() => {
             if (!token) {
                 setIsLoading(false);
@@ -100,10 +103,9 @@ export default function Home() {
         setIsLoading(false);
       });
     } else {
-        // If there's no token, we shouldn't be in a loading state.
-        if (!token) {
+        if (!token || !tenantId) {
             setIsLoading(false);
-            setError("Authentication token not provided. This app is intended to be run inside an iframe.");
+            setError("Authentication failed. Please log in and try again.");
         }
     }
   }, [token, tenantId]);
@@ -132,7 +134,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <main className="flex-1">
-        <div className="container px-4 md:px-6 py-8">
+        <div className="container w-full px-4 md:px-6 py-8">
             {isLoading ? (
                 <>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
@@ -228,7 +230,7 @@ export default function Home() {
                         <Button onClick={handleLoadMore}>Load More Templates</Button>
                     </div>
                 )}
-                {filteredTemplates.length === 0 && (
+                {filteredTemplates.length === 0 && !isLoading && (
                     <div className="mt-12 text-center text-muted-foreground">
                         No templates found for &quot;{searchQuery}&quot;.
                     </div>
@@ -247,3 +249,6 @@ export default function Home() {
     </div>
   );
 }
+
+
+    
