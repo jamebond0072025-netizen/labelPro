@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState } from 'react';
@@ -62,8 +63,8 @@ export const useEditorInteractions = (
     if (!object) return;
     
     // If the clicked object is not currently selected, select only it.
-    if (!selectedObjectIds.includes(id)) {
-        onSelectObject(id);
+    if (!selectedObjectIds.includes(id!)) {
+        onSetSelectedObjectIds([id!]);
         initialSelectedObjects.current = [object];
     } else {
         // If it is part of a selection, prepare to move all selected objects.
