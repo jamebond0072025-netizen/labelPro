@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import type { CanvasObject, TextObject, ImageObject, BarcodeObject } from '@/lib/types';
+import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const initialObjects: CanvasObject[] = [
@@ -40,7 +40,7 @@ export type Alignment =
   | 'distribute-horizontally' | 'distribute-vertically';
 
 
-export const useCanvasObjects = (templateId: string | null) => {
+export const useCanvasObjects = (templateId: string | null, canvasSettings: CanvasSettings) => {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -139,48 +139,52 @@ export const useCanvasObjects = (templateId: string | null) => {
   
   const handleAlign = (alignment: Alignment) => {
     const selectedObjects = objects.filter(obj => selectedObjectIds.includes(obj.id));
-    if (selectedObjects.length < 2) return;
-
+    if (selectedObjects.length === 0) return;
+  
     const newObjects = [...objects];
-
-    // Bounding box of all selected objects
+    const canvasWidth = canvasSettings.width;
+    const canvasHeight = canvasSettings.height;
+  
+    // Bounding box for distribution
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    selectedObjects.forEach(obj => {
-      minX = Math.min(minX, obj.x);
-      minY = Math.min(minY, obj.y);
-      maxX = Math.max(maxX, obj.x + obj.width);
-      maxY = Math.max(maxY, obj.y + obj.height);
-    });
-
-    const bboxWidth = maxX - minX;
-    const bboxHeight = maxY - minY;
-
+    if (selectedObjects.length > 1) {
+      selectedObjects.forEach(obj => {
+        minX = Math.min(minX, obj.x);
+        minY = Math.min(minY, obj.y);
+        maxX = Math.max(maxX, obj.x + obj.width);
+        maxY = Math.max(maxY, obj.y + obj.height);
+      });
+    }
+  
     selectedObjects.forEach(obj => {
         const index = newObjects.findIndex(o => o.id === obj.id);
         if (index === -1) return;
         let newX = newObjects[index].x;
         let newY = newObjects[index].y;
-
+  
         switch (alignment) {
-            case 'left': newX = minX; break;
-            case 'center': newX = minX + (bboxWidth - obj.width) / 2; break;
-            case 'right': newX = maxX - obj.width; break;
-            case 'top': newY = minY; break;
-            case 'middle': newY = minY + (bboxHeight - obj.height) / 2; break;
-            case 'bottom': newY = maxY - obj.height; break;
+            case 'left': newX = 0; break;
+            case 'center': newX = (canvasWidth - obj.width) / 2; break;
+            case 'right': newX = canvasWidth - obj.width; break;
+            case 'top': newY = 0; break;
+            case 'middle': newY = (canvasHeight - obj.height) / 2; break;
+            case 'bottom': newY = canvasHeight - obj.height; break;
         }
-
+  
         newObjects[index] = { ...newObjects[index], x: newX, y: newY };
     });
-
-    if (alignment === 'distribute-horizontally' || alignment === 'distribute-vertically') {
+  
+    if ((alignment === 'distribute-horizontally' || alignment === 'distribute-vertically') && selectedObjects.length > 1) {
       const sorted = [...selectedObjects].sort((a, b) => alignment === 'distribute-horizontally' ? a.x - b.x : a.y - b.y);
+      const bboxWidth = maxX - minX;
+      const bboxHeight = maxY - minY;
+
       const totalSize = sorted.reduce((sum, obj) => sum + (alignment === 'distribute-horizontally' ? obj.width : obj.height), 0);
       const totalGap = (alignment === 'distribute-horizontally' ? bboxWidth : bboxHeight) - totalSize;
       const gap = totalGap / (sorted.length - 1);
       
       let currentPos = alignment === 'distribute-horizontally' ? minX : minY;
-
+  
       sorted.forEach((obj, i) => {
         const index = newObjects.findIndex(o => o.id === obj.id);
         if (alignment === 'distribute-horizontally') {
@@ -192,8 +196,7 @@ export const useCanvasObjects = (templateId: string | null) => {
         }
       });
     }
-
-
+  
     setObjects(newObjects);
   };
 

@@ -17,7 +17,15 @@ import type { Alignment } from '@/lib/types';
 export default function EditorPage() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('template');
-  
+
+  const [zoom, setZoom] = useState(1);
+  const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>({
+    width: 500,
+    height: 700,
+    backgroundColor: '#FFFFFF',
+    backgroundImage: '',
+  });
+
   const {
     objects,
     selectedObjectIds,
@@ -28,15 +36,8 @@ export default function EditorPage() {
     handleUpdateObject,
     handleAlign,
     canvasRef,
-  } = useCanvasObjects(templateId);
+  } = useCanvasObjects(templateId, canvasSettings);
 
-  const [zoom, setZoom] = useState(1);
-  const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>({
-    width: 500,
-    height: 700,
-    backgroundColor: '#FFFFFF',
-    backgroundImage: '',
-  });
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const handleUpdateCanvasSettings = (newSettings: Partial<CanvasSettings>) => {
