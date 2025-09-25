@@ -5,35 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-const initialObjects: CanvasObject[] = [
-  {
-    id: 'text1',
-    type: 'text',
-    x: 50,
-    y: 50,
-    width: 250,
-    height: 50,
-    rotation: 0,
-    opacity: 1,
-    text: 'Your Company',
-    fontSize: 32,
-    fontWeight: 'bold',
-    fontFamily: 'Poppins, sans-serif',
-    color: '#000000',
-    textAlign: 'center',
-  },
-  {
-    id: 'image1',
-    type: 'image',
-    x: 125,
-    y: 120,
-    width: 150,
-    height: 150,
-    rotation: 0,
-    opacity: 1,
-    src: PlaceHolderImages.find(img => img.id === 'product1')?.imageUrl || '',
-  },
-];
+const initialObjects: CanvasObject[] = [];
 
 export type Alignment = 
   | 'left' | 'center' | 'right' 
@@ -62,7 +34,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
           opacity: 1,
           src: templateImage.imageUrl,
         };
-        setObjects([newObject, ...initialObjects]);
+        setObjects([newObject]);
         setSelectedObjectIds([]);
       }
     }
@@ -97,14 +69,14 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         const imageKey = `image_${objectCounters.current.image}`;
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: `https://placehold.co/200x200.jpg?text={{Placeholder Image}}`,
+          src: `https://placehold.co/200x200.png?text={{${imageKey}}}`,
           key: imageKey,
         } as ImageObject;
         break;
       case 'static-image':
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: 'https://placehold.co/200x200.jpg?text=Static+Image',
+          src: 'https://placehold.co/200x200.png?text=Static+Image',
         } as ImageObject;
         break;
       case 'barcode':
@@ -284,3 +256,5 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
   };
 };
+
+    
