@@ -47,13 +47,11 @@ export function PropertiesPanel({
       );
     }
     return (
-      <ScrollArea className="h-full">
-        <div className="p-4 pt-12 border-l h-full bg-card">
-          <div className="flex items-center justify-center h-full">
-              <p className="text-sm text-muted-foreground">Select an object to edit</p>
-          </div>
+      <div className="p-4 pt-12 border-l h-full bg-card">
+        <div className="flex items-center justify-center h-full">
+            <p className="text-sm text-muted-foreground">Select an object to edit</p>
         </div>
-      </ScrollArea>
+      </div>
     );
   }
 
@@ -239,7 +237,7 @@ export function PropertiesPanel({
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-4 pt-12 bg-card h-full space-y-4">
+      <div className="p-4 pt-12 space-y-4">
         <h3 className="text-lg font-headline font-semibold capitalize">
           {selectedObject.type} Properties
         </h3>

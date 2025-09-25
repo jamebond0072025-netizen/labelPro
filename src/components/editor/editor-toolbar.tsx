@@ -122,7 +122,7 @@ export function EditorToolbar({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="destructive-outline" size={isMobile ? "icon": "sm"} className={isMobile ? "w-full justify-start" : ""}>
-          <Trash2 className={isMobile ? "mr-2" : ""} /> {!isMobile && "Clear All"}
+          <Trash2 className={isMobile ? "" : "mr-2"} /> {!isMobile && "Clear All"}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -140,46 +140,48 @@ export function EditorToolbar({
     </AlertDialog>
   );
 
-  const alignmentTools = (
+  const alignmentMenu = (
     <DropdownMenu>
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" disabled={!hasSelection}>
-                        <AlignCenter />
-                    </Button>
-                </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent><p>Alignment</p></TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => onAlign('left')} disabled={!hasSelection}>
-                <AlignStartHorizontal className="mr-2" /> Align Left
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAlign('center')} disabled={!hasSelection}>
-                <AlignCenterHorizontal className="mr-2" /> Align Center
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAlign('right')} disabled={!hasSelection}>
-                <AlignEndHorizontal className="mr-2" /> Align Right
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onAlign('top')} disabled={!hasSelection}>
-                <AlignStartVertical className="mr-2" /> Align Top
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAlign('middle')} disabled={!hasSelection}>
-                <AlignCenterVertical className="mr-2" /> Align Middle
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAlign('bottom')} disabled={!hasSelection}>
-                <AlignEndVertical className="mr-2" /> Align Bottom
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}>
-                <Columns className="mr-2" /> Distribute Horizontally
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}>
-                <Rows className="mr-2" /> Distribute Vertically
-            </DropdownMenuItem>
-        </DropdownMenuContent>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" disabled={!hasSelection}>
+              <AlignCenter />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Alignment</p>
+        </TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => onAlign('left')} disabled={!hasSelection}>
+          <AlignStartHorizontal className="mr-2" /> Align Left
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAlign('center')} disabled={!hasSelection}>
+          <AlignCenterHorizontal className="mr-2" /> Align Center
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAlign('right')} disabled={!hasSelection}>
+          <AlignEndHorizontal className="mr-2" /> Align Right
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onAlign('top')} disabled={!hasSelection}>
+          <AlignStartVertical className="mr-2" /> Align Top
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAlign('middle')} disabled={!hasSelection}>
+          <AlignCenterVertical className="mr-2" /> Align Middle
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAlign('bottom')} disabled={!hasSelection}>
+          <AlignEndVertical className="mr-2" /> Align Bottom
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}>
+          <Columns className="mr-2" /> Distribute Horizontally
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}>
+          <Rows className="mr-2" /> Distribute Vertically
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 
@@ -210,7 +212,41 @@ export function EditorToolbar({
                 <ChevronsDown className="mr-2" /> Send Backward
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {alignmentTools}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <AlignCenter className="mr-2" /> Alignment
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => onAlign('left')} disabled={!hasSelection}>
+                        <AlignStartHorizontal className="mr-2" /> Align Left
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onAlign('center')} disabled={!hasSelection}>
+                        <AlignCenterHorizontal className="mr-2" /> Align Center
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onAlign('right')} disabled={!hasSelection}>
+                        <AlignEndHorizontal className="mr-2" /> Align Right
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onAlign('top')} disabled={!hasSelection}>
+                        <AlignStartVertical className="mr-2" /> Align Top
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onAlign('middle')} disabled={!hasSelection}>
+                        <AlignCenterVertical className="mr-2" /> Align Middle
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onAlign('bottom')} disabled={!hasSelection}>
+                        <AlignEndVertical className="mr-2" /> Align Bottom
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}>
+                        <Columns className="mr-2" /> Distribute Horizontally
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}>
+                        <Rows className="mr-2" /> Distribute Vertically
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>{clearAllDialog}</DropdownMenuItem>
             </DropdownMenuContent>
@@ -244,7 +280,7 @@ export function EditorToolbar({
             <TooltipContent><p>Send Backward</p></TooltipContent>
         </Tooltip>
         <Separator orientation="vertical" className="h-8" />
-        {alignmentTools}
+        {alignmentMenu}
       </div>
 
       <div className="flex items-center gap-2">
