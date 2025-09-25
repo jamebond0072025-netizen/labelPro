@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeft, Database } from 'lucide-react';
+import { PanelLeft, Database, Trash2 } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +38,12 @@ export function PrintDataPanel({
     onDataUpdate(newData);
   };
 
+  const handleDeleteRow = (rowIndex: number) => {
+    const newData = data.filter((_, index) => index !== rowIndex);
+    onDataUpdate(newData);
+  };
+
+
   const sidebarContent = (
       <ScrollArea className="h-full">
         <div className="h-full flex flex-col pt-12">
@@ -53,7 +59,17 @@ export function PrintDataPanel({
                       <Accordion type="multiple" className="w-full">
                         {data.map((row, rowIndex) => (
                            <AccordionItem key={rowIndex} value={`item-${rowIndex}`}>
-                             <AccordionTrigger>Label #{rowIndex + 1}</AccordionTrigger>
+                            <div className="flex items-center justify-between group">
+                               <AccordionTrigger className="flex-1 pr-2">Label #{rowIndex + 1}</AccordionTrigger>
+                               <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                                 onClick={() => handleDeleteRow(rowIndex)}
+                               >
+                                 <Trash2 className="h-4 w-4 text-destructive" />
+                               </Button>
+                             </div>
                              <AccordionContent>
                                 <div className="space-y-3">
                                   {Object.entries(row).map(([key, value]) => (
