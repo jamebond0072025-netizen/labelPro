@@ -79,7 +79,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       case 'placeholder-text':
         newObject = {
           id: newId, type: 'text', x: canvasCenterX - 75, y: canvasCenterY - 20, width: 150, height: 40, rotation: 0, opacity: 1,
-          text: '{{placeholder}}', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
+          text: '{{text}}', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
         } as TextObject;
         break;
       case 'static-text':
