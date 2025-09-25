@@ -22,7 +22,7 @@ interface TemplatePreviewDialogProps {
 export function TemplatePreviewDialog({ template, onOpenChange }: TemplatePreviewDialogProps) {
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{template.description}</DialogTitle>
           {template.width && template.height && (
