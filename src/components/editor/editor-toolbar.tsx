@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/tooltip';
 import {
   Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
-  ChevronsUp, ChevronsDown, MoreVertical, AlignLeft, AlignCenter, AlignRight,
-  AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
+  ChevronsUp, ChevronsDown, MoreVertical, AlignCenter, AlignStartHorizontal,
+  AlignCenterHorizontal, AlignEndHorizontal, AlignStartVertical, AlignCenterVertical, AlignEndVertical,
   Columns, Rows,
 } from 'lucide-react';
 import {
@@ -111,40 +111,46 @@ export function EditorToolbar({
   );
 
   const alignmentTools = (
-    <div className="flex items-center gap-1">
+    <DropdownMenu>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('left')} disabled={!hasSelection}><AlignLeft /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Left</p></TooltipContent>
+            <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={!hasSelection}>
+                        <AlignCenter />
+                    </Button>
+                </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent><p>Alignment</p></TooltipContent>
         </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('center')} disabled={!hasSelection}><AlignCenter /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Center</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('right')} disabled={!hasSelection}><AlignRight /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Right</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('top')} disabled={!hasSelection}><AlignVerticalJustifyStart /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Top</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('middle')} disabled={!hasSelection}><AlignVerticalJustifyCenter /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Middle</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('bottom')} disabled={!hasSelection}><AlignVerticalJustifyEnd /></Button></TooltipTrigger>
-            <TooltipContent><p>Align Bottom</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}><Columns /></Button></TooltipTrigger>
-            <TooltipContent><p>Distribute Horizontally</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}><Rows /></Button></TooltipTrigger>
-            <TooltipContent><p>Distribute Vertically</p></TooltipContent>
-        </Tooltip>
-    </div>
+        <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => onAlign('left')} disabled={!hasSelection}>
+                <AlignStartHorizontal className="mr-2" /> Align Left
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAlign('center')} disabled={!hasSelection}>
+                <AlignCenterHorizontal className="mr-2" /> Align Center
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAlign('right')} disabled={!hasSelection}>
+                <AlignEndHorizontal className="mr-2" /> Align Right
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onAlign('top')} disabled={!hasSelection}>
+                <AlignStartVertical className="mr-2" /> Align Top
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAlign('middle')} disabled={!hasSelection}>
+                <AlignCenterVertical className="mr-2" /> Align Middle
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAlign('bottom')} disabled={!hasSelection}>
+                <AlignEndVertical className="mr-2" /> Align Bottom
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}>
+                <Columns className="mr-2" /> Distribute Horizontally
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}>
+                <Rows className="mr-2" /> Distribute Vertically
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   if (isMobile) {
@@ -173,6 +179,8 @@ export function EditorToolbar({
               <DropdownMenuItem onClick={() => onLayerAction('send-backward')} disabled={!hasSelection}>
                 <ChevronsDown className="mr-2" /> Send Backward
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {alignmentTools}
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>{clearAllDialog}</DropdownMenuItem>
             </DropdownMenuContent>
