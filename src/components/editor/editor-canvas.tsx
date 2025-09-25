@@ -13,6 +13,7 @@ interface EditorCanvasProps {
   onUpdateObject: (id: string, newProps: Partial<CanvasObject>) => void;
   zoom: number;
   canvasSettings: CanvasSettings;
+  onDeselectAll: () => void;
 }
 
 export function EditorCanvas({
@@ -23,6 +24,7 @@ export function EditorCanvas({
   onUpdateObject,
   zoom,
   canvasSettings,
+  onDeselectAll,
 }: EditorCanvasProps) {
   const { handleInteractionStart, handlePointerMove, handlePointerUp } =
     useEditorInteractions(
@@ -34,13 +36,17 @@ export function EditorCanvas({
     );
 
   return (
-    <div className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative">
+    <div 
+      className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative"
+      onClick={onDeselectAll}
+    >
       <div
         ref={canvasRef}
         className="relative shadow-lg overflow-hidden"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: canvasSettings.width,
           height: canvasSettings.height,

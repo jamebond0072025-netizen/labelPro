@@ -41,16 +41,9 @@ export default function EditorPage() {
   };
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectId);
-
-  const deselectObject = (e: React.MouseEvent) => {
-    // Deselect if clicking on the canvas container itself
-    if (e.target === canvasRef.current?.parentElement?.parentElement) {
-      setSelectedObjectId(null);
-    }
-  };
   
   return (
-    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden" onClick={deselectObject}>
+    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden">
       {isDesktop ? (
           <LeftSidebar
               objects={objects}
@@ -94,6 +87,7 @@ export default function EditorPage() {
           onUpdateObject={handleUpdateObject}
           zoom={zoom}
           canvasSettings={canvasSettings}
+          onDeselectAll={() => setSelectedObjectId(null)}
         />
       </div>
       
