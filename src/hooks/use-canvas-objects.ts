@@ -97,14 +97,14 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         const imageKey = `image_${objectCounters.current.image}`;
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: `https://placehold.co/200x200.png?text={{${imageKey}}}`,
+          src: `https://placehold.co/200x200.jpg?text={{Placeholder Image}}`,
           key: imageKey,
         } as ImageObject;
         break;
       case 'static-image':
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: 'https://placehold.co/200x200.png?text=Static+Image',
+          src: 'https://placehold.co/200x200.jpg?text=Static+Image',
         } as ImageObject;
         break;
       case 'barcode':
