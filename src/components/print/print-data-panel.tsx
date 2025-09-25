@@ -41,7 +41,7 @@ export function PrintDataPanel({
   const sidebarContent = (
       <ScrollArea className="h-full">
         <div className="h-full flex flex-col pt-12">
-          <Accordion type="single" collapsible className="w-full px-4">
+          <Accordion type="single" collapsible defaultValue="data" className="w-full px-4">
               <AccordionItem value="data" className="border-none">
                   <AccordionTrigger>
                       <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export function PrintDataPanel({
                                 <div className="space-y-3">
                                   {Object.entries(row).map(([key, value]) => (
                                     <div key={key} className="space-y-1.5">
-                                        <Label htmlFor={`input-${rowIndex}-${key}`}>{key}</Label>
+                                        <Label htmlFor={`input-${rowIndex}-${key}`} className="capitalize">{key.replace(/_/g, ' ')}</Label>
                                         <Input
                                             id={`input-${rowIndex}-${key}`}
                                             value={String(value)}
