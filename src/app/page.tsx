@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, Eye } from 'lucide-react';
 import { TemplatePreviewDialog } from '@/components/template-preview-dialog';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import { UseTemplateDialog } from '@/components/use-template-dialog';
 
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
   const [selectedTemplate, setSelectedTemplate] = useState<ImagePlaceholder | null>(null);
+  const [useTemplate, setUseTemplate] = useState<ImagePlaceholder | null>(null);
 
   const filteredTemplates = useMemo(() => {
     return allTemplates.filter(template =>
@@ -33,6 +35,10 @@ export default function Home() {
 
   const handlePreview = (template: ImagePlaceholder) => {
     setSelectedTemplate(template);
+  };
+
+  const handleUse = (template: ImagePlaceholder) => {
+    setUseTemplate(template);
   };
 
 
@@ -77,8 +83,8 @@ export default function Home() {
                                         data-ai-hint={template.imageHint}
                                     />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <Button size="sm" asChild>
-                                            <Link href={`/dashboard/editor?template=${template.id}`}>Use</Link>
+                                        <Button size="sm" onClick={() => handleUse(template)}>
+                                            Use
                                         </Button>
                                         <Button size="sm" variant="secondary" onClick={() => handlePreview(template)}>
                                             <Eye className="mr-2 h-4 w-4" /> Preview
@@ -113,6 +119,12 @@ export default function Home() {
         <TemplatePreviewDialog
           template={selectedTemplate}
           onOpenChange={(isOpen) => !isOpen && setSelectedTemplate(null)}
+        />
+      )}
+      {useTemplate && (
+        <UseTemplateDialog
+          template={useTemplate}
+          onOpenChange={(isOpen) => !isOpen && setUseTemplate(null)}
         />
       )}
     </div>
