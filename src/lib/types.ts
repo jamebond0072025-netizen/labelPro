@@ -15,6 +15,7 @@ export interface TextObject extends BaseObject {
   fontWeight: 'normal' | 'bold';
   fontFamily: string;
   color: string;
+  textAlign: 'left' | 'center' | 'right';
 }
 
 export interface ImageObject extends BaseObject {

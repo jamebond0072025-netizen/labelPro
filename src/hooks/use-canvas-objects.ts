@@ -19,6 +19,7 @@ const initialObjects: CanvasObject[] = [
     fontWeight: 'bold',
     fontFamily: 'Poppins, sans-serif',
     color: '#000000',
+    textAlign: 'center',
   },
   {
     id: 'image1',
@@ -77,7 +78,7 @@ export const useCanvasObjects = (templateId: string | null) => {
       case 'text':
         newObject = {
           id: newId, type: 'text', x: canvasCenterX - 75, y: canvasCenterY - 20, width: 150, height: 40, rotation: 0, opacity: 1,
-          text: 'New Text', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000',
+          text: 'New Text', fontSize: 24, fontWeight: 'normal', fontFamily: 'PT Sans, sans-serif', color: '#000000', textAlign: 'center',
         } as TextObject;
         break;
       case 'image':

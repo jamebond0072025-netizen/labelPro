@@ -20,6 +20,17 @@ interface CanvasObjectProps {
   ) => void;
 }
 
+const getJustifyContent = (textAlign: 'left' | 'center' | 'right' = 'center') => {
+    switch (textAlign) {
+        case 'left':
+            return 'flex-start';
+        case 'center':
+            return 'center';
+        case 'right':
+            return 'flex-end';
+    }
+}
+
 export function CanvasObject({
   object,
   isSelected,
@@ -49,7 +60,9 @@ export function CanvasObject({
           height: '100%',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: getJustifyContent(object.textAlign),
+          textAlign: object.textAlign,
+          padding: '0 5px',
           whiteSpace: 'nowrap',
           overflow: 'hidden'
         };

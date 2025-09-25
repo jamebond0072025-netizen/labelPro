@@ -13,6 +13,10 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
+import { Button } from '../ui/button';
+import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
 
 interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
@@ -93,6 +97,35 @@ export function PropertiesPanel({
                         <SelectItem value="bold">Bold</SelectItem>
                     </SelectContent>
                 </Select>
+            </div>
+        </div>
+        <div className="space-y-2">
+            <Label>Alignment</Label>
+            <div className="flex gap-1">
+                <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleTextUpdate({ textAlign: 'left' })}
+                    className={cn(textObject.textAlign === 'left' && 'bg-accent')}
+                >
+                    <AlignLeft />
+                </Button>
+                 <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleTextUpdate({ textAlign: 'center' })}
+                    className={cn(textObject.textAlign === 'center' && 'bg-accent')}
+                 >
+                    <AlignCenter />
+                </Button>
+                 <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleTextUpdate({ textAlign: 'right' })}
+                    className={cn(textObject.textAlign === 'right' && 'bg-accent')}
+                 >
+                    <AlignRight />
+                </Button>
             </div>
         </div>
       </>
