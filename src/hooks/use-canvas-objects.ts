@@ -33,6 +33,12 @@ const initialObjects: CanvasObject[] = [
   },
 ];
 
+export type Alignment = 
+  | 'left' | 'center' | 'right' 
+  | 'top' | 'middle' | 'bottom'
+  | 'distribute-horizontally' | 'distribute-vertically';
+
+
 export const useCanvasObjects = (templateId: string | null) => {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
@@ -115,7 +121,7 @@ export const useCanvasObjects = (templateId: string | null) => {
     const objectToMove = newObjects.splice(currentIndex, 1)[0];
 
     if (action === 'bring-forward') {
-      const newIndex = Math.min(objects.length, currentIndex + 1);
+      const newIndex = Math.min(objects.length -1, currentIndex + 1);
       newObjects.splice(newIndex, 0, objectToMove);
     } else if (action === 'send-backward') {
       const newIndex = Math.max(0, currentIndex - 1);
@@ -130,6 +136,66 @@ export const useCanvasObjects = (templateId: string | null) => {
     );
   };
   
+  const handleAlign = (alignment: Alignment) => {
+    const selectedObjects = objects.filter(obj => selectedObjectIds.includes(obj.id));
+    if (selectedObjects.length < 2) return;
+
+    const newObjects = [...objects];
+
+    // Bounding box of all selected objects
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    selectedObjects.forEach(obj => {
+      minX = Math.min(minX, obj.x);
+      minY = Math.min(minY, obj.y);
+      maxX = Math.max(maxX, obj.x + obj.width);
+      maxY = Math.max(maxY, obj.y + obj.height);
+    });
+
+    const bboxWidth = maxX - minX;
+    const bboxHeight = maxY - minY;
+
+    selectedObjects.forEach(obj => {
+        const index = newObjects.findIndex(o => o.id === obj.id);
+        if (index === -1) return;
+        let newX = newObjects[index].x;
+        let newY = newObjects[index].y;
+
+        switch (alignment) {
+            case 'left': newX = minX; break;
+            case 'center': newX = minX + (bboxWidth - obj.width) / 2; break;
+            case 'right': newX = maxX - obj.width; break;
+            case 'top': newY = minY; break;
+            case 'middle': newY = minY + (bboxHeight - obj.height) / 2; break;
+            case 'bottom': newY = maxY - obj.height; break;
+        }
+
+        newObjects[index] = { ...newObjects[index], x: newX, y: newY };
+    });
+
+    if (alignment === 'distribute-horizontally' || alignment === 'distribute-vertically') {
+      const sorted = [...selectedObjects].sort((a, b) => alignment === 'distribute-horizontally' ? a.x - b.x : a.y - b.y);
+      const totalSize = sorted.reduce((sum, obj) => sum + (alignment === 'distribute-horizontally' ? obj.width : obj.height), 0);
+      const totalGap = (alignment === 'distribute-horizontally' ? bboxWidth : bboxHeight) - totalSize;
+      const gap = totalGap / (sorted.length - 1);
+      
+      let currentPos = alignment === 'distribute-horizontally' ? minX : minY;
+
+      sorted.forEach((obj, i) => {
+        const index = newObjects.findIndex(o => o.id === obj.id);
+        if (alignment === 'distribute-horizontally') {
+          newObjects[index].x = currentPos;
+          currentPos += obj.width + gap;
+        } else {
+          newObjects[index].y = currentPos;
+          currentPos += obj.height + gap;
+        }
+      });
+    }
+
+
+    setObjects(newObjects);
+  };
+
   return {
     objects,
     setObjects,
@@ -139,6 +205,7 @@ export const useCanvasObjects = (templateId: string | null) => {
     handleClearAll,
     handleLayerAction,
     handleUpdateObject,
+    handleAlign,
     canvasRef,
   };
 };

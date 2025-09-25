@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { Button } from '../ui/button';
+import { useState, useRef } from 'react';
 
 interface CanvasPropertiesProps {
   settings: CanvasSettings;
@@ -31,6 +32,7 @@ const standardSizes = [
 
 export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) {
   const [selectedSize, setSelectedSize] = useState('Custom');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
@@ -39,6 +41,17 @@ export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) 
       onUpdate({ width: size.width, height: size.height });
     }
   }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        onUpdate({ backgroundImage: e.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <ScrollArea className="h-full">
@@ -103,6 +116,31 @@ export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) 
                     value={settings.backgroundColor}
                     onChange={(e) => onUpdate({ backgroundColor: e.target.value })}
                 />
+            </div>
+        </div>
+
+        <div className="space-y-2">
+            <Label>Background Image</Label>
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    Upload Image
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept="image/*"
+                />
+                 {settings.backgroundImage && (
+                    <Button
+                        variant="destructive-outline"
+                        size="sm"
+                        onClick={() => onUpdate({ backgroundImage: '' })}
+                    >
+                        Remove
+                    </Button>
+                )}
             </div>
         </div>
       </div>

@@ -10,18 +10,16 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import {
-  Undo,
-  Redo,
-  Plus,
-  Type,
-  ImageIcon,
-  Barcode,
-  Trash2,
-  ZoomIn,
-  ZoomOut,
-  ChevronsUp,
-  ChevronsDown,
-  MoreVertical,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
+  ChevronsUp, ChevronsDown, MoreVertical, AlignLeft, AlignCenter, AlignRight,
+  AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
+  Columns, Rows,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -35,6 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useMediaQuery } from '@/hooks/use-media-query';
+import type { Alignment } from '@/hooks/use-canvas-objects';
 
 interface EditorToolbarProps {
   onAddItem: (type: 'text' | 'image' | 'barcode') => void;
@@ -42,7 +41,8 @@ interface EditorToolbarProps {
   onLayerAction: (action: 'bring-forward' | 'send-backward') => void;
   onZoom: (zoom: number) => void;
   zoom: number;
-  hasSelectedObject: boolean;
+  selectedObjectIds: string[];
+  onAlign: (alignment: Alignment) => void;
 }
 
 export function EditorToolbar({ 
@@ -51,17 +51,28 @@ export function EditorToolbar({
     onLayerAction,
     onZoom,
     zoom,
-    hasSelectedObject
+    selectedObjectIds,
+    onAlign,
 }: EditorToolbarProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const hasSelection = selectedObjectIds.length > 0;
+  const hasMultipleSelection = selectedObjectIds.length > 1;
 
   const addElementMenu = (
+    <TooltipProvider>
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={isMobile ? "icon" : "sm"}>
-          <Plus className={isMobile ? "" : "mr-2"} /> {!isMobile && 'Add Element'}
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size={isMobile ? "icon" : "sm"}>
+              <Plus className={isMobile ? "" : "mr-2"} /> {!isMobile && 'Add Element'}
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Add a new element to the canvas</p>
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={() => onAddItem('text')}>
           <Type className="mr-2" /> Text
@@ -74,13 +85,14 @@ export function EditorToolbar({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </TooltipProvider>
   );
 
   const clearAllDialog = (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive-outline" size="sm" className={isMobile ? "w-full justify-start" : ""}>
-          <Trash2 className="mr-2" /> Clear All
+        <Button variant="destructive-outline" size={isMobile ? "icon": "sm"} className={isMobile ? "w-full justify-start" : ""}>
+          <Trash2 className={isMobile ? "mr-2" : ""} /> {!isMobile && "Clear All"}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -96,6 +108,43 @@ export function EditorToolbar({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+
+  const alignmentTools = (
+    <div className="flex items-center gap-1">
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('left')} disabled={!hasMultipleSelection}><AlignLeft /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Left</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('center')} disabled={!hasMultipleSelection}><AlignCenter /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Center</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('right')} disabled={!hasMultipleSelection}><AlignRight /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Right</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('top')} disabled={!hasMultipleSelection}><AlignVerticalJustifyStart /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Top</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('middle')} disabled={!hasMultipleSelection}><AlignVerticalJustifyCenter /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Middle</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('bottom')} disabled={!hasMultipleSelection}><AlignVerticalJustifyEnd /></Button></TooltipTrigger>
+            <TooltipContent><p>Align Bottom</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('distribute-horizontally')} disabled={!hasMultipleSelection}><Columns /></Button></TooltipTrigger>
+            <TooltipContent><p>Distribute Horizontally</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('distribute-vertically')} disabled={!hasMultipleSelection}><Rows /></Button></TooltipTrigger>
+            <TooltipContent><p>Distribute Vertically</p></TooltipContent>
+        </Tooltip>
+    </div>
   );
 
   if (isMobile) {
@@ -118,10 +167,10 @@ export function EditorToolbar({
                 <ZoomOut className="mr-2" /> Zoom Out
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onLayerAction('bring-forward')} disabled={!hasSelectedObject}>
+              <DropdownMenuItem onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}>
                 <ChevronsUp className="mr-2" /> Bring Forward
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onLayerAction('send-backward')} disabled={!hasSelectedObject}>
+              <DropdownMenuItem onClick={() => onLayerAction('send-backward')} disabled={!hasSelection}>
                 <ChevronsDown className="mr-2" /> Send Backward
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -134,36 +183,49 @@ export function EditorToolbar({
   }
 
   return (
+    <TooltipProvider>
     <div className="w-full bg-card border-b p-2 flex items-center justify-between gap-2 z-20">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" disabled>
-          <Undo />
-        </Button>
-        <Button variant="ghost" size="icon" disabled>
-          <Redo />
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" disabled><Undo /></Button></TooltipTrigger>
+            <TooltipContent><p>Undo (Coming Soon)</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" disabled><Redo /></Button></TooltipTrigger>
+            <TooltipContent><p>Redo (Coming Soon)</p></TooltipContent>
+        </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {addElementMenu}
         <Separator orientation="vertical" className="h-8" />
-        <Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelectedObject} title="Bring Forward">
-          <ChevronsUp />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => onLayerAction('send-backward')} disabled={!hasSelectedObject} title="Send Backward">
-          <ChevronsDown />
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}><ChevronsUp /></Button></TooltipTrigger>
+            <TooltipContent><p>Bring Forward</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('send-backward')} disabled={!hasSelection}><ChevronsDown /></Button></TooltipTrigger>
+            <TooltipContent><p>Send Backward</p></TooltipContent>
+        </Tooltip>
+        <Separator orientation="vertical" className="h-8" />
+        {alignmentTools}
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => onZoom(zoom + 0.1)} title="Zoom In">
-          <ZoomIn />
-        </Button>
-        <Button variant="ghost" size="icon" onClick={() => onZoom(Math.max(0.1, zoom - 0.1))} title="Zoom Out">
-          <ZoomOut />
-        </Button>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onZoom(zoom + 0.1)}><ZoomIn /></Button></TooltipTrigger>
+            <TooltipContent><p>Zoom In</p></TooltipContent>
+        </Tooltip>
+        <Tooltip>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onZoom(Math.max(0.1, zoom - 0.1))}><ZoomOut /></Button></TooltipTrigger>
+            <TooltipContent><p>Zoom Out</p></TooltipContent>
+        </Tooltip>
         <div className="w-12 text-center text-sm">{Math.round(zoom * 100)}%</div>
         <Separator orientation="vertical" className="h-8" />
-        {clearAllDialog}
+         <Tooltip>
+            <TooltipTrigger asChild>{clearAllDialog}</TooltipTrigger>
+            <TooltipContent><p>Clear All</p></TooltipContent>
+        </Tooltip>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

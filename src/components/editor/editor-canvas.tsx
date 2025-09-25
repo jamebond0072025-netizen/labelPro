@@ -43,10 +43,30 @@ export function EditorCanvas({
       onSetSelectedObjectIds
     );
 
+  const canvasStyle: React.CSSProperties = {
+    width: canvasSettings.width,
+    height: canvasSettings.height,
+    backgroundColor: canvasSettings.backgroundColor,
+    transform: `scale(${zoom})`,
+    transformOrigin: 'center center',
+  };
+
+  if (canvasSettings.backgroundImage) {
+    canvasStyle.backgroundImage = `url(${canvasSettings.backgroundImage})`;
+    canvasStyle.backgroundSize = 'cover';
+    canvasStyle.backgroundPosition = 'center';
+  }
+
+
   return (
     <div 
       className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative"
       onPointerDown={(e) => handleInteractionStart(e, null, 'marquee', 'body')}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onDeselectAll();
+        }
+      }}
     >
       <div
         ref={canvasRef}
@@ -54,13 +74,7 @@ export function EditorCanvas({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        style={{
-          width: canvasSettings.width,
-          height: canvasSettings.height,
-          backgroundColor: canvasSettings.backgroundColor,
-          transform: `scale(${zoom})`,
-          transformOrigin: 'center center',
-        }}
+        style={canvasStyle}
       >
         {objects.map((obj) => (
           <CanvasObjectComponent

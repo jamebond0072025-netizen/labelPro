@@ -33,4 +33,5 @@ export interface CanvasSettings {
   width: number;
   height: number;
   backgroundColor: string;
+  backgroundImage?: string;
 }

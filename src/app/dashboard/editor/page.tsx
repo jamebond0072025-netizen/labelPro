@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, PanelRight } from 'lucide-react';
 import type { CanvasSettings } from '@/lib/types';
+import type { Alignment } from '@/lib/types';
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
@@ -25,6 +26,7 @@ export default function EditorPage() {
     handleClearAll,
     handleLayerAction,
     handleUpdateObject,
+    handleAlign,
     canvasRef,
   } = useCanvasObjects(templateId);
 
@@ -33,6 +35,7 @@ export default function EditorPage() {
     width: 500,
     height: 700,
     backgroundColor: '#FFFFFF',
+    backgroundImage: '',
   });
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
@@ -77,7 +80,8 @@ export default function EditorPage() {
           onLayerAction={handleLayerAction}
           onZoom={setZoom}
           zoom={zoom}
-          hasSelectedObject={selectedObjectIds.length > 0}
+          selectedObjectIds={selectedObjectIds}
+          onAlign={handleAlign}
         />
         <EditorCanvas
           canvasRef={canvasRef}
