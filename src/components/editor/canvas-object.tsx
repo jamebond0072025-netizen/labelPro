@@ -62,7 +62,7 @@ export function CanvasObject({
         console.error('Invalid barcode value', e);
       }
     }
-  }, [object]);
+  }, [object, object.width, object.height, object.value]);
 
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -101,7 +101,7 @@ export function CanvasObject({
             src={object.src}
             alt="Canvas image"
             fill
-            className="object-fill"
+            className="object-cover pointer-events-none"
             draggable={false}
           />
         );
