@@ -91,13 +91,13 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       case 'placeholder-image':
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: 'https://placehold.co/100x100?text=Placeholder',
+          src: 'https://placehold.co/100x100?text={{Image}}',
         } as ImageObject;
         break;
       case 'static-image':
         newObject = {
           id: newId, type: 'image', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
-          src: PlaceHolderImages.find(img => img.id === 'product2')?.imageUrl || '',
+          src: 'https://placehold.co/100x100?text=Static+Image',
         } as ImageObject;
         break;
       case 'barcode':
@@ -225,5 +225,3 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
   };
 };
-
-    
