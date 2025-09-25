@@ -19,6 +19,10 @@ import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 
+const googleFonts = [
+    'Poppins', 'PT Sans', 'Roboto', 'Open Sans', 'Lato', 
+    'Montserrat', 'Oswald', 'Raleway', 'Merriweather', 'Playfair Display'
+];
 
 interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
@@ -68,11 +72,11 @@ export function PropertiesPanel({
   };
 
   const renderPlaceholderKeyProperty = () => {
-    if (!('key' in selectedObject) || !selectedObject.key) return null;
+    if (!('key' in selectedObject) || selectedObject.key === undefined) return null;
     
     return (
         <div className="space-y-2">
-            <Label htmlFor="placeholder-key">Placeholder Key</Label>
+            <Label htmlFor="placeholder-key">Key</Label>
             <Input
                 id="placeholder-key"
                 value={selectedObject.key}
@@ -90,19 +94,38 @@ export function PropertiesPanel({
     return (
       <>
         {renderPlaceholderKeyProperty()}
+        {!isPlaceholder && (
+            <div className="space-y-2">
+            <Label htmlFor="text-content">Text</Label>
+            <Textarea
+                id="text-content"
+                value={textObject.text}
+                onChange={(e) => handleTextUpdate({ text: e.target.value })}
+                rows={3}
+            />
+            </div>
+        )}
         <div className="space-y-2">
-          <Label htmlFor="text-content">Text</Label>
-          <Textarea
-            id="text-content"
-            value={textObject.text}
-            onChange={(e) => handleTextUpdate({ text: e.target.value })}
-            rows={3}
-            disabled={isPlaceholder}
-          />
+          <Label htmlFor="font-family">Font Family</Label>
+          <Select
+            value={textObject.fontFamily}
+            onValueChange={(value) => handleTextUpdate({ fontFamily: value })}
+          >
+            <SelectTrigger id="font-family">
+              <SelectValue placeholder="Select a font" />
+            </SelectTrigger>
+            <SelectContent>
+              {googleFonts.map(font => (
+                <SelectItem key={font} value={font} style={{ fontFamily: font }}>
+                  {font}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
-            <Label htmlFor="font-size">Font Size</Label>
+            <Label htmlFor="font-size">Size</Label>
             <Input
                 id="font-size"
                 type="number"
@@ -126,6 +149,23 @@ export function PropertiesPanel({
                         <SelectItem value="bold">Bold</SelectItem>
                     </SelectContent>
                 </Select>
+            </div>
+        </div>
+         <div className="space-y-2">
+            <Label htmlFor="text-color">Color</Label>
+            <div className="flex items-center gap-2">
+                <Input
+                    id="text-color"
+                    type="text"
+                    value={textObject.color}
+                    onChange={(e) => handleTextUpdate({ color: e.target.value })}
+                />
+                <Input
+                    type="color"
+                    className="w-10 p-1"
+                    value={textObject.color}
+                    onChange={(e) => handleTextUpdate({ color: e.target.value })}
+                />
             </div>
         </div>
         <div className="space-y-2">
@@ -164,18 +204,22 @@ export function PropertiesPanel({
     const renderBarcodeProperties = () => {
     if (selectedObject.type !== 'barcode') return null;
     const barcodeObject = selectedObject as BarcodeObject;
+    const isPlaceholder = barcodeObject.key !== undefined;
+
 
     return (
       <>
         {renderPlaceholderKeyProperty()}
-        <div className="space-y-2">
-          <Label htmlFor="barcode-value">Barcode Value</Label>
-          <Input
-            id="barcode-value"
-            value={barcodeObject.value}
-            onChange={(e) => handleBarcodeUpdate({ value: e.target.value })}
-          />
-        </div>
+        {!isPlaceholder && (
+            <div className="space-y-2">
+            <Label htmlFor="barcode-value">Barcode Value</Label>
+            <Input
+                id="barcode-value"
+                value={barcodeObject.value}
+                onChange={(e) => handleBarcodeUpdate({ value: e.target.value })}
+            />
+            </div>
+        )}
       </>
     );
   };
@@ -217,8 +261,6 @@ export function PropertiesPanel({
               onChange={(e) => handleUpdate({ y: parseInt(e.target.value, 10) })}
             />
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
           <div className="space-y-2">
             <Label htmlFor="size-w">W</Label>
             <Input
