@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Eye } from 'lucide-react';
+import { Plus, Search, Eye, Pencil } from 'lucide-react';
 import { TemplatePreviewDialog } from '@/components/template-preview-dialog';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
@@ -82,13 +82,18 @@ export default function Home() {
                                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                                         data-ai-hint={template.imageHint}
                                     />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <Button size="sm" onClick={() => handleUse(template)}>
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                                        <Button size="sm" onClick={() => handleUse(template)} className="w-full">
                                             Use
                                         </Button>
-                                        <Button size="sm" variant="secondary" onClick={() => handlePreview(template)}>
-                                            <Eye className="mr-2 h-4 w-4" /> Preview
-                                        </Button>
+                                        <div className="flex w-full gap-2">
+                                            <Button size="sm" variant="secondary" onClick={() => handlePreview(template)} className="w-full">
+                                                <Eye className="mr-2 h-4 w-4" /> Preview
+                                            </Button>
+                                            <Button asChild size="sm" variant="secondary" className="w-full">
+                                                <Link href={`/dashboard/editor?template=${template.id}`}><Pencil className="mr-2 h-4 w-4" /> Edit</Link>
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="p-3 mt-auto">
