@@ -30,7 +30,6 @@ export default function PrintPreviewPage() {
   const [templateJson, setTemplateJson] = useState<{ settings: CanvasSettings; objects: CanvasObject[] } | null>(null);
   const [pageSize, setPageSize] = useState(pageSizes[0]);
   const [layout, setLayout] = useState({
-    columns: 3,
     scale: 1,
     rowGap: 0,
     columnGap: 0,
@@ -87,9 +86,11 @@ export default function PrintPreviewPage() {
     }
   }
   
-  const handleLayoutChange = (newLayout: Partial<typeof layout>) => {
+  const handleLayoutChange = (newLayout: Partial<Omit<typeof layout, 'columns'>>) => {
     setLayout(prev => ({...prev, ...newLayout}));
   }
+  
+  const scaledLabelWidth = templateJson.settings.width * layout.scale;
 
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">
@@ -119,26 +120,28 @@ export default function PrintPreviewPage() {
             </div>
         </div>
 
-        <div 
-            id="print-sheet" 
-            className="sheet bg-white shadow-lg"
-            style={{ 
-                width: pageSize.width,
-                height: pageSize.height,
-                gridTemplateColumns: `repeat(${layout.columns}, 1fr)`,
-                rowGap: `${layout.rowGap}px`,
-                columnGap: `${layout.columnGap}px`,
-            }}
-            >
-            {data.map((itemData, index) => (
-            <div key={index} className="label-container" style={{ transform: `scale(${layout.scale})`}}>
-                <LabelPreview
-                    objects={templateJson.objects}
-                    settings={templateJson.settings}
-                    data={itemData}
-                />
-            </div>
-            ))}
+        <div id="print-container">
+          <div 
+              id="print-sheet" 
+              className="sheet bg-white shadow-lg"
+              style={{ 
+                  width: pageSize.width,
+                  height: pageSize.height,
+                  gridTemplateColumns: `repeat(auto-fill, minmax(${scaledLabelWidth}px, 1fr))`,
+                  rowGap: `${layout.rowGap}px`,
+                  columnGap: `${layout.columnGap}px`,
+              }}
+              >
+              {data.map((itemData, index) => (
+              <div key={index} className="label-container" style={{ transform: `scale(${layout.scale})`}}>
+                  <LabelPreview
+                      objects={templateJson.objects}
+                      settings={templateJson.settings}
+                      data={itemData}
+                  />
+              </div>
+              ))}
+          </div>
         </div>
     </div>
   )
@@ -187,28 +190,42 @@ export default function PrintPreviewPage() {
           body {
             background-color: white !important;
           }
+          #print-container {
+            width: 100%;
+          }
           .sheet {
             box-shadow: none !important;
             margin: 0;
             page-break-after: always;
+            width: 100% !important;
+            height: auto !important;
+            min-height: calc(${pageSize.height} - 2cm);
           }
           .label-container {
-             page-break-inside: avoid;
-             display: flex; /* Use flex to help with containing the scaled item */
-             justify-content: center; /* Center the label within the grid cell */
-             align-items: center; /* Center vertically */
+             page-break-inside: avoid !important;
+             display: flex;
+             justify-content: center;
+             align-items: center;
           }
           .print\:hidden {
             display: none;
           }
         }
+        #print-container {
+          width: ${pageSize.width};
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px; /* Represents gap between pages on screen */
+        }
         .sheet {
           display: grid;
           align-content: start;
-          justify-items: center; /* Center items horizontally in their grid cell */
+          justify-items: center;
           overflow: hidden;
           padding: 1cm;
           box-sizing: border-box;
+          break-after: page;
         }
         .label-container {
             overflow: hidden;
@@ -219,9 +236,9 @@ export default function PrintPreviewPage() {
             justify-content: center;
             align-items: center;
             transform-origin: center center;
+            break-inside: avoid;
         }
       `}</style>
     </>
   );
 }
-

@@ -13,7 +13,6 @@ import { Slider } from '../ui/slider';
 
 interface PrintLayoutSettingsProps {
     layout: {
-        columns: number;
         scale: number;
         rowGap: number;
         columnGap: number;
@@ -35,17 +34,6 @@ export function PrintLayoutSettings({
   const content = (
     <div className="p-4 pt-12 space-y-4">
         <h3 className="text-lg font-headline font-semibold">Layout Settings</h3>
-        <div className="space-y-2">
-            <Label htmlFor="columns">Columns</Label>
-            <Input 
-                id="columns"
-                type="number"
-                min="1"
-                max="10"
-                value={layout.columns}
-                onChange={(e) => onLayoutChange({ columns: parseInt(e.target.value) || 1 })}
-            />
-        </div>
          <div className="space-y-2">
             <Label>Scale ({Math.round(layout.scale * 100)}%)</Label>
             <Slider
