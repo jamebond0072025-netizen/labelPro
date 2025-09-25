@@ -65,39 +65,35 @@ export default function PrintPreviewPage() {
 
   const handleDownloadPdf = async () => {
     setIsPrinting(true);
-    const printContainer = document.getElementById('print-container');
-    if (!printContainer) {
+    const printSheet = document.getElementById('print-sheet');
+    if (!printSheet) {
         setIsPrinting(false);
         return;
     }
-    
-    // Temporarily hide sidebars and buttons
-    const originalDisplay: { el: HTMLElement, value: string }[] = [];
-    document.querySelectorAll('.print-hidden').forEach(el => {
-        const htmlEl = el as HTMLElement;
-        originalDisplay.push({ el: htmlEl, value: htmlEl.style.display });
-        htmlEl.style.display = 'none';
-    });
 
-    const canvas = await html2canvas(printContainer, {
+    const { orientation, unit, format } = pageSize.pdf;
+    const pdf = new jsPDF(orientation, unit, format);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    // Temporarily apply scaling for capture
+    const originalTransform = printSheet.style.transform;
+    printSheet.style.transform = `scale(${layout.scale})`;
+
+    const canvas = await html2canvas(printSheet, {
         scale: 2, // Higher scale for better quality
+        // Ensure the canvas capture area is based on the scaled element
+        width: printSheet.offsetWidth * layout.scale,
+        height: printSheet.offsetHeight * layout.scale,
     });
+    
+    // Restore original transform
+    printSheet.style.transform = originalTransform;
 
-    // Restore hidden elements
-    originalDisplay.forEach(({ el, value }) => {
-        el.style.display = value;
-    });
 
     const imgData = canvas.toDataURL('image/png');
     
-    const { orientation, unit, format } = pageSize.pdf;
-    const pdf = new jsPDF(orientation, unit, format);
-    
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    const canvasAspectRatio = canvasWidth / canvasHeight;
+    const canvasAspectRatio = canvas.width / canvas.height;
     const pdfAspectRatio = pdfWidth / pdfHeight;
 
     let imgWidth, imgHeight;
@@ -149,7 +145,7 @@ export default function PrintPreviewPage() {
     setLayout(prev => ({...prev, ...newLayout}));
   }
   
-  const scaledLabelWidth = templateJson.settings.width * layout.scale;
+  const scaledLabelWidth = templateJson.settings.width;
 
   const mainContent = (
     <div className="flex-1 flex flex-col items-center p-4 sm:p-8 bg-muted overflow-auto">
@@ -180,7 +176,7 @@ export default function PrintPreviewPage() {
             </div>
         </div>
 
-        <div id="print-container">
+        <div id="print-container" style={{ transform: `scale(${layout.scale})`, transformOrigin: 'top center' }}>
           <div 
               id="print-sheet" 
               className="sheet bg-white shadow-lg"
@@ -193,7 +189,7 @@ export default function PrintPreviewPage() {
               }}
               >
               {data.map((itemData, index) => (
-              <div key={index} className="label-container" style={{ transform: `scale(${layout.scale})`}}>
+              <div key={index} className="label-container">
                   <LabelPreview
                       objects={templateJson.objects}
                       settings={templateJson.settings}
@@ -258,6 +254,7 @@ export default function PrintPreviewPage() {
             height: auto;
             padding: 0;
             margin: 0;
+            transform: scale(1) !important;
           }
           .sheet {
             box-shadow: none !important;
@@ -275,11 +272,7 @@ export default function PrintPreviewPage() {
           }
         }
         #print-container {
-          width: ${pageSize.width};
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 20px; /* Represents gap between pages on screen */
+          padding: 20px 0;
         }
         .sheet {
           display: grid;
@@ -298,7 +291,6 @@ export default function PrintPreviewPage() {
             display: flex;
             justify-content: center;
             align-items: center;
-            transform-origin: center center;
             break-inside: avoid;
             page-break-inside: avoid;
         }
