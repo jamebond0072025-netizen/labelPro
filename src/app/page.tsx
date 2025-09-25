@@ -31,21 +31,33 @@ export default function Home() {
       const { type, token } = event.data;
       if (type === 'SET_TOKEN' && token) {
         setToken(token);
+        localStorage.setItem('authToken', token); // Store for fast refresh
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // Initial request in case token is already available (e.g. fast refresh)
+    // Check for token on initial load
     const initialToken = localStorage.getItem('authToken');
      if (initialToken) {
        setToken(initialToken);
+     } else {
+        // If no token, don't just wait, set loading to false and show error.
+        // This handles the case where the app is not in an iframe.
+        const timer = setTimeout(() => {
+            if (!token) {
+                setIsLoading(false);
+                setError("Authentication token not provided. This app is intended to be run inside an iframe.");
+            }
+        }, 3000); // Wait 3 seconds for token
+        return () => clearTimeout(timer);
      }
+
 
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (token && tenantId) {
@@ -61,12 +73,14 @@ export default function Home() {
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`Authentication failed or API error. Status: ${response.status}`);
         }
         return response.json();
       })
       .then(data => {
-        // Assuming the API returns an array of objects with a similar structure
+        if (!data || !Array.isArray(data)) {
+           throw new Error("Received invalid data format from API.");
+        }
         const formattedTemplates = data.map((item: any) => ({
           id: `template-${item.id}`,
           description: item.name,
@@ -80,16 +94,14 @@ export default function Home() {
       })
       .catch(err => {
         console.error("Failed to fetch templates:", err);
-        setError("Failed to load templates. Please ensure you are logged in and have access.");
+        setError(err.message || "Failed to load templates. Please ensure you are logged in and have access.");
       })
       .finally(() => {
         setIsLoading(false);
       });
     } else {
+        // If there's no token, we shouldn't be in a loading state.
         setIsLoading(false);
-         if (!token) {
-            setError("Authentication token not provided.");
-        }
     }
   }, [token, tenantId]);
 
@@ -157,7 +169,8 @@ export default function Home() {
                       ))}
                     </div>
                 ) : error ? (
-                    <div className="mt-12 text-center text-destructive">
+                    <div className="mt-12 text-center text-destructive border border-destructive/50 bg-destructive/10 p-4 rounded-md">
+                      <h3 className="font-bold">Authentication Error</h3>
                       <p>{error}</p>
                     </div>
                 ) : (
@@ -221,5 +234,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
