@@ -15,6 +15,7 @@ interface RightSidebarProps {
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
   canvasSettings: CanvasSettings;
   onUpdateCanvasSettings: (newSettings: Partial<CanvasSettings>) => void;
+  onDelete: () => void;
   isSheet?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function RightSidebar({
   onUpdate, 
   canvasSettings,
   onUpdateCanvasSettings,
+  onDelete,
   isSheet = false 
 }: RightSidebarProps) {
   const [isPinned, setIsPinned] = useState(true);
@@ -34,6 +36,7 @@ export function RightSidebar({
     <PropertiesPanel
       selectedObject={selectedObject}
       onUpdate={onUpdate}
+      onDelete={onDelete}
       canvasSettings={canvasSettings}
       onUpdateCanvasSettings={onUpdateCanvasSettings}
     />

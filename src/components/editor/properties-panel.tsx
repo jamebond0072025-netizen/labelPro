@@ -15,9 +15,10 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
-import { AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { Separator } from '../ui/separator';
 
 const googleFonts = [
     'Poppins', 'PT Sans', 'Roboto', 'Open Sans', 'Lato', 
@@ -27,6 +28,7 @@ const googleFonts = [
 interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
+  onDelete: () => void;
   canvasSettings?: CanvasSettings;
   onUpdateCanvasSettings?: (newSettings: Partial<CanvasSettings>) => void;
 }
@@ -34,6 +36,7 @@ interface PropertiesPanelProps {
 export function PropertiesPanel({
   selectedObject,
   onUpdate,
+  onDelete,
   canvasSettings,
   onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
@@ -305,10 +308,21 @@ export function PropertiesPanel({
             onValueChange={(value) => handleUpdate({ opacity: value[0] })}
           />
         </div>
+        
+        <Separator />
 
         {renderTextProperties()}
         {renderImageProperties()}
         {renderBarcodeProperties()}
+
+        <Separator />
+        
+        <div className="pt-4">
+            <Button variant="destructive-outline" className="w-full" onClick={onDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Object
+            </Button>
+        </div>
       </div>
     </ScrollArea>
   );

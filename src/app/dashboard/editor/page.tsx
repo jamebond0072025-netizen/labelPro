@@ -140,6 +140,7 @@ export default function EditorPage() {
             onUpdate={handleUpdateObject}
             canvasSettings={canvasSettings}
             onUpdateCanvasSettings={handleUpdateCanvasSettings}
+            onDelete={() => handleLayerAction('delete')}
           />
       ) : (
            <Sheet>
@@ -154,6 +155,7 @@ export default function EditorPage() {
                     onUpdate={handleUpdateObject} 
                     canvasSettings={canvasSettings}
                     onUpdateCanvasSettings={handleUpdateCanvasSettings}
+                    onDelete={() => handleLayerAction('delete')}
                     isSheet 
                   />
               </SheetContent>
