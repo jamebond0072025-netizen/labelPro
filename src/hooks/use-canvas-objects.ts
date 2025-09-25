@@ -147,14 +147,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   
     // Bounding box for distribution
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    if (selectedObjects.length > 1) {
-      selectedObjects.forEach(obj => {
-        minX = Math.min(minX, obj.x);
-        minY = Math.min(minY, obj.y);
-        maxX = Math.max(maxX, obj.x + obj.width);
-        maxY = Math.max(maxY, obj.y + obj.height);
-      });
-    }
+    selectedObjects.forEach(obj => {
+      minX = Math.min(minX, obj.x);
+      minY = Math.min(minY, obj.y);
+      maxX = Math.max(maxX, obj.x + obj.width);
+      maxY = Math.max(maxY, obj.y + obj.height);
+    });
   
     selectedObjects.forEach(obj => {
         const index = newObjects.findIndex(o => o.id === obj.id);

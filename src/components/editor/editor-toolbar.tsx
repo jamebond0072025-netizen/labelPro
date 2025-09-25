@@ -113,27 +113,27 @@ export function EditorToolbar({
   const alignmentTools = (
     <div className="flex items-center gap-1">
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('left')} disabled={!hasMultipleSelection}><AlignLeft /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('left')} disabled={!hasSelection}><AlignLeft /></Button></TooltipTrigger>
             <TooltipContent><p>Align Left</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('center')} disabled={!hasMultipleSelection}><AlignCenter /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('center')} disabled={!hasSelection}><AlignCenter /></Button></TooltipTrigger>
             <TooltipContent><p>Align Center</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('right')} disabled={!hasMultipleSelection}><AlignRight /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('right')} disabled={!hasSelection}><AlignRight /></Button></TooltipTrigger>
             <TooltipContent><p>Align Right</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('top')} disabled={!hasMultipleSelection}><AlignVerticalJustifyStart /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('top')} disabled={!hasSelection}><AlignVerticalJustifyStart /></Button></TooltipTrigger>
             <TooltipContent><p>Align Top</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('middle')} disabled={!hasMultipleSelection}><AlignVerticalJustifyCenter /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('middle')} disabled={!hasSelection}><AlignVerticalJustifyCenter /></Button></TooltipTrigger>
             <TooltipContent><p>Align Middle</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('bottom')} disabled={!hasMultipleSelection}><AlignVerticalJustifyEnd /></Button></TooltipTrigger>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onAlign('bottom')} disabled={!hasSelection}><AlignVerticalJustifyEnd /></Button></TooltipTrigger>
             <TooltipContent><p>Align Bottom</p></TooltipContent>
         </Tooltip>
         <Tooltip>
