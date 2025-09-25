@@ -13,21 +13,13 @@ type SelectionBox = {
   height: number;
 }
 
-function isIntersecting(rect1: DOMRect, rect2: DOMRect) {
-  return !(
-    rect1.right < rect2.left ||
-    rect1.left > rect2.right ||
-    rect1.bottom < rect2.top ||
-    rect1.top > rect2.bottom
-  );
-}
-
 export const useEditorInteractions = (
   objects: CanvasObject[],
   onUpdateObject: (id: string, newProps: Partial<CanvasObject>) => void,
   onSelectObject: (id: string | null) => void,
   zoom: number,
   canvasRef: React.RefObject<HTMLDivElement>,
+  selectedObjectIds: string[],
   onSetSelectedObjectIds: (ids: string[]) => void
 ) => {
   const interactionRef = useRef<{
@@ -37,9 +29,9 @@ export const useEditorInteractions = (
     startX: number;
     startY: number;
     originalObject?: CanvasObject;
-    initialSelectedIds?: string[];
   } | null>(null);
 
+  const initialSelectedObjects = useRef<CanvasObject[]>([]);
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
 
   const handleInteractionStart = (
@@ -69,7 +61,15 @@ export const useEditorInteractions = (
     const object = objects.find((obj) => obj.id === id);
     if (!object) return;
     
-    onSelectObject(id);
+    // If the clicked object is not currently selected, select only it.
+    if (!selectedObjectIds.includes(id)) {
+        onSelectObject(id);
+        initialSelectedObjects.current = [object];
+    } else {
+        // If it is part of a selection, prepare to move all selected objects.
+        initialSelectedObjects.current = objects.filter(obj => selectedObjectIds.includes(obj.id));
+    }
+    
     interactionRef.current = {
       id,
       type,
@@ -83,7 +83,7 @@ export const useEditorInteractions = (
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!interactionRef.current || !canvasRef.current) return;
 
-    const { id, type, handle, startX, startY, originalObject } = interactionRef.current;
+    const { type, handle, startX, startY, originalObject } = interactionRef.current;
     const canvasRect = canvasRef.current.getBoundingClientRect();
     const mouseX = (e.clientX - canvasRect.left) / zoom;
     const mouseY = (e.clientY - canvasRect.top) / zoom;
@@ -91,15 +91,22 @@ export const useEditorInteractions = (
     const deltaY = mouseY - startY;
 
     switch (type) {
-      case 'drag':
-        if (!id || !originalObject) break;
-        onUpdateObject(id, {
-          x: originalObject.x + deltaX,
-          y: originalObject.y + deltaY,
+      case 'drag': {
+        if (!originalObject) break;
+        // Drag all selected objects
+        initialSelectedObjects.current.forEach(selectedObj => {
+            const initialObjState = initialSelectedObjects.current.find(o => o.id === selectedObj.id);
+            if (initialObjState) {
+                onUpdateObject(selectedObj.id, {
+                    x: initialObjState.x + deltaX,
+                    y: initialObjState.y + deltaY,
+                });
+            }
         });
         break;
+      }
       case 'resize':
-        if (!id || !originalObject) break;
+        if (!originalObject) break;
         let newWidth = originalObject.width;
         let newHeight = originalObject.height;
         let newX = originalObject.x;
@@ -116,7 +123,7 @@ export const useEditorInteractions = (
           newY = originalObject.y + deltaY;
         }
         
-        onUpdateObject(id, { 
+        onUpdateObject(originalObject.id, { 
             width: Math.max(20, newWidth), 
             height: Math.max(20, newHeight),
             x: newX,
@@ -124,13 +131,13 @@ export const useEditorInteractions = (
         });
         break;
       case 'rotate':
-        if (!id || !originalObject) break;
+        if (!originalObject) break;
         const centerX = originalObject.x + originalObject.width / 2;
         const centerY = originalObject.y + originalObject.height / 2;
         const startAngle = Math.atan2(startY - centerY, startX - centerX);
         const currentAngle = Math.atan2(mouseY - centerY, mouseX - centerX);
         const angleDiff = (currentAngle - startAngle) * (180 / Math.PI);
-        onUpdateObject(id, {
+        onUpdateObject(originalObject.id, {
           rotation: originalObject.rotation + angleDiff,
         });
         break;
@@ -179,6 +186,7 @@ export const useEditorInteractions = (
     }
     interactionRef.current = null;
     setSelectionBox(null);
+    initialSelectedObjects.current = [];
   };
 
   return { handleInteractionStart, handlePointerMove, handlePointerUp, selectionBox };

@@ -40,6 +40,7 @@ export function EditorCanvas({
       onSelectObject,
       zoom,
       canvasRef,
+      selectedObjectIds,
       onSetSelectedObjectIds
     );
 
