@@ -121,9 +121,13 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             if (extension === 'json') {
                 data = JSON.parse(content as string);
             } else if (extension === 'csv') {
-                const result = Papa.parse(content as string, { header: true });
+                const result = Papa.parse(content as string, { header: true, skipEmptyLines: true });
                 if (result.errors.length > 0) {
-                    throw new Error(result.errors[0].message);
+                    // Check for a specific "too few fields" error that might be a false positive on the last line
+                    const isMinorError = result.errors.every(e => e.code === 'TooFewFields' && e.row === result.data.length);
+                    if (!isMinorError) {
+                        throw new Error(result.errors[0].message);
+                    }
                 }
                 data = result.data as Record<string, any>[];
             } else if (extension === 'xls' || extension === 'xlsx') {
@@ -376,5 +380,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     </Dialog>
   );
 }
+
+    
 
     
