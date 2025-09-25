@@ -126,7 +126,7 @@ export default function PrintPreviewPage() {
               className="sheet bg-white shadow-lg"
               style={{ 
                   width: pageSize.width,
-                  height: pageSize.height,
+                  minHeight: pageSize.height,
                   gridTemplateColumns: `repeat(auto-fill, minmax(${scaledLabelWidth}px, 1fr))`,
                   rowGap: `${layout.rowGap}px`,
                   columnGap: `${layout.columnGap}px`,
@@ -192,6 +192,7 @@ export default function PrintPreviewPage() {
           }
           #print-container {
             width: 100%;
+            height: auto;
           }
           .sheet {
             box-shadow: none !important;
