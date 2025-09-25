@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Image as ImageIcon, FileJson } from 'lucide-react';
+import { Save, Image as ImageIcon, FileJson, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Type } from 'lucide-react';
@@ -31,11 +31,15 @@ export function Header() {
       </div>
       {isEditor && (
          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              <Save className="mr-2 h-4 w-4" />
+              Save
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm">
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
+                  Export
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
