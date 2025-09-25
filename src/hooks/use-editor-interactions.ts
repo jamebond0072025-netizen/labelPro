@@ -64,7 +64,7 @@ export const useEditorInteractions = (
     
     // If the clicked object is not currently selected, select only it.
     if (!selectedObjectIds.includes(id!)) {
-        onSetSelectedObjectIds([id!]);
+        onSelectObject(id);
         initialSelectedObjects.current = [object];
     } else {
         // If it is part of a selection, prepare to move all selected objects.
