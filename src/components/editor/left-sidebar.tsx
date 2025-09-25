@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,12 @@ import { DataPanel } from '@/components/editor/data-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { PanelLeft, Layers, Database } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import type { CanvasObject } from '@/lib/types';
 
 interface LeftSidebarProps {
@@ -31,23 +37,37 @@ export function LeftSidebar({
   const isOpen = isPinned || isHovered;
 
   const sidebarContent = (
-      <Tabs defaultValue="layers" className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-2 mt-12 mx-auto max-w-[220px]">
-          <TabsTrigger value="layers"><Layers className="h-4 w-4 mr-2"/>Layers</TabsTrigger>
-          <TabsTrigger value="data"><Database className="h-4 w-4 mr-2"/>Data</TabsTrigger>
-        </TabsList>
-        <TabsContent value="layers" className="flex-1 overflow-hidden">
-            <LayersPanel
-                objects={objects}
-                selectedObjectIds={selectedObjectIds}
-                onSelectObject={onSelectObject}
-                onLayerAction={onLayerAction}
-            />
-        </TabsContent>
-        <TabsContent value="data" className="flex-1 overflow-hidden">
-            <DataPanel objects={objects} />
-        </TabsContent>
-    </Tabs>
+      <div className="h-full flex flex-col pt-12">
+        <Accordion type="single" collapsible defaultValue="layers" className="w-full px-4">
+            <AccordionItem value="layers">
+                <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4" />
+                        <span>Layers</span>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <LayersPanel
+                        objects={objects}
+                        selectedObjectIds={selectedObjectIds}
+                        onSelectObject={onSelectObject}
+                        onLayerAction={onLayerAction}
+                    />
+                </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="data">
+                 <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                        <Database className="h-4 w-4" />
+                        <span>Data Schema</span>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <DataPanel objects={objects} />
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+      </div>
   );
 
   if (isSheet) {
