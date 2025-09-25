@@ -101,7 +101,7 @@ export function CanvasObject({
             src={object.src}
             alt="Canvas image"
             fill
-            className="object-cover pointer-events-none"
+            className="object-fill pointer-events-none"
             draggable={false}
           />
         );
