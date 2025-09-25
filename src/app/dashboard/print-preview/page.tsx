@@ -23,7 +23,7 @@ export const pageSizes = [
 
 export default function PrintPreviewPage() {
   const router = useRouter();
-  const { template, data, setPrintPageSettings } = usePrint();
+  const { template, data, setData, setPrintPageSettings } = usePrint();
   const { toast } = useToast();
   const [templateJson, setTemplateJson] = useState<{ settings: CanvasSettings; objects: CanvasObject[] } | null>(null);
   const [pageSize, setPageSize] = useState(pageSizes[0]);
@@ -101,6 +101,9 @@ export default function PrintPreviewPage() {
 
   }, [templateJson, data, pageSize, layout]);
 
+  const handleDataUpdate = (updatedData: Record<string, any>[]) => {
+    setData(updatedData);
+  }
 
   if (!template || !templateJson) {
     return (
@@ -168,7 +171,7 @@ export default function PrintPreviewPage() {
     <>
       <div className="flex-1 flex w-full">
         {isDesktop ? (
-            <PrintDataPanel data={data} />
+            <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} />
         ) : (
              <Sheet>
                 <SheetTrigger asChild>
@@ -177,7 +180,7 @@ export default function PrintPreviewPage() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="p-0 w-[300px]">
-                   <PrintDataPanel data={data} isSheet />
+                   <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} isSheet />
                 </SheetContent>
             </Sheet>
         )}

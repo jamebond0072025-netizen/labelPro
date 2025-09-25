@@ -13,20 +13,30 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { ScrollArea } from '../ui/scroll-area';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface PrintDataPanelProps {
     data: Record<string, any>[];
+    onDataUpdate: (data: Record<string, any>[]) => void;
     isSheet?: boolean;
 }
 
 export function PrintDataPanel({ 
     data,
+    onDataUpdate,
     isSheet = false,
 }: PrintDataPanelProps) {
   const [isPinned, setIsPinned] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   
   const isOpen = isPinned || isHovered;
+
+  const handleValueChange = (rowIndex: number, key: string, value: string) => {
+    const newData = [...data];
+    newData[rowIndex] = { ...newData[rowIndex], [key]: value };
+    onDataUpdate(newData);
+  };
 
   const sidebarContent = (
       <ScrollArea className="h-full">
@@ -45,11 +55,16 @@ export function PrintDataPanel({
                            <AccordionItem key={rowIndex} value={`item-${rowIndex}`}>
                              <AccordionTrigger>Label #{rowIndex + 1}</AccordionTrigger>
                              <AccordionContent>
-                                <div className="space-y-2 text-xs">
+                                <div className="space-y-3">
                                   {Object.entries(row).map(([key, value]) => (
-                                    <div key={key} className="grid grid-cols-[auto_1fr] gap-x-2">
-                                      <span className="font-semibold text-muted-foreground">{key}:</span>
-                                      <span className="break-all">{String(value)}</span>
+                                    <div key={key} className="space-y-1.5">
+                                        <Label htmlFor={`input-${rowIndex}-${key}`}>{key}</Label>
+                                        <Input
+                                            id={`input-${rowIndex}-${key}`}
+                                            value={String(value)}
+                                            onChange={(e) => handleValueChange(rowIndex, key, e.target.value)}
+                                            className="h-8 text-xs"
+                                        />
                                     </div>
                                   ))}
                                 </div>
