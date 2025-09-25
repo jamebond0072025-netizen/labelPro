@@ -39,6 +39,8 @@ export interface CanvasSettings {
   height: number;
   backgroundColor: string;
   backgroundImage?: string;
+  originalWidth?: number;
+  originalHeight?: number;
 }
 
 export type Alignment = 

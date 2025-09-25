@@ -66,32 +66,41 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
     overflow: 'hidden',
   };
 
+  const xScale = settings.width / (settings.originalWidth || settings.width);
+  const yScale = settings.height / (settings.originalHeight || settings.height);
+
+
   return (
     <div style={canvasStyle}>
       {populatedObjects.map(obj => {
         const style: React.CSSProperties = {
           position: 'absolute',
-          left: obj.x,
-          top: obj.y,
-          width: obj.width,
-          height: obj.height,
+          left: obj.x * xScale,
+          top: obj.y * yScale,
+          width: obj.width * xScale,
+          height: obj.height * yScale,
           transform: `rotate(${obj.rotation}deg)`,
+          transformOrigin: 'top left',
           opacity: obj.opacity,
         };
 
         if (obj.type === 'text') {
+          const textObject = obj as TextObject;
           const textStyle: React.CSSProperties = {
             ...style,
-            fontSize: obj.fontSize,
-            fontWeight: obj.fontWeight,
-            fontFamily: obj.fontFamily,
-            color: obj.color,
-            textAlign: obj.textAlign,
+            fontSize: textObject.fontSize * Math.min(xScale, yScale),
+            fontWeight: textObject.fontWeight,
+            fontFamily: textObject.fontFamily,
+            color: textObject.color,
+            textAlign: textObject.textAlign,
             padding: '0 5px',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: textObject.textAlign,
           };
-          return <div key={obj.id} style={textStyle}>{obj.text}</div>;
+          return <div key={obj.id} style={textStyle}><div>{textObject.text}</div></div>;
         }
 
         if (obj.type === 'image') {
@@ -101,10 +110,8 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
               <Image
                 src={imageObject.src}
                 alt=""
-                width={imageObject.width}
-                height={imageObject.height}
-                className="w-full h-full"
-                style={{ objectFit: 'fill' }}
+                layout="fill"
+                objectFit="contain"
               />
             </div>
           );
@@ -114,7 +121,7 @@ export function LabelPreview({ objects, settings, data }: LabelPreviewProps) {
           return (
             <div key={obj.id} style={style}>
               <div className='w-full h-full flex items-center justify-center' style={{ backgroundColor: 'transparent' }}>
-                <svg ref={el => barcodeRefs.current.set(obj.id, el)} />
+                <svg ref={el => barcodeRefs.current.set(obj.id, el)} width="100%" height="100%"/>
               </div>
             </div>
           );

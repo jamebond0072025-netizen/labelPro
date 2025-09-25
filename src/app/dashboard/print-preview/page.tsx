@@ -75,7 +75,7 @@ export default function PrintPreviewPage() {
     const scaledLabelWidth = templateJson.settings.width * layout.labelScale;
     const scaledLabelHeight = templateJson.settings.height * layout.labelScale;
 
-    if (scaledLabelWidth <= 0 || scaledLabelHeight <= 0) return [];
+    if (scaledLabelWidth <= 0 || scaledLabelHeight <= 0) return [[]];
     
     const cols = Math.floor((effectivePageWidth + layout.columnGap) / (scaledLabelWidth + layout.columnGap));
     const rows = Math.floor((effectivePageHeight + layout.rowGap) / (scaledLabelHeight + layout.rowGap));
@@ -144,13 +144,11 @@ export default function PrintPreviewPage() {
                 >
                 {pageData.map((itemData, index) => (
                 <div key={index} className="label-container" style={{ width: scaledLabelWidth, height: scaledLabelHeight }}>
-                    <div style={{ transform: `scale(${layout.labelScale})`, transformOrigin: 'top left', width: templateJson.settings.width, height: templateJson.settings.height }}>
-                      <LabelPreview
-                          objects={templateJson.objects}
-                          settings={templateJson.settings}
-                          data={itemData}
-                      />
-                    </div>
+                    <LabelPreview
+                        objects={templateJson.objects}
+                        settings={{...templateJson.settings, width: scaledLabelWidth, height: scaledLabelHeight }}
+                        data={itemData}
+                    />
                 </div>
                 ))}
             </div>
