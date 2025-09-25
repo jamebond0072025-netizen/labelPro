@@ -16,10 +16,13 @@ interface LayersPanelProps {
 const getObjectDisplayName = (object: CanvasObject) => {
     switch(object.type) {
         case 'text':
+             if (object.key) return `{{${object.key}}}`;
             return object.text.length > 15 ? object.text.substring(0, 15) + '...' : object.text;
         case 'image':
+            if (object.key) return `{{${object.key}}}`;
             return 'Image';
         case 'barcode':
+            if (object.key) return `{{${object.key}}}`;
             return 'Barcode';
         default:
             return 'Object';
@@ -44,8 +47,7 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-4 pt-12">
-        <h3 className="text-lg font-headline font-semibold mb-4">Layers</h3>
+      <div className="p-4 pt-4">
         <div className="space-y-1">
           {reversedObjects.map((obj) => (
             <button
