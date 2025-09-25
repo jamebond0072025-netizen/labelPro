@@ -8,8 +8,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Eye, Pencil } from 'lucide-react';
-import { TemplatePreviewDialog } from '@/components/template-preview-dialog';
+import { Plus, Search, Pencil } from 'lucide-react';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 
@@ -18,7 +17,6 @@ export default function Home() {
   const allTemplates = PlaceHolderImages.filter(img => img.id.startsWith('template'));
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
-  const [selectedTemplate, setSelectedTemplate] = useState<ImagePlaceholder | null>(null);
   const [useTemplate, setUseTemplate] = useState<ImagePlaceholder | null>(null);
 
   const filteredTemplates = useMemo(() => {
@@ -31,10 +29,6 @@ export default function Home() {
 
   const handleLoadMore = () => {
     setVisibleCount(prevCount => prevCount + 8);
-  };
-
-  const handlePreview = (template: ImagePlaceholder) => {
-    setSelectedTemplate(template);
   };
 
   const handleUse = (template: ImagePlaceholder) => {
@@ -87,9 +81,6 @@ export default function Home() {
                                             Use
                                         </Button>
                                         <div className="flex flex-col sm:flex-row w-full gap-2">
-                                            <Button size="sm" variant="secondary" onClick={() => handlePreview(template)} className="w-full">
-                                                <Eye className="mr-2 h-4 w-4" /> Preview
-                                            </Button>
                                             <Button asChild size="sm" variant="secondary" className="w-full">
                                                 <Link href={`/dashboard/editor?template=${template.id}`}><Pencil className="mr-2 h-4 w-4" /> Edit</Link>
                                             </Button>
@@ -120,12 +111,6 @@ export default function Home() {
         </section>
       </main>
 
-      {selectedTemplate && (
-        <TemplatePreviewDialog
-          template={selectedTemplate}
-          onOpenChange={(isOpen) => !isOpen && setSelectedTemplate(null)}
-        />
-      )}
       {useTemplate && (
         <UseTemplateDialog
           template={useTemplate}
