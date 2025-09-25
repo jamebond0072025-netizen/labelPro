@@ -21,6 +21,7 @@ interface LeftSidebarProps {
   selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
   onLayerAction: (action: 'delete') => void;
+  onReplaceData: (data: Record<string, any>) => void;
   isSheet?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function LeftSidebar({
     selectedObjectIds, 
     onSelectObject, 
     onLayerAction,
+    onReplaceData,
     isSheet = false,
 }: LeftSidebarProps) {
   const [isPinned, setIsPinned] = useState(false);
@@ -63,7 +65,7 @@ export function LeftSidebar({
                     </div>
                 </AccordionTrigger>
                 <AccordionContent>
-                    <DataPanel objects={objects} />
+                    <DataPanel objects={objects} onReplaceData={onReplaceData} />
                 </AccordionContent>
             </AccordionItem>
         </Accordion>

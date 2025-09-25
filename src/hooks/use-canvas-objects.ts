@@ -176,6 +176,24 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       })
     );
   };
+
+  const handleReplaceData = (data: Record<string, any>) => {
+    setObjects(prev => prev.map(obj => {
+        if ('key' in obj && obj.key && data[obj.key]) {
+            const newValue = data[obj.key];
+            if (obj.type === 'text') {
+                return { ...obj, text: newValue };
+            }
+            if (obj.type === 'image') {
+                return { ...obj, src: newValue };
+            }
+            if (obj.type === 'barcode') {
+                return { ...obj, value: newValue };
+            }
+        }
+        return obj;
+    }));
+  };
   
   const handleAlign = (alignment: Alignment) => {
     if (selectedObjectIds.length === 0) return;
@@ -262,6 +280,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     handleLayerAction,
     handleUpdateObject,
     handleAlign,
+    handleReplaceData,
     canvasRef,
   };
 };

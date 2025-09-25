@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -6,14 +7,18 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
 import { Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
 
 
 interface DataPanelProps {
     objects: CanvasObject[];
+    onReplaceData: (data: Record<string, any>) => void;
 }
 
-export function DataPanel({ objects }: DataPanelProps) {
+export function DataPanel({ objects, onReplaceData }: DataPanelProps) {
     const { toast } = useToast();
+    const [jsonInput, setJsonInput] = useState('');
 
     const placeholderData = useMemo(() => {
         const data: Record<string, any> = {};
@@ -38,36 +43,69 @@ export function DataPanel({ objects }: DataPanelProps) {
         return data;
     }, [objects]);
 
-    const jsonString = useMemo(() => JSON.stringify(placeholderData, null, 2), [placeholderData]);
+    const jsonSchemaString = useMemo(() => JSON.stringify(placeholderData, null, 2), [placeholderData]);
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(jsonString);
+    const handleCopySchema = () => {
+        navigator.clipboard.writeText(jsonSchemaString);
         toast({
             title: "Copied to clipboard!",
-            description: "The JSON data has been copied.",
+            description: "The JSON schema has been copied.",
         });
     }
+
+    const handleApplyData = () => {
+        try {
+            const data = JSON.parse(jsonInput);
+            onReplaceData(data);
+            toast({
+                title: "Data Applied",
+                description: "Canvas objects have been updated with the provided data.",
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: "Invalid JSON",
+                description: "Please check your JSON format.",
+            });
+        }
+    }
+
 
     return (
        <ScrollArea className="h-full">
             <div className="p-4 pt-4 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                    This is the JSON representation of all placeholder items on your canvas. Use this schema to provide data to render your labels.
-                </p>
+                <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                        Use the schema below to structure your data. Paste your JSON data in the field to test your template.
+                    </p>
 
-                <div className="relative">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-7 w-7"
-                        onClick={handleCopy}
-                    >
-                        <Copy className="h-4 w-4" />
-                    </Button>
-                    <pre className="bg-muted rounded-md p-4 text-xs overflow-x-auto">
-                        <code>{jsonString}</code>
-                    </pre>
+                    <div className="relative">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7"
+                            onClick={handleCopySchema}
+                        >
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                        <pre className="bg-muted rounded-md p-4 text-xs overflow-x-auto">
+                            <code>{jsonSchemaString}</code>
+                        </pre>
+                    </div>
                 </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="json-input">Test Data (JSON)</Label>
+                    <Textarea 
+                        id="json-input"
+                        value={jsonInput}
+                        onChange={(e) => setJsonInput(e.target.value)}
+                        placeholder='{ "text_1": "My Custom Text" }'
+                        rows={5}
+                    />
+                </div>
+                <Button onClick={handleApplyData} className="w-full">Apply Data</Button>
+
             </div>
         </ScrollArea>
     );

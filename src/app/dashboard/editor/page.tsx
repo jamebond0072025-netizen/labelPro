@@ -38,6 +38,7 @@ export default function EditorPage() {
     handleLayerAction,
     handleUpdateObject,
     handleAlign,
+    handleReplaceData,
     canvasRef,
     setObjects,
   } = useCanvasObjects(templateId, canvasSettings);
@@ -82,6 +83,7 @@ export default function EditorPage() {
               selectedObjectIds={selectedObjectIds}
               onSelectObject={(id) => setSelectedObjectIds([id])}
               onLayerAction={handleLayerAction}
+              onReplaceData={handleReplaceData}
           />
       ) : (
           <Sheet>
@@ -96,6 +98,7 @@ export default function EditorPage() {
                       selectedObjectIds={selectedObjectIds}
                       onSelectObject={(id) => setSelectedObjectIds([id])}
                       onLayerAction={handleLayerAction}
+                      onReplaceData={handleReplaceData}
                       isSheet
                   />
               </SheetContent>
