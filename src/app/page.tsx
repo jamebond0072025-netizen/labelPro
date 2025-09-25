@@ -29,7 +29,7 @@ export default function Home() {
       }
       
       const { type, token, tenantId } = event.data;
-      if (type === 'SET_TOKEN' && token && tenantId) {
+      if (type === 'SET_AUTH' && token && tenantId) {
         setToken(token);
         setTenantId(tenantId);
         localStorage.setItem('authToken', token); // Store for fast refresh
@@ -250,5 +250,7 @@ export default function Home() {
   );
 }
 
+
+    
 
     
