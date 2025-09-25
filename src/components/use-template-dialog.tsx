@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from './ui/textarea';
+import { usePrint } from '@/contexts/print-context';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface UseTemplateDialogProps {
@@ -32,6 +34,8 @@ type LabelType = 'product' | 'custom' | null;
 
 export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogProps) {
     const router = useRouter();
+    const { setTemplate, setData } = usePrint();
+    const { toast } = useToast();
     const [step, setStep] = useState<Step>('select-type');
     const [labelType, setLabelType] = useState<LabelType>(null);
     const [fileName, setFileName] = useState<string | null>(null);
@@ -39,11 +43,51 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setFileName(e.target.files[0].name);
+            const file = e.target.files[0];
+            setFileName(file.name);
             setJsonInput(''); // Clear json input if a file is selected
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target?.result as string;
+                if (file.name.endsWith('.json')) {
+                    setJsonInput(content);
+                } else {
+                    // TODO: Add CSV/XLS parsing logic here
+                    toast({
+                        variant: 'destructive',
+                        title: 'File type not yet supported',
+                        description: 'Please upload a JSON file for now.',
+                    })
+                }
+            };
+            reader.readAsText(file);
         }
     };
     
+    const handleCreateLabels = () => {
+        try {
+            const parsedData = JSON.parse(jsonInput);
+            if (!Array.isArray(parsedData)) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Invalid JSON format',
+                    description: 'The JSON data must be an array of objects.',
+                });
+                return;
+            }
+            setData(parsedData);
+            setTemplate(template);
+            router.push('/dashboard/print-preview');
+        } catch(error) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid JSON',
+                description: 'Please check your JSON format.',
+            });
+        }
+    }
+
     const renderSelectType = () => (
         <>
             <DialogHeader>
@@ -84,11 +128,11 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             <DialogHeader>
                 <DialogTitle>Provide Your Data</DialogTitle>
                 <DialogDescription>
-                    Upload a data file or paste JSON to populate your labels.
+                    Upload a data file or paste JSON to populate your labels. The data should be an array of objects.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-                <Tabs defaultValue="upload" className="w-full">
+                <Tabs defaultValue="paste" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="upload"><Upload className="mr-2 h-4 w-4" /> Upload File</TabsTrigger>
                         <TabsTrigger value="paste"><ClipboardPaste className="mr-2 h-4 w-4" /> Paste JSON</TabsTrigger>
@@ -103,7 +147,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                                     ) : (
                                         <>
                                         <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                        <p className="text-xs text-muted-foreground">CSV, XLS, XLSX or JSON</p>
+                                        <p className="text-xs text-muted-foreground">JSON, CSV, XLS, XLSX</p>
                                         </>
                                     )}
                                 </div>
@@ -113,7 +157,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                     </TabsContent>
                     <TabsContent value="paste">
                         <Textarea 
-                            placeholder='{ "product_name": "My Awesome Product", "price": "$19.99" }'
+                            placeholder='[{"product_name": "My Awesome Product", "price": "$19.99"}]'
                             rows={8}
                             className="mt-4"
                             value={jsonInput}
@@ -131,8 +175,8 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             </div>
              <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('select-type')}>Back</Button>
-                <Button asChild disabled={!fileName && !jsonInput}>
-                    <Link href={`/dashboard/editor?template=${template.id}`}>Create Labels</Link>
+                <Button onClick={handleCreateLabels} disabled={!jsonInput}>
+                    Create Labels
                 </Button>
             </DialogFooter>
         </>
