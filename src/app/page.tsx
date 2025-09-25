@@ -16,7 +16,7 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 export default function Home() {
   const allTemplates = PlaceHolderImages.filter(img => img.id.startsWith('template'));
   const [searchQuery, setSearchQuery] = useState('');
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [selectedTemplate, setSelectedTemplate] = useState<ImagePlaceholder | null>(null);
 
   const filteredTemplates = useMemo(() => {
@@ -64,7 +64,7 @@ export default function Home() {
                       </Button>
                     </div>
                 </div>
-                <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                      {templatesToShow.map(template => (
                         <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                             <CardContent className="p-0 flex flex-col flex-1">
