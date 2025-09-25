@@ -1,44 +1,93 @@
+
 'use client';
 
 import type { CanvasSettings } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { ScrollArea } from '../ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useState } from 'react';
 
 interface CanvasPropertiesProps {
   settings: CanvasSettings;
   onUpdate: (newSettings: Partial<CanvasSettings>) => void;
 }
 
+const standardSizes = [
+  { name: 'Custom', width: 0, height: 0 },
+  { name: 'Letter (8.5" x 11")', width: 816, height: 1056 },
+  { name: 'A4 (210mm x 297mm)', width: 794, height: 1123 },
+  { name: 'Business Card (3.5" x 2")', width: 336, height: 192 },
+  { name: 'Avery 5160 (2.625" x 1")', width: 252, height: 96 },
+  { name: '4" x 6" Label', width: 384, height: 576 },
+];
+
+
 export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) {
+  const [selectedSize, setSelectedSize] = useState('Custom');
+
+  const handleSizeChange = (value: string) => {
+    setSelectedSize(value);
+    const size = standardSizes.find(s => s.name === value);
+    if (size && size.name !== 'Custom') {
+      onUpdate({ width: size.width, height: size.height });
+    }
+  }
+
   return (
     <ScrollArea className="h-full">
       <div className="p-4 pt-12 bg-card h-full space-y-4">
         <h3 className="text-lg font-headline font-semibold">Canvas Settings</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-2">
-            <Label htmlFor="canvas-w">Width (px)</Label>
-            <Input
-              id="canvas-w"
-              type="number"
-              value={settings.width}
-              onChange={(e) =>
-                onUpdate({ width: parseInt(e.target.value, 10) })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="canvas-h">Height (px)</Label>
-            <Input
-              id="canvas-h"
-              type="number"
-              value={settings.height}
-              onChange={(e) =>
-                onUpdate({ height: parseInt(e.target.value, 10) })
-              }
-            />
-          </div>
+        
+        <div className="space-y-2">
+            <Label htmlFor="page-size">Page Size</Label>
+            <Select value={selectedSize} onValueChange={handleSizeChange}>
+                <SelectTrigger id="page-size">
+                    <SelectValue placeholder="Select a size" />
+                </SelectTrigger>
+                <SelectContent>
+                    {standardSizes.map(size => (
+                        <SelectItem key={size.name} value={size.name}>
+                            {size.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
+
+        {selectedSize === 'Custom' && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label htmlFor="canvas-w">Width (px)</Label>
+              <Input
+                id="canvas-w"
+                type="number"
+                value={settings.width}
+                onChange={(e) =>
+                  onUpdate({ width: parseInt(e.target.value, 10) })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="canvas-h">Height (px)</Label>
+              <Input
+                id="canvas-h"
+                type="number"
+                value={settings.height}
+                onChange={(e) =>
+                  onUpdate({ height: parseInt(e.target.value, 10) })
+                }
+              />
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
             <Label htmlFor="canvas-bg">Background</Label>
             <div className="flex items-center gap-2">
