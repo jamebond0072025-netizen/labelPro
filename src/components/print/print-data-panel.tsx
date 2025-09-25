@@ -97,7 +97,7 @@ export function PrintDataPanel({
 
   if (isSheet) {
     return (
-        <div className="bg-card h-full">
+        <div className="bg-card h-full w-full">
             {sidebarContent}
         </div>
     )
