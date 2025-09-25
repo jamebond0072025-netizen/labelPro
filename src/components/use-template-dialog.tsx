@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import type { ImagePlaceholder } from "@/lib/placeholder-images"
 import { useRouter } from 'next/navigation';
-import { Upload, ClipboardPaste, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Upload, ClipboardPaste, ArrowLeft, ArrowRight, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from './ui/textarea';
@@ -25,6 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Skeleton } from './ui/skeleton';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Input } from './ui/input';
 
 
 interface UseTemplateDialogProps {
@@ -32,7 +34,7 @@ interface UseTemplateDialogProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-type Step = 'upload-data' | 'map-fields';
+type Step = 'upload-data' | 'map-fields' | 'manual-data';
 
 
 export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogProps) {
@@ -50,6 +52,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const [templatePlaceholders, setTemplatePlaceholders] = useState<string[]>([]);
     const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
     const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+    const [manualData, setManualData] = useState<Record<string, any>[]>([{}]);
 
 
     const fetchTemplatePlaceholders = useCallback(async () => {
@@ -64,6 +67,12 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             
             const uniquePlaceholders = [...new Set(placeholders)];
             setTemplatePlaceholders(uniquePlaceholders);
+            
+            // Initialize manual data with keys
+            const initialRow: Record<string, string> = {};
+            uniquePlaceholders.forEach(p => initialRow[p] = '');
+            setManualData([initialRow]);
+
         } catch (error) {
             toast({
                 variant: 'destructive',
@@ -78,7 +87,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
 
     useEffect(() => {
-        if (step === 'map-fields' && templatePlaceholders.length === 0) {
+        if ((step === 'map-fields' || step === 'manual-data') && templatePlaceholders.length === 0) {
             fetchTemplatePlaceholders();
         }
     }, [step, templatePlaceholders, fetchTemplatePlaceholders]);
@@ -198,37 +207,68 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     }
 
     const handleCreateLabels = () => {
-        if (!parsedData) {
-             toast({ variant: 'destructive', title: 'Something went wrong', description: 'No data to process.'});
-             return;
-        }
-
-        const isMappingComplete = Object.values(fieldMapping).every(v => v !== '');
-
-        if (!isMappingComplete) {
-            toast({ variant: 'destructive', title: 'Mapping Incomplete', description: 'Please map all template fields.'});
-            return;
-        }
-
-        const transformedData = parsedData.map(originalRow => {
-            const newRow: Record<string, any> = {};
-            for (const templateKey in fieldMapping) {
-                const dataKey = fieldMapping[templateKey];
-                if (dataKey && originalRow.hasOwnProperty(dataKey)) {
-                    newRow[templateKey] = originalRow[dataKey];
-                }
-            }
-            return newRow;
-        });
+        let finalData: Record<string, any>[] | null = null;
         
-        setData(transformedData);
-        setTemplate(template);
-        router.push('/dashboard/print-preview');
+        if(step === 'manual-data'){
+            finalData = manualData.filter(row => Object.values(row).some(val => val !== ''));
+            if(finalData.length === 0){
+                toast({ variant: 'destructive', title: 'Empty Data', description: 'Please enter at least one row of data.'});
+                return;
+            }
+        } else {
+            if (!parsedData) {
+                toast({ variant: 'destructive', title: 'Something went wrong', description: 'No data to process.'});
+                return;
+            }
+
+            const isMappingComplete = Object.values(fieldMapping).every(v => v !== '');
+
+            if (!isMappingComplete) {
+                toast({ variant: 'destructive', title: 'Mapping Incomplete', description: 'Please map all template fields.'});
+                return;
+            }
+
+            finalData = parsedData.map(originalRow => {
+                const newRow: Record<string, any> = {};
+                for (const templateKey in fieldMapping) {
+                    const dataKey = fieldMapping[templateKey];
+                    if (dataKey && originalRow.hasOwnProperty(dataKey)) {
+                        newRow[templateKey] = originalRow[dataKey];
+                    }
+                }
+                return newRow;
+            });
+        }
+        
+        if (finalData) {
+            setData(finalData);
+            setTemplate(template);
+            router.push('/dashboard/print-preview');
+        }
     }
 
     const handleMappingChange = (templateKey: string, dataKey: string) => {
         setFieldMapping(prev => ({...prev, [templateKey]: dataKey}));
     }
+
+    const handleManualDataChange = (rowIndex: number, key: string, value: string) => {
+        setManualData(prev => {
+            const newData = [...prev];
+            newData[rowIndex][key] = value;
+            return newData;
+        });
+    }
+
+    const addManualRow = () => {
+        const newRow: Record<string, string> = {};
+        templatePlaceholders.forEach(p => newRow[p] = '');
+        setManualData(prev => [...prev, newRow]);
+    }
+
+    const removeManualRow = (rowIndex: number) => {
+        setManualData(prev => prev.filter((_, index) => index !== rowIndex));
+    }
+
 
     const unmappedPlaceholders = useMemo(() => {
         return templatePlaceholders.filter(p => !fieldMapping[p]);
@@ -282,9 +322,12 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                     </TabsContent>
                 </Tabs>
                
-                <p className="text-xs text-center text-muted-foreground">
-                    Don&apos;t have data? <Button variant="link" className="p-0 h-auto" onClick={() => router.push(`/dashboard/editor?template=${template.id}`)}>Edit template directly.</Button>
-                </p>
+                <div className="text-center text-xs text-muted-foreground">
+                    Don&apos;t have a file?{' '}
+                    <Button variant="link" className="p-0 h-auto" onClick={() => setStep('manual-data')}>
+                        Add data manually
+                    </Button>
+                </div>
             </div>
              <DialogFooter>
                 <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
@@ -345,12 +388,73 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         </>
     );
 
+    const renderManualData = () => (
+        <>
+            <DialogHeader>
+                <DialogTitle>Enter Your Data Manually</DialogTitle>
+                <DialogDescription>
+                   Add rows and fill in the data for each label you want to create.
+                </DialogDescription>
+            </DialogHeader>
+             <div className="py-4 max-h-[60vh] overflow-y-auto">
+                {isLoadingTemplate ? (
+                     <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                ) : (
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            {templatePlaceholders.map(key => <TableHead key={key}>{key}</TableHead>)}
+                            <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {manualData.map((row, rowIndex) => (
+                            <TableRow key={rowIndex}>
+                                {templatePlaceholders.map(key => (
+                                    <TableCell key={key}>
+                                        <Input 
+                                            value={row[key] || ''}
+                                            onChange={(e) => handleManualDataChange(rowIndex, key, e.target.value)}
+                                            className="h-8"
+                                        />
+                                    </TableCell>
+                                ))}
+                                <TableCell>
+                                    <Button variant="ghost" size="icon" onClick={() => removeManualRow(rowIndex)} disabled={manualData.length === 1}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+                )}
+                 <Button variant="outline" size="sm" onClick={addManualRow} className="mt-4">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Row
+                </Button>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setStep('upload-data')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+                <Button onClick={handleCreateLabels} disabled={isLoadingTemplate}>
+                    Create Labels
+                </Button>
+            </DialogFooter>
+        </>
+    );
+
+
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-md", step === 'map-fields' && "sm:max-w-lg")}>
+      <DialogContent className={cn("sm:max-w-md", step === 'map-fields' && "sm:max-w-lg", step === 'manual-data' && "sm:max-w-4xl")}>
         {step === 'upload-data' && renderUploadData()}
         {step === 'map-fields' && renderMapFields()}
+        {step === 'manual-data' && renderManualData()}
       </DialogContent>
     </Dialog>
   );
 }
+
+    
