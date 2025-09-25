@@ -21,7 +21,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1511920183318-9d614fba01b2?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
       "imageHint": "coffee label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-coffee-bag.json"
     },
     {
       "id": "template-skincare-product",
@@ -29,7 +30,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
       "imageHint": "skincare label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-skincare-product.json"
     },
     {
       "id": "template-craft-beer",
@@ -37,7 +39,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1617886903339-b47c093a0a38?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
       "imageHint": "beer label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-craft-beer.json"
     },
     {
       "id": "template-honey-jar",
@@ -45,7 +48,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
       "imageHint": "honey label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-honey-jar.json"
     },
     {
       "id": "template-juice-bottle",
@@ -53,7 +57,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1543254333-5743a3739a7b?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
       "imageHint": "juice label",
       "width": 300,
-      "height": 420
+      "height": 420,
+      "templateUrl": "/templates/template-juice-bottle.json"
     },
     {
       "id": "product1",

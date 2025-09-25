@@ -1,0 +1,77 @@
+
+{
+  "settings": {
+    "width": 300,
+    "height": 300,
+    "backgroundColor": "#E9F5E3"
+  },
+  "objects": [
+    {
+      "id": "text1",
+      "type": "text",
+      "x": 50,
+      "y": 40,
+      "width": 200,
+      "height": 80,
+      "rotation": -10,
+      "opacity": 1,
+      "text": "{{flavor}}",
+      "fontSize": 56,
+      "fontWeight": "bold",
+      "fontFamily": "Oswald, sans-serif",
+      "color": "#FF6B6B",
+      "textAlign": "center",
+      "key": "flavor"
+    },
+    {
+      "id": "text2",
+      "type": "text",
+      "x": 50,
+      "y": 130,
+      "width": 200,
+      "height": 30,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "100% Organic Juice",
+      "fontSize": 18,
+      "fontWeight": "normal",
+      "fontFamily": "Lato, sans-serif",
+      "color": "#4ECDC4",
+      "textAlign": "center"
+    },
+    {
+      "id": "text3",
+      "type": "text",
+      "x": 50,
+      "y": 180,
+      "width": 200,
+      "height": 50,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "Ingredients: {{ingredients}}",
+      "fontSize": 12,
+      "fontWeight": "normal",
+      "fontFamily": "Lato, sans-serif",
+      "color": "#333333",
+      "textAlign": "center",
+      "key": "ingredients"
+    },
+    {
+      "id": "text4",
+      "type": "text",
+      "x": 100,
+      "y": 250,
+      "width": 100,
+      "height": 20,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{volume}} FL OZ",
+      "fontSize": 14,
+      "fontWeight": "bold",
+      "fontFamily": "Lato, sans-serif",
+      "color": "#333333",
+      "textAlign": "center",
+      "key": "volume"
+    }
+  ]
+}

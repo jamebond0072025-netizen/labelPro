@@ -1,0 +1,78 @@
+
+{
+  "settings": {
+    "width": 300,
+    "height": 420,
+    "backgroundColor": "#FFFFFF"
+  },
+  "objects": [
+    {
+      "id": "text1",
+      "type": "text",
+      "x": 20,
+      "y": 50,
+      "width": 260,
+      "height": 40,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{product_name}}",
+      "fontSize": 28,
+      "fontWeight": "bold",
+      "fontFamily": "Raleway, sans-serif",
+      "color": "#333333",
+      "textAlign": "center",
+      "key": "product_name"
+    },
+    {
+      "id": "text2",
+      "type": "text",
+      "x": 20,
+      "y": 100,
+      "width": 260,
+      "height": 30,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{product_type}}",
+      "fontSize": 16,
+      "fontWeight": "normal",
+      "fontFamily": "Raleway, sans-serif",
+      "color": "#666666",
+      "textAlign": "center",
+      "key": "product_type"
+    },
+    {
+      "id": "text3",
+      "type": "text",
+      "x": 30,
+      "y": 180,
+      "width": 240,
+      "height": 100,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "Ingredients: {{ingredients}}",
+      "fontSize": 10,
+      "fontWeight": "normal",
+      "fontFamily": "Lato, sans-serif",
+      "color": "#444444",
+      "textAlign": "left",
+      "key": "ingredients"
+    },
+    {
+      "id": "text4",
+      "type": "text",
+      "x": 100,
+      "y": 380,
+      "width": 100,
+      "height": 20,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{volume}}ml",
+      "fontSize": 14,
+      "fontWeight": "bold",
+      "fontFamily": "Raleway, sans-serif",
+      "color": "#333333",
+      "textAlign": "center",
+      "key": "volume"
+    }
+  ]
+}

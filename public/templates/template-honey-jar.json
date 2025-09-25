@@ -1,0 +1,73 @@
+
+{
+  "settings": {
+    "width": 250,
+    "height": 400,
+    "backgroundColor": "#FFFAF0"
+  },
+  "objects": [
+    {
+      "id": "text1",
+      "type": "text",
+      "x": 25,
+      "y": 50,
+      "width": 200,
+      "height": 60,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{brand_name}}",
+      "fontSize": 32,
+      "fontWeight": "bold",
+      "fontFamily": "Playfair Display, serif",
+      "color": "#D4A017",
+      "textAlign": "center",
+      "key": "brand_name"
+    },
+    {
+      "id": "text2",
+      "type": "text",
+      "x": 25,
+      "y": 120,
+      "width": 200,
+      "height": 40,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "Pure {{honey_type}} Honey",
+      "fontSize": 18,
+      "fontWeight": "normal",
+      "fontFamily": "Merriweather, serif",
+      "color": "#362222",
+      "textAlign": "center",
+      "key": "honey_type"
+    },
+    {
+      "id": "image1",
+      "type": "image",
+      "x": 75,
+      "y": 180,
+      "width": 100,
+      "height": 100,
+      "rotation": 0,
+      "opacity": 1,
+      "src": "https://placehold.co/100x100.png?text={{bee_icon}}",
+      "key": "bee_icon"
+    },
+    {
+      "id": "text3",
+      "type": "text",
+      "x": 75,
+      "y": 350,
+      "width": 100,
+      "height": 20,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "Net Wt. {{weight}}oz",
+      "fontSize": 12,
+      "fontWeight": "normal",
+      "fontFamily": "Merriweather, serif",
+      "color": "#362222",
+      "textAlign": "center",
+      "key": "weight"
+    }
+  ]
+}

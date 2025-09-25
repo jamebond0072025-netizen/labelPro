@@ -1,0 +1,73 @@
+
+{
+  "settings": {
+    "width": 400,
+    "height": 300,
+    "backgroundColor": "#F0EAD6"
+  },
+  "objects": [
+    {
+      "id": "image1",
+      "type": "image",
+      "x": 150,
+      "y": 20,
+      "width": 100,
+      "height": 100,
+      "rotation": 0,
+      "opacity": 1,
+      "src": "https://placehold.co/100x100.png?text={{logo}}",
+      "key": "logo"
+    },
+    {
+      "id": "text1",
+      "type": "text",
+      "x": 50,
+      "y": 140,
+      "width": 300,
+      "height": 50,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{beer_name}}",
+      "fontSize": 40,
+      "fontWeight": "bold",
+      "fontFamily": "Oswald, sans-serif",
+      "color": "#2C3E50",
+      "textAlign": "center",
+      "key": "beer_name"
+    },
+    {
+      "id": "text2",
+      "type": "text",
+      "x": 50,
+      "y": 200,
+      "width": 300,
+      "height": 30,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "{{beer_style}}",
+      "fontSize": 24,
+      "fontWeight": "normal",
+      "fontFamily": "Montserrat, sans-serif",
+      "color": "#E74C3C",
+      "textAlign": "center",
+      "key": "beer_style"
+    },
+    {
+      "id": "text3",
+      "type": "text",
+      "x": 150,
+      "y": 250,
+      "width": 100,
+      "height": 20,
+      "rotation": 0,
+      "opacity": 1,
+      "text": "ABV: {{abv}}%",
+      "fontSize": 14,
+      "fontWeight": "bold",
+      "fontFamily": "Montserrat, sans-serif",
+      "color": "#2C3E50",
+      "textAlign": "center",
+      "key": "abv"
+    }
+  ]
+}
