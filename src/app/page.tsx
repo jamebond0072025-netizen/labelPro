@@ -86,7 +86,7 @@ export default function Home() {
                                         <Button size="sm" onClick={() => handleUse(template)} className="w-full">
                                             Use
                                         </Button>
-                                        <div className="flex w-full gap-2">
+                                        <div className="flex flex-col sm:flex-row w-full gap-2">
                                             <Button size="sm" variant="secondary" onClick={() => handlePreview(template)} className="w-full">
                                                 <Eye className="mr-2 h-4 w-4" /> Preview
                                             </Button>
