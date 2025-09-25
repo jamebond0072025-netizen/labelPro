@@ -13,7 +13,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { ScrollArea } from '../ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 interface PrintDataPanelProps {
     data: Record<string, any>[];
@@ -27,40 +26,37 @@ export function PrintDataPanel({
   const [isPinned, setIsPinned] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   
-  const headers = data.length > 0 ? Object.keys(data[0]) : [];
-
   const isOpen = isPinned || isHovered;
 
   const sidebarContent = (
       <ScrollArea className="h-full">
         <div className="h-full flex flex-col pt-12">
-          <Accordion type="single" defaultValue="data" collapsible className="w-full px-4">
-              <AccordionItem value="data">
+          <Accordion type="single" collapsible className="w-full px-4">
+              <AccordionItem value="data" className="border-none">
                   <AccordionTrigger>
                       <div className="flex items-center gap-2">
                           <Database className="h-4 w-4" />
-                          <span>Label Data</span>
+                          <span>Label Data ({data.length})</span>
                       </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            {headers.map(header => <TableHead key={header}>{header}</TableHead>)}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {data.map((row, rowIndex) => (
-                            <TableRow key={rowIndex}>
-                              {headers.map(header => (
-                                <TableCell key={`${rowIndex}-${header}`} className="text-xs">
-                                  {String(row[header])}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                      <Accordion type="multiple" className="w-full">
+                        {data.map((row, rowIndex) => (
+                           <AccordionItem key={rowIndex} value={`item-${rowIndex}`}>
+                             <AccordionTrigger>Label #{rowIndex + 1}</AccordionTrigger>
+                             <AccordionContent>
+                                <div className="space-y-2 text-xs">
+                                  {Object.entries(row).map(([key, value]) => (
+                                    <div key={key} className="grid grid-cols-[auto_1fr] gap-x-2">
+                                      <span className="font-semibold text-muted-foreground">{key}:</span>
+                                      <span className="break-all">{String(value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                             </AccordionContent>
+                           </AccordionItem>
+                        ))}
+                      </Accordion>
                   </AccordionContent>
               </AccordionItem>
           </Accordion>

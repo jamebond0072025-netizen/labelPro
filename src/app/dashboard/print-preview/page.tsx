@@ -107,9 +107,7 @@ export default function PrintPreviewPage() {
               style={{ 
                   width: pageSize.width,
                   minHeight: pageSize.height,
-                  gridTemplateColumns: `repeat(auto-fill, minmax(${scaledLabelWidth}px, 1fr))`,
-                  rowGap: `${layout.rowGap}px`,
-                  columnGap: `${layout.columnGap}px`,
+                  gap: `${layout.rowGap}px ${layout.columnGap}px`,
               }}
               >
               {data.map((itemData, index) => (
@@ -212,9 +210,10 @@ export default function PrintPreviewPage() {
           padding: 20px 0;
         }
         .sheet {
-          display: grid;
+          display: flex;
+          flex-wrap: wrap;
           align-content: start;
-          justify-items: center;
+          justify-content: center;
           overflow: hidden;
           padding: 1cm;
           box-sizing: border-box;
@@ -223,7 +222,7 @@ export default function PrintPreviewPage() {
         .label-container {
             overflow: hidden;
             box-sizing: border-box;
-            display: flex;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
             break-inside: avoid;
