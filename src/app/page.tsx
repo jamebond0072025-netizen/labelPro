@@ -11,6 +11,7 @@ import { Plus, Search, Pencil } from 'lucide-react';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { setPlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
   const [templates, setTemplates] = useState<ImagePlaceholder[]>([]);
@@ -105,14 +106,15 @@ export default function Home() {
           return {
             id: `template-${item.id}`,
             description: item.name,
-            imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420', // Fallback image
+            imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420',
             imageHint: item.name,
             width: settings.width || 300,
             height: settings.height || 420,
-            templateUrl: item.designJson,
+            designJson: item.designJson,
           };
         });
         setTemplates(formattedTemplates);
+        setPlaceHolderImages(formattedTemplates);
       })
       .catch(err => {
         console.error("Failed to fetch templates:", err);

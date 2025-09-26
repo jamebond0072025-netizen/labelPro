@@ -19,16 +19,9 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
 
-  const loadTemplate = useCallback(async (url: string) => {
+  const loadTemplate = useCallback((designJson: string) => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch template: ${response.statusText}`);
-      }
-      const templateJsonString = await response.text();
-      // The designJson is a string with escaped quotes, so we need to parse it twice.
-      const parsedJsonString = JSON.parse(templateJsonString);
-      const templateData = JSON.parse(parsedJsonString);
+      const templateData = JSON.parse(designJson);
 
       // Assuming templateData has { settings, objects }
       onUpdateCanvasSettings(templateData.settings);
@@ -48,14 +41,6 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
     } catch (error) {
       console.error("Error loading template:", error);
-       try {
-        const response = await fetch(url);
-        const directJson = await response.json();
-        onUpdateCanvasSettings(directJson.settings);
-        setObjects(directJson.objects);
-      } catch (e) {
-        console.error("Secondary attempt to load template failed:", e);
-      }
     }
   }, [onUpdateCanvasSettings]);
 
@@ -85,12 +70,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   useEffect(() => {
     if (templateId) {
       const template = PlaceHolderImages.find(img => img.id === templateId);
-      if (template?.templateUrl) {
-         loadTemplate(template.templateUrl);
+      if (template?.designJson) {
+         loadTemplate(template.designJson);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]); // Removed loadTemplate from deps to avoid re-running on every render cycle
+  }, [templateId, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {

@@ -103,13 +103,10 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
 
     const fetchTemplatePlaceholders = useCallback(async () => {
-        if (!template.templateUrl) return;
+        if (!template.designJson) return;
         setIsLoadingTemplate(true);
         try {
-            const res = await fetch(template.templateUrl);
-            const templateJsonString = await res.text();
-            const parsedJsonString = JSON.parse(templateJsonString);
-            const templateData = JSON.parse(parsedJsonString);
+            const templateData = JSON.parse(template.designJson);
 
             const placeholders = templateData.objects
                 .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
@@ -128,33 +125,15 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
         } catch (error) {
             console.error(error);
-             // Fallback for directly parsing JSON if double parsing fails
-            try {
-                const res = await fetch(template.templateUrl);
-                const templateData = await res.json();
-                const placeholders = templateData.objects
-                    .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
-                    .map((obj: any) => ({
-                        key: obj.key,
-                        type: obj.type,
-                    }));
-                const uniquePlaceholders = Array.from(new Map(placeholders.map((p: any) => [p.key, p])).values());
-                setTemplatePlaceholders(uniquePlaceholders);
-                const initialRow: Record<string, string> = {};
-                uniquePlaceholders.forEach(p => initialRow[p.key] = '');
-                setManualData([initialRow]);
-            } catch (finalError) {
-                toast({
-                    variant: 'destructive',
-                    title: 'Failed to load template',
-                    description: 'Could not fetch template placeholder keys.',
-                });
-                console.error("Final template parsing error:", finalError);
-            }
+            toast({
+                variant: 'destructive',
+                title: 'Failed to load template',
+                description: 'Could not parse template design.',
+            });
         } finally {
             setIsLoadingTemplate(false);
         }
-    }, [template.templateUrl, toast]);
+    }, [template.designJson, toast]);
 
 
     useEffect(() => {

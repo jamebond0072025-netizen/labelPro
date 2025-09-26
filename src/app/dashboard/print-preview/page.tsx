@@ -44,25 +44,23 @@ export default function PrintPreviewPage() {
         description: 'Redirecting to home page.',
       });
       router.replace('/');
-    } else if (template.templateUrl) {
-      fetch(template.templateUrl)
-        .then(res => res.json())
-        .then(data => {
-            const settingsWithOriginals = {
-                ...data.settings,
-                originalWidth: data.settings.width,
-                originalHeight: data.settings.height
+    } else if (template.designJson) {
+        try {
+            const parsedTemplate = JSON.parse(template.designJson);
+             const settingsWithOriginals = {
+                ...parsedTemplate.settings,
+                originalWidth: parsedTemplate.settings.width,
+                originalHeight: parsedTemplate.settings.height
             };
-            setTemplateJson({ ...data, settings: settingsWithOriginals });
-        })
-        .catch(() => {
+            setTemplateJson({ ...parsedTemplate, settings: settingsWithOriginals });
+        } catch(e) {
             toast({
                 variant: 'destructive',
                 title: 'Failed to load template',
-                description: 'The template file could not be loaded.',
+                description: 'The template file could not be parsed.',
             });
             router.replace('/');
-        });
+        }
     }
   }, [template, router, toast]);
 
@@ -175,7 +173,7 @@ export default function PrintPreviewPage() {
         ) : (
              <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[8rem] left-2 z-20 bg-background/80 print-hidden">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80 print-hidden">
                         <PanelLeft className="h-5 w-5"/>
                     </Button>
                 </SheetTrigger>
@@ -197,7 +195,7 @@ export default function PrintPreviewPage() {
         ) : (
             <Sheet>
               <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[8rem] right-2 z-20 bg-background/80 print-hidden">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-20 bg-background/80 print-hidden">
                       <PanelRight className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>

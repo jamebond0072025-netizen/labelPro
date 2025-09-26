@@ -9,7 +9,7 @@ export type ImagePlaceholder = {
   imageHint: string;
   width?: number;
   height?: number;
-  templateUrl?: string;
+  designJson?: string;
 };
 
 // This is now populated from the API call in page.tsx
