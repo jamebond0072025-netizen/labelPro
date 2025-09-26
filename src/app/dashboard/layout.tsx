@@ -10,19 +10,11 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isIframe, setIsIframe] = useState(false);
-
-  useEffect(() => {
-    // Check if window is in an iframe
-    if (window.self !== window.top) {
-      setIsIframe(true);
-    }
-  }, []);
 
   return (
     <EditorProvider>
         <div className="flex h-screen w-full flex-col">
-          {!isIframe && <Header />}
+          <Header />
           <main className="flex-1 bg-background overflow-hidden flex">
             {children}
           </main>
