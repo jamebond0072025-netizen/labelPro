@@ -19,9 +19,9 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
 
-  const loadTemplate = useCallback((designJson: string) => {
+  const loadTemplate = useCallback((designJson: string | object) => {
     try {
-      const templateData = JSON.parse(designJson);
+      const templateData = typeof designJson === 'string' ? JSON.parse(designJson) : designJson;
 
       // Assuming templateData has { settings, objects }
       onUpdateCanvasSettings(templateData.settings);
@@ -31,7 +31,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       // Reset counters based on loaded objects
       const counters = { text: 0, image: 0, barcode: 0 };
       templateData.objects.forEach((obj: CanvasObject) => {
-        if (obj.key) {
+        if ('key' in obj && obj.key) {
             if (obj.type === 'text') counters.text++;
             if (obj.type === 'image') counters.image++;
             if (obj.type === 'barcode') counters.barcode++;

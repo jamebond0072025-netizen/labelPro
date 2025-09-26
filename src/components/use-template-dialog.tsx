@@ -106,7 +106,9 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         if (!template.designJson) return;
         setIsLoadingTemplate(true);
         try {
-            const templateData = JSON.parse(template.designJson);
+            const templateData = typeof template.designJson === 'string' 
+                ? JSON.parse(template.designJson) 
+                : template.designJson;
 
             const placeholders = templateData.objects
                 .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
@@ -513,7 +515,3 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     </Dialog>
   );
 }
-
-    
-
-    

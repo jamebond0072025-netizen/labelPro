@@ -27,7 +27,7 @@ const dummyTemplates = [
         "category": "Packaging",
         "designJson": "{\\\"font\\\":\\\"Arial\\\",\\\"size\\\":12}",
         "bulkDataJson": "[{\\\"ProductName\\\":\\\"Apple\\\",\\\"Price\\\":100},{\\\"ProductName\\\":\\\"Banana\\\",\\\"Price\\\":50}]",
-        "previewImageUrl": "Product-Label1.jpg",
+        "previewImageUrl": null,
         "createdAt": "2025-09-24T13:01:08.503",
         "updatedAt": "2025-09-24T13:05:27.227"
     },
