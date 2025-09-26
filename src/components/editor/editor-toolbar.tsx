@@ -25,7 +25,7 @@ import {
   Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
   ChevronsUp, ChevronsDown, MoreVertical, AlignCenter, AlignStartHorizontal,
   AlignCenterHorizontal, AlignEndHorizontal, AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  Columns, Rows, Upload,
+  Columns, Rows,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -45,12 +45,11 @@ import type { ItemType } from '@/lib/types';
 interface EditorToolbarProps {
   onAddItem: (type: ItemType) => void;
   onClearAll: () => void;
-  onLayerAction: (action: 'bring-forward' | 'send-backward') => void;
+  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
   onZoom: (zoom: number) => void;
   zoom: number;
   selectedObjectIds: string[];
   onAlign: (alignment: Alignment) => void;
-  onLoadTemplate: (file: File) => void;
 }
 
 export function EditorToolbar({ 
@@ -61,21 +60,10 @@ export function EditorToolbar({
     zoom,
     selectedObjectIds,
     onAlign,
-    onLoadTemplate,
 }: EditorToolbarProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const hasSelection = selectedObjectIds.length > 0;
   const hasMultipleSelection = selectedObjectIds.length > 1;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onLoadTemplate(file);
-      // Reset file input so the same file can be loaded again
-      e.target.value = '';
-    }
-  };
 
   const addElementMenu = (
     <TooltipProvider>
@@ -131,12 +119,16 @@ export function EditorToolbar({
     </TooltipProvider>
   );
 
+  const clearAllTrigger = (
+     <Button variant="destructive-outline" size={isMobile ? "icon": "sm"} className={isMobile ? "w-full justify-start" : ""}>
+        <Trash2 className={isMobile ? "" : "mr-2"} /> {!isMobile && "Clear All"}
+    </Button>
+  );
+
   const clearAllDialog = (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive-outline" size={isMobile ? "icon": "sm"} className={isMobile ? "w-full justify-start" : ""}>
-          <Trash2 className={isMobile ? "" : "mr-2"} /> {!isMobile && "Clear All"}
-        </Button>
+        {clearAllTrigger}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -261,7 +253,9 @@ export function EditorToolbar({
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>{clearAllDialog}</DropdownMenuItem>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                 {clearAllDialog}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -283,23 +277,6 @@ export function EditorToolbar({
         </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {addElementMenu}
-         <Tooltip>
-            <TooltipTrigger asChild>
-                <>
-                <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
-                    <Upload />
-                </Button>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".json"
-                    onChange={handleFileChange}
-                />
-                </>
-            </TooltipTrigger>
-            <TooltipContent><p>Load Template (JSON)</p></TooltipContent>
-        </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         <Tooltip>
             <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}><ChevronsUp /></Button></TooltipTrigger>
@@ -325,7 +302,9 @@ export function EditorToolbar({
         <div className="w-12 text-center text-sm">{Math.round(zoom * 100)}%</div>
         <Separator orientation="vertical" className="h-8" />
          <Tooltip>
-            <TooltipTrigger asChild>{clearAllDialog}</TooltipTrigger>
+            <TooltipTrigger asChild>
+                {clearAllDialog}
+            </TooltipTrigger>
             <TooltipContent><p>Clear All</p></TooltipContent>
         </Tooltip>
       </div>

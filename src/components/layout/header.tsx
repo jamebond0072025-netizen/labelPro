@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Image as ImageIcon, FileJson, ChevronDown, Printer, Loader2 } from 'lucide-react';
+import { Save, Image as ImageIcon, FileJson, ChevronDown, Printer, Loader2, Upload } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Type } from 'lucide-react';
@@ -26,11 +26,20 @@ export function Header() {
   const isEditor = pathname.includes('/editor');
   const isPrintPreview = pathname.includes('/print-preview');
   
-  const { editorState } = useEditor();
+  const { editorState, loadTemplate } = useEditor();
   const { printPageSettings } = usePrint();
   const { toast } = useToast();
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && loadTemplate?.current) {
+        loadTemplate.current(file);
+        e.target.value = '';
+    }
+  };
 
   const handleExport = (format: 'png' | 'jpeg' | 'json') => {
     if (!editorState) return;
@@ -139,6 +148,17 @@ export function Header() {
         
         {isEditor && (
           <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Load
+              </Button>
+               <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".json"
+                    onChange={handleFileChange}
+                />
               <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)}>
                 <Save className="mr-2 h-4 w-4" />
                 Save

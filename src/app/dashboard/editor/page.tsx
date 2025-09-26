@@ -84,7 +84,7 @@ export default function EditorPage() {
   }
   
   return (
-    <div className="flex-1 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] overflow-hidden">
+    <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] overflow-hidden">
       {isDesktop ? (
           <LeftSidebar
               objects={objects}
@@ -96,7 +96,7 @@ export default function EditorPage() {
       ) : (
           <Sheet>
               <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[8rem] left-2 z-20 bg-background/80">
+                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80">
                       <PanelLeft className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>
@@ -153,7 +153,7 @@ export default function EditorPage() {
       ) : (
            <Sheet>
               <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[8rem] right-2 z-20 bg-background/80">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-20 bg-background/80">
                       <PanelRight className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>
