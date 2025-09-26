@@ -47,7 +47,7 @@ export default function EditorPage() {
     setObjects,
   } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
 
-  const { setEditorState } = useEditor();
+  const { setEditorState, loadTemplate } = useEditor();
 
    useEffect(() => {
     setEditorState({
@@ -56,6 +56,13 @@ export default function EditorPage() {
       canvasSettings,
     });
   }, [canvasRef, objects, canvasSettings, setEditorState]);
+
+  useEffect(() => {
+    if (loadTemplate) {
+        loadTemplate.current = handleLoadTemplateFromJson;
+    }
+  }, [handleLoadTemplateFromJson, loadTemplate]);
+
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
@@ -89,7 +96,7 @@ export default function EditorPage() {
       ) : (
           <Sheet>
               <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-10 bg-background/80">
+                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80">
                       <PanelLeft className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>
@@ -115,7 +122,6 @@ export default function EditorPage() {
           zoom={zoom}
           selectedObjectIds={selectedObjectIds}
           onAlign={handleAlign}
-          onLoadTemplate={handleLoadTemplateFromJson}
         />
         <EditorCanvas
           canvasRef={canvasRef}
@@ -147,7 +153,7 @@ export default function EditorPage() {
       ) : (
            <Sheet>
               <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-10 bg-background/80">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-20 bg-background/80">
                       <PanelRight className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>

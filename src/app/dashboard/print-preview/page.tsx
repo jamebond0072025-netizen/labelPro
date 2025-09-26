@@ -175,7 +175,7 @@ export default function PrintPreviewPage() {
         ) : (
              <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-10 bg-background/80 print-hidden">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80 print-hidden">
                         <PanelLeft className="h-5 w-5"/>
                     </Button>
                 </SheetTrigger>
@@ -197,7 +197,7 @@ export default function PrintPreviewPage() {
         ) : (
             <Sheet>
               <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-10 bg-background/80 print-hidden">
+                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.srem] right-2 z-20 bg-background/80 print-hidden">
                       <PanelRight className="h-5 w-5"/>
                   </Button>
               </SheetTrigger>
