@@ -28,7 +28,7 @@ export async function fetchWithAuth(
     // When auth is disabled, you might still need a tenant ID for some APIs.
     // For many test environments, a non-empty tenant ID is still required.
     // We can use a dummy value here if one isn't provided via the auth object.
-    const tenantId = auth.tenantId || 'dummy-tenant-id';
+    const tenantId = auth.tenantId || 'c6142cc8-4977-4b2f-92bf-b5f89a94a8fa';
     headers.set('X-Tenant-ID', tenantId);
   }
 

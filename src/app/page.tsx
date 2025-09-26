@@ -73,7 +73,7 @@ export default function Home() {
   useEffect(() => {
     // This effect runs once on mount if auth is disabled
     if (!USE_AUTH) {
-        fetchTemplates({ token: null, tenantId: 'dummy-tenant-id' }); // Tenant ID might still be needed
+        fetchTemplates({ token: null, tenantId: 'c6142cc8-4977-4b2f-92bf-b5f89a94a8fa' }); // Tenant ID might still be needed
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
