@@ -13,6 +13,7 @@ import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { setPlaceHolderImages } from '@/lib/placeholder-images';
 import { fetchWithAuth } from '@/lib/api';
+import { USE_AUTH } from '@/lib/config';
 
 export default function Home() {
   const [templates, setTemplates] = useState<ImagePlaceholder[]>([]);
@@ -23,6 +24,14 @@ export default function Home() {
   const [tenantId, setTenantId] = useState<string | null>(null);
 
  useEffect(() => {
+    if (!USE_AUTH) {
+        // If auth is disabled, we don't need to listen for messages.
+        // We can use placeholder/default credentials if needed, or none.
+        setToken('dummy-token'); // Set dummy values to satisfy dependency array
+        setTenantId('dummy-tenant');
+        return;
+    }
+
     let retryInterval: NodeJS.Timeout;
 
     const handleMessage = (event: MessageEvent) => {
@@ -41,13 +50,12 @@ export default function Home() {
         setTenantId(tenantId);
         localStorage.setItem('authToken', token);
         localStorage.setItem('tenantId', tenantId);
-        if (retryInterval) clearInterval(retryInterval); // ✅ stop retry
+        if (retryInterval) clearInterval(retryInterval);
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // 🔁 Keep asking parent until we get auth
     retryInterval = setInterval(() => {
       if (!token || !tenantId) {
         window.parent.postMessage({ type: 'GET_AUTH' }, '*');
@@ -61,18 +69,16 @@ export default function Home() {
   }, [token, tenantId]);
 
   useEffect(() => {
-    // This condition ensures we only fetch when we have the necessary credentials
-    // OR if authentication is disabled (in which case token/tenantId might be null).
-    // The `fetchWithAuth` function itself will handle the logic.
-    if (token && tenantId) {
+    // This effect should only run when we have credentials or auth is disabled.
+    if (!USE_AUTH || (token && tenantId)) {
       setIsLoading(true);
       setError(null);
 
+      // Pass credentials which will be used only if USE_AUTH is true
       fetchWithAuth('LabelTemplate', { token, tenantId })
       .then(response => {
         if (!response.ok) {
-           if (response.status === 401) {
-             // Clear potentially stale credentials and trigger a refetch
+           if (response.status === 401 && USE_AUTH) {
              setToken(null);
              setTenantId(null);
              localStorage.removeItem('authToken');
@@ -90,7 +96,6 @@ export default function Home() {
         const formattedTemplates = data.map((item: any) => {
           let design = {};
           try {
-            // Ensure designJson is a string before parsing
             if (item.designJson && typeof item.designJson === 'string') {
                design = JSON.parse(item.designJson);
             }
@@ -107,7 +112,7 @@ export default function Home() {
             imageHint: item.name,
             width: settings.width || 300,
             height: settings.height || 420,
-            designJson: item.designJson, // Pass the raw JSON string
+            designJson: item.designJson,
           };
         });
         setTemplates(formattedTemplates);
@@ -120,11 +125,9 @@ export default function Home() {
       .finally(() => {
         setIsLoading(false);
       });
-    } else {
-        // This part handles the case where we are still waiting for credentials.
-        // It's separated from the main fetch logic for clarity.
-        // No need to set an error here immediately, as the effect will re-run once credentials arrive.
-        setIsLoading(false); 
+    } else if (USE_AUTH && !token) {
+        // Still waiting for credentials
+        setIsLoading(true);
     }
   }, [token, tenantId]);
 
@@ -220,7 +223,7 @@ export default function Home() {
                                         fill
                                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                                         data-ai-hint={template.imageHint}
-                                        unoptimized // Use this if images are from an external source not configured in next.config.js
+                                        unoptimized
                                     />
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                                         <Button size="sm" onClick={() => handleUse(template)} className="w-full">
@@ -267,3 +270,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
