@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -31,26 +32,39 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     try {
       let designJson = template.designJson;
 
-      // Handle doubly-stringified JSON
+      // Handle doubly-stringified JSON and invalid JSON
       if (typeof designJson === 'string') {
-        try {
-          designJson = JSON.parse(designJson);
-        } catch (e) {
+        if (designJson.trim().startsWith('{')) {
+          try {
+            designJson = JSON.parse(designJson);
+          } catch (e) {
             console.error("Primary parse failed, attempting secondary parse for doubly-escaped JSON", e);
-             // if the first parse fails, it may be a doubly-escaped string
+            // if the first parse fails, it may be a doubly-escaped string
+          }
+        } else {
+            console.warn("designJson is not a valid JSON object string. Treating as empty.", designJson);
+            designJson = { settings: {}, objects: [] };
         }
       }
+
       if (typeof designJson === 'string') {
-        designJson = JSON.parse(designJson);
+         if (designJson.trim().startsWith('{')) {
+            designJson = JSON.parse(designJson);
+         } else {
+            console.warn("designJson is not a valid JSON object string after first parse. Treating as empty.", designJson);
+            designJson = { settings: {}, objects: [] };
+         }
       }
 
-      onUpdateCanvasSettings(designJson.settings);
-      setObjects(designJson.objects);
+      const finalDesign = designJson as { settings: CanvasSettings; objects: CanvasObject[] };
+
+      onUpdateCanvasSettings(finalDesign.settings);
+      setObjects(finalDesign.objects || []);
       setLoadedTemplate(template);
       setSelectedObjectIds([]);
       
       const counters = { text: 0, image: 0, barcode: 0 };
-      designJson.objects.forEach((obj: CanvasObject) => {
+      (finalDesign.objects || []).forEach((obj: CanvasObject) => {
         if ('key' in obj && obj.key) {
             const match = obj.key.match(/^(text|image|barcode)_(\d+)$/);
             if (match) {
