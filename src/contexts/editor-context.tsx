@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, RefObject, useCallback } from 'react';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
 
-interface EditorState {
+export interface EditorState {
   canvasRef: RefObject<HTMLDivElement> | null;
   objects: CanvasObject[];
   canvasSettings: CanvasSettings;

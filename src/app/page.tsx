@@ -17,59 +17,46 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [token, setToken] = useState<string | null>(null);
-  const [tenantId, setTenantId] = useState<string | null>(null);
-  
-  // Hardcoded fallback credentials for testing
-  const testToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjJmNzc1MjJkLTQ4YmYtNDU4Yi1kOGU5LTA4ZGQzNDY2OGU0MSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJMYWxhIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVGVuYW50T3duZXIiLCJUZW5hbnRJZCI6Ilt7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZWFtTWVtYmVyXCIsXCJOYW1lXCI6XCJTRUVESEFISVNBQlwifSx7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZW5hbnRPd25lclwiLFwiTmFtZVwiOlwiU0VFREhBSElTQUJcIn0se1wiVGVuYW50SURcIjpcIjE4MTg5MjZjLTE3ODQtNDJkMi1hNTI0LTQwMzlhOWJhMWZmOVwiLFwiUm9sZVwiOlwiVGVuYW50T3duZXJcIixcIk5hbWVcIjpcIllBSE9PR09PR0xFXCJ9LHtcIlRlbmFudElEXCI6XCJjODljZmVlZS0zNTcyLTRjNmEtYTE2My03YjAyNjVkZjQ0MzhcIixcIlJvbGVcIjpcIlRlbmFudE93bmVyXCIsXCJOYW1lXCI6XCJBTFBIQVwifV0iLCJFbWFpbCI6IjAxbW9oZGFzaWYwM0BnbWFpbC5jb20iLCJCdXNpbmVzc3R5cGUiOiIiLCJqdGkiOiJjNjExNGEwMC1iY2I0LTQ4YzEtOTc2OS0zZWQxODMyZDEwODkiLCJpYXQiOjE3NTg2OTgxNDcsImV4cCI6MTc1ODg2ODUyNSwiaXNzIjoiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImF1ZCI6WyJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iXX0.iCl5ysorKc28-lgHkeYt63yC9XlTVDgJ_5d3FkgLgcU";
-  const testTenantId = "c6142cc8-4977-4b2f-92bf-b5f89a94a8fa";
+  const [token, setToken] = useState<string | null>("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjJmNzc1MjJkLTQ4YmYtNDU4Yi1kOGU5LTA4ZGQzNDY2OGU0MSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJMYWxhIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVGVuYW50T3duZXIiLCJUZW5hbnRJZCI6Ilt7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZWFtTWVtYmVyXCIsXCJOYW1lXCI6XCJTRUVESEFISVNBQlwifSx7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZW5hbnRPd25lclwiLFwiTmFtZVwiOlwiU0VFREhBSElTQUJcIn0se1wiVGVuYW50SURcIjpcIjE4MTg5MjZjLTE3ODQtNDJkMi1hNTI0LTQwMzlhOWJhMWZmOVwiLFwiUm9sZVwiOlwiVGVuYW50T3duZXJcIixcIk5hbWVcIjpcIllBSE9PR09PR0xFXCJ9LHtcIlRlbmFudElEXCI6XCJjODljZmVlZS0zNTcyLTRjNmEtYTE2My03YjAyNjVkZjQ0MzhcIixcIlJvbGVcIjpcIlRlbmFudE93bmVyXCIsXCJOYW1lXCI6XCJBTFBIQVwifV0iLCJFbWFpbCI6IjAxbW9oZGFzaWYwM0BnbWFpbC5jb20iLCJCdXNpbmVzc3R5cGUiOiIiLCJqdGkiOiI3Y2Q2NzdmZS01NTkxLTQxNGEtOTg5Yi1lZjU1MDZmNzFmZmMiLCJpYXQiOjE3NTg4Njc5NjcsImV4cCI6MTc1ODg3MTMyNCwiaXNzIjoiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImF1ZCI6WyJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIl19.rCsSmtsojU9KWs-o6AV8QqOZpk_6vogjXvAhIPoe1LA");
+  const [tenantId, setTenantId] = useState<string | null>("c6142cc8-4977-4b2f-92bf-b5f89a94a8fa");
 
+ useEffect(() => {
+    let retryInterval: NodeJS.Timeout;
 
-  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // IMPORTANT: Add origin check for security. Allow localhost for development.
-      if (event.origin !== 'http://localhost:3000' && event.origin !== 'http://localhost:9002' && !event.origin.includes('apexpath.com')) {
-         console.warn(`[Label Designer] Message from untrusted origin blocked: ${event.origin}`);
+      if (
+        event.origin !== 'http://localhost:3000' &&
+        event.origin !== 'http://localhost:9002' &&
+        !event.origin.includes('apexpath.com')
+      ) {
+        console.warn(`Message from untrusted origin blocked: ${event.origin}`);
         return;
       }
-      
-      const { type, token, tenantId } = event.data;
 
+      const { type, token, tenantId } = event.data || {};
       if (type === 'SET_AUTH' && token && tenantId) {
-        console.log('[Label Designer] SET_AUTH message received. Setting token and tenantId.');
         setToken(token);
         setTenantId(tenantId);
-        localStorage.setItem('authToken', token); // Store for fast refresh
+        localStorage.setItem('authToken', token);
         localStorage.setItem('tenantId', tenantId);
+        if (retryInterval) clearInterval(retryInterval); // ✅ stop retry
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // Check for credentials on initial load from localStorage
-    const initialToken = localStorage.getItem('authToken');
-    const initialTenantId = localStorage.getItem('tenantId');
-
-     if (initialToken && initialTenantId) {
-       setToken(initialToken);
-       setTenantId(initialTenantId);
-     } else {
-        // If no token after 3 seconds, assume an auth issue or standalone mode.
-        const timer = setTimeout(() => {
-            if (!localStorage.getItem('authToken')) { // Re-check localStorage
-                console.log("[Label Designer] No credentials from parent, using test credentials.");
-                setToken(testToken);
-                setTenantId(testTenantId);
-            }
-        }, 3000); 
-        return () => clearTimeout(timer);
-     }
-
+    // 🔁 Keep asking parent until we get auth
+    retryInterval = setInterval(() => {
+      if (!token || !tenantId) {
+        window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+      }
+    }, 1000);
 
     return () => {
       window.removeEventListener('message', handleMessage);
+      if (retryInterval) clearInterval(retryInterval);
     };
-  }, []);
+  }, [token, tenantId]);
 
   useEffect(() => {
     if (token && tenantId) {
@@ -85,42 +72,44 @@ export default function Home() {
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}. Please check credentials and network.`);
+          if (response.status==401) {
+            window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+          }
+          else{
+          throw new Error(`Authentication failed or API error. Status: ${response.status}`)
+          }
         }
         return response.json();
       })
       .then(data => {
         if (!data || !Array.isArray(data)) {
-           throw new Error("Received invalid data format from API. Expected an array.");
+           throw new Error("Received invalid data format from API.");
         }
-        const formattedTemplates = data.map((item: any) => {
-            // Create a Blob from the designJson string to create an object URL
-            const blob = new Blob([item.designJson], { type: 'application/json' });
-            const designUrl = URL.createObjectURL(blob);
-
-            return {
-                id: `template-${item.id}`,
-                description: item.name,
-                imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420',
-                imageHint: item.name,
-                width: 300, // Default width, can be updated later if available
-                height: 420, // Default height
-                templateUrl: designUrl, // URL to fetch the full template JSON from blob
-            }
-        });
+        const formattedTemplates = data.map((item: any) => ({
+          id: `template-${item.id}`,
+          description: item.name,
+          imageUrl: item.design || 'https://picsum.photos/seed/1/300/420', // Fallback image
+          imageHint: item.name,
+          width: item.width || 300,
+          height: item.height || 420,
+          templateUrl: item.designUrl || '' // URL to fetch the full template JSON
+        }));
         setTemplates(formattedTemplates);
       })
       .catch(err => {
-        console.error("[Label Designer] Failed to fetch templates:", err);
+        console.error("Failed to fetch templates:", err);
         setError(err.message || "Failed to load templates. Please ensure you are logged in and have access.");
       })
       .finally(() => {
         setIsLoading(false);
       });
-    } else if (!isLoading && !token) {
-        // This case handles when the component has mounted but no token is available yet.
+    } else {
+        if (!token || !tenantId) {
+            setIsLoading(false);
+            setError("Authentication failed. Please log in and try again.");
+        }
     }
-  }, [token, tenantId, isLoading]);
+  }, [token, tenantId]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
@@ -175,7 +164,7 @@ export default function Home() {
                 </>
             ) : error ? (
                 <div className="mt-12 text-center text-destructive border border-destructive/50 bg-destructive/10 p-6 rounded-lg max-w-2xl mx-auto">
-                  <h3 className="text-lg font-bold">An Error Occurred</h3>
+                  <h3 className="text-lg font-bold">Authentication Error</h3>
                   <p className="mt-2">{error}</p>
                 </div>
             ) : (
@@ -261,5 +250,8 @@ export default function Home() {
     </div>
   );
 }
+
+
+    
 
     
