@@ -1,3 +1,4 @@
+import axios, { type AxiosRequestConfig } from 'axios';
 import { USE_AUTH } from './config';
 
 interface AuthTokens {
@@ -5,49 +6,46 @@ interface AuthTokens {
   tenantId: string | null;
 }
 
-export async function fetchWithAuth(
-  endpoint: string,
-  auth: AuthTokens,
-  options: RequestInit = {}
-): Promise<Response> {
-  const headers = new Headers(options.headers || {});
-  
-  // Don't set Content-Type for FormData, browser does it with boundary
-  if (!(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-  headers.set('accept', '*/*');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
+if (!API_BASE_URL) {
+  console.error("API base URL is not configured in environment variables.");
+}
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Accept': '*/*',
+  }
+});
+
+export const apiCall = async (
+  config: AxiosRequestConfig,
+  auth: AuthTokens
+) => {
+  const headers = { ...config.headers };
 
   if (USE_AUTH) {
     if (!auth.token || !auth.tenantId) {
-      return new Response(JSON.stringify({ message: "Authentication credentials not provided." }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      throw new Error("Authentication credentials not provided.");
     }
-    headers.set('Authorization', `Bearer ${auth.token}`);
-    headers.set('X-Tenant-ID', auth.tenantId);
+    headers['Authorization'] = `Bearer ${auth.token}`;
+    headers['X-Tenant-ID'] = auth.tenantId;
   } else {
     const tenantId = auth.tenantId || 'c6142cc8-4977-4b2f-92bf-b5f89a94a8fa';
-    headers.set('X-Tenant-ID', tenantId);
+    headers['X-Tenant-ID'] = tenantId;
+  }
+  
+  if (config.data instanceof FormData) {
+    headers['Content-Type'] = 'multipart/form-data';
+  } else {
+    headers['Content-Type'] = 'application/json';
   }
 
-  const finalOptions: RequestInit = {
-    ...options,
+  const finalConfig: AxiosRequestConfig = {
+    ...config,
     headers,
   };
-  
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  if (!API_BASE_URL) {
-    console.error("API base URL is not configured in environment variables.");
-    return new Response(JSON.stringify({ message: "API endpoint is not configured." }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-    });
-  }
-  
-  const url = `${API_BASE_URL}/${endpoint}`;
 
-  return fetch(url, finalOptions);
-}
+  return api(finalConfig);
+};

@@ -6,7 +6,7 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettin
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { USE_DUMMY_TEMPLATES } from '@/lib/config';
 import { getMockTemplates } from '@/lib/mock-api';
-import { fetchWithAuth } from '@/lib/api';
+import { apiCall } from '@/lib/api';
 import { useAuth } from './use-auth';
 
 const initialObjects: CanvasObject[] = [];
@@ -90,11 +90,8 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
               const templates = await getMockTemplates();
               template = templates.find(t => t.id === parseInt(templateId, 10));
             } else {
-              const response = await fetchWithAuth(`LabelTemplate/${templateId}`, { token, tenantId });
-               if (!response.ok) {
-                throw new Error(`API error. Status: ${response.status}`);
-              }
-              template = await response.json();
+              const response = await apiCall({ url: `/LabelTemplate/${templateId}`, method: 'GET' }, { token, tenantId });
+              template = response.data;
             }
 
             if (template) {

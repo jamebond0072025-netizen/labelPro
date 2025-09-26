@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
-import { fetchWithAuth } from '@/lib/api';
+import { apiCall } from '@/lib/api';
 
 
 export default function Home() {
@@ -48,16 +48,13 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     try {
-        let data: Template[];
-        if (USE_DUMMY_TEMPLATES) {
-            data = await getMockTemplates();
-        } else {
-            const response = await fetchWithAuth('LabelTemplate', { token, tenantId });
-            if (!response.ok) {
-                throw new Error(`API error. Status: ${response.status}`);
-            }
-            data = await response.json();
-        }
+      let data: Template[];
+      if (USE_DUMMY_TEMPLATES) {
+        data = await getMockTemplates();
+      } else {
+        const response = await apiCall({ url: '/LabelTemplate', method: 'GET' }, { token, tenantId });
+        data = response.data;
+      }
 
       if (!data || !Array.isArray(data)) {
         throw new Error("Received invalid data format.");
@@ -85,9 +82,10 @@ export default function Home() {
       }));
       setPlaceHolderImages(formattedPlaceholders);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to fetch templates:", err);
-      setError((err as Error).message || "Failed to load templates. Please ensure you have access.");
+      const errorMessage = err.response?.data?.message || err.message || "Failed to load templates. Please ensure you have access.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -137,17 +135,13 @@ export default function Home() {
           if (USE_DUMMY_TEMPLATES) {
               await deleteMockTemplate(deletingTemplate.id);
           } else {
-              const response = await fetchWithAuth(`LabelTemplate/${deletingTemplate.id}`, { token, tenantId }, {
-                  method: 'DELETE',
-              });
-              if (!response.ok) {
-                  throw new Error(`Failed to delete template. Status: ${response.status}`);
-              }
+              await apiCall({ url: `/LabelTemplate/${deletingTemplate.id}`, method: 'DELETE' }, { token, tenantId });
           }
           toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
           setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
-      } catch (err) {
-          toast({ variant: 'destructive', title: 'Error', description: (err as Error).message });
+      } catch (err: any) {
+          const errorMessage = err.response?.data?.message || err.message || "Could not delete template.";
+          toast({ variant: 'destructive', title: 'Error', description: errorMessage });
       } finally {
           setDeletingTemplate(null);
       }

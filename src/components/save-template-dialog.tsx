@@ -21,7 +21,7 @@ import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
 import { USE_DUMMY_TEMPLATES } from '@/lib/config';
-import { fetchWithAuth } from '@/lib/api';
+import { apiCall } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
@@ -138,19 +138,10 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
                 formData.append('PreviewImage', imageFile);
 
-                const endpoint = existingTemplate ? `LabelTemplate/${existingTemplate.id}` : 'LabelTemplate';
+                const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
                 const method = existingTemplate ? 'PUT' : 'POST';
 
-                const response = await fetchWithAuth(endpoint, { token, tenantId }, {
-                    method,
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("API Error Response:", errorText);
-                    throw new Error(`Failed to ${existingTemplate ? 'update' : 'create'} template. Status: ${response.status}`);
-                }
+                await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
             }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
@@ -160,9 +151,9 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             router.push('/');
             setTimeout(() => router.refresh(), 100);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            const message = (error as Error).message || 'Could not save the template.';
+            const message = error.response?.data?.message || error.message || 'Could not save the template.';
             toast({ variant: 'destructive', title: 'Error Saving', description: message });
         } finally {
             setIsSaving(false);
