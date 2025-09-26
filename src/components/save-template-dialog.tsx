@@ -34,7 +34,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
     const [isSaving, setIsSaving] = useState(false);
 
     const bulkDataJson = useMemo(() => {
-        if (!editorState) return '{}';
+        if (!editorState) return '[]';
         const data: Record<string, any> = {};
         const placeholderObjects = editorState.objects.filter(obj => 'key' in obj && obj.key);
 
