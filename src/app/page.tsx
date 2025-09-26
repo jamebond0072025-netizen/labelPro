@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -63,7 +62,19 @@ export default function Home() {
       
       const parsedData = data.map(t => {
         try {
-          const design = typeof t.designJson === 'string' ? JSON.parse(t.designJson) : t.designJson;
+          // The designJson might be a string that itself contains a stringified JSON, so we may need to parse it twice.
+          let design = t.designJson;
+          if (typeof design === 'string') {
+            try {
+              design = JSON.parse(design);
+            } catch (e) {
+                // If the first parse fails, it's not a doubly encoded JSON, but might still be a valid JSON string.
+                // We'll let the next check handle it.
+            }
+          }
+          if (typeof design === 'string') {
+             design = JSON.parse(design); // This should handle the doubly escaped string.
+          }
           return { ...t, designJson: design };
         } catch (e) {
           console.warn(`Could not parse designJson for template ${t.id}`, t.designJson);

@@ -29,9 +29,20 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
   const loadTemplate = useCallback((template: Template) => {
     try {
-      const designJson = typeof template.designJson === 'string' 
-        ? JSON.parse(template.designJson) 
-        : template.designJson;
+      let designJson = template.designJson;
+
+      // Handle doubly-stringified JSON
+      if (typeof designJson === 'string') {
+        try {
+          designJson = JSON.parse(designJson);
+        } catch (e) {
+            console.error("Primary parse failed, attempting secondary parse for doubly-escaped JSON", e);
+             // if the first parse fails, it may be a doubly-escaped string
+        }
+      }
+      if (typeof designJson === 'string') {
+        designJson = JSON.parse(designJson);
+      }
 
       onUpdateCanvasSettings(designJson.settings);
       setObjects(designJson.objects);
