@@ -73,7 +73,14 @@ export default function Home() {
       .then(response => {
         if (!response.ok) {
           if (response.status==401) {
-            window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+            let retries = 0;
+            const maxRetries = 5;
+            const retryDelay = 1000; // 1s
+
+            while (retries < maxRetries && (!token || !tenantId)) {
+              window.parent.postMessage({ type: "GET_AUTH" }, "*");
+              retries ++;
+            }
           }
           else{
           throw new Error(`Authentication failed or API error. Status: ${response.status}`)
@@ -85,15 +92,26 @@ export default function Home() {
         if (!data || !Array.isArray(data)) {
            throw new Error("Received invalid data format from API.");
         }
-        const formattedTemplates = data.map((item: any) => ({
-          id: `template-${item.id}`,
-          description: item.name,
-          imageUrl: item.design || 'https://picsum.photos/seed/1/300/420', // Fallback image
-          imageHint: item.name,
-          width: item.width || 300,
-          height: item.height || 420,
-          templateUrl: item.designUrl || '' // URL to fetch the full template JSON
-        }));
+        const formattedTemplates = data.map((item: any) => {
+          let design = {};
+          try {
+            design = JSON.parse(item.designJson);
+          } catch(e) {
+            console.error('Could not parse designJson', e);
+          }
+
+          const settings = (design as any).settings || {};
+
+          return {
+            id: `template-${item.id}`,
+            description: item.name,
+            imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420', // Fallback image
+            imageHint: item.name,
+            width: settings.width || 300,
+            height: settings.height || 420,
+            templateUrl: item.designJson,
+          };
+        });
         setTemplates(formattedTemplates);
       })
       .catch(err => {
@@ -251,6 +269,8 @@ export default function Home() {
   );
 }
 
+
+    
 
     
 
