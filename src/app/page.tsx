@@ -25,11 +25,7 @@ export default function Home() {
 
  useEffect(() => {
     if (!USE_AUTH) {
-        // If auth is disabled, we don't need to listen for messages.
-        // We can use placeholder/default credentials if needed, or none.
-        setToken('dummy-token'); // Set dummy values to satisfy dependency array
-        setTenantId('dummy-tenant');
-        return;
+      return;
     }
 
     let retryInterval: NodeJS.Timeout;
@@ -54,28 +50,33 @@ export default function Home() {
       }
     };
 
-    window.addEventListener('message', handleMessage);
+    const storedToken = localStorage.getItem('authToken');
+    const storedTenantId = localStorage.getItem('tenantId');
 
-    retryInterval = setInterval(() => {
-      if (!token || !tenantId) {
-        window.parent.postMessage({ type: 'GET_AUTH' }, '*');
-      }
-    }, 1000);
+    if (storedToken && storedTenantId) {
+      setToken(storedToken);
+      setTenantId(storedTenantId);
+    } else {
+        retryInterval = setInterval(() => {
+          if (!token || !tenantId) {
+            window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+          }
+        }, 1000);
+    }
+
+    window.addEventListener('message', handleMessage);
 
     return () => {
       window.removeEventListener('message', handleMessage);
       if (retryInterval) clearInterval(retryInterval);
     };
   }, [token, tenantId]);
-
-  useEffect(() => {
-    // This effect should only run when we have credentials or auth is disabled.
-    if (!USE_AUTH || (token && tenantId)) {
+  
+  const fetchTemplates = (authCreds: { token: string | null, tenantId: string | null }) => {
       setIsLoading(true);
       setError(null);
-
-      // Pass credentials which will be used only if USE_AUTH is true
-      fetchWithAuth('LabelTemplate', { token, tenantId })
+      
+      fetchWithAuth('LabelTemplate', authCreds)
       .then(response => {
         if (!response.ok) {
            if (response.status === 401 && USE_AUTH) {
@@ -93,28 +94,15 @@ export default function Home() {
         if (!data || !Array.isArray(data)) {
            throw new Error("Received invalid data format from API.");
         }
-        const formattedTemplates = data.map((item: any) => {
-          let design = {};
-          try {
-            if (item.designJson && typeof item.designJson === 'string') {
-               design = JSON.parse(item.designJson);
-            }
-          } catch(e) {
-            console.error('Could not parse designJson for item ID:', item.id, e);
-          }
-
-          const settings = (design as any).settings || {};
-
-          return {
+        const formattedTemplates = data.map((item: any) => ({
             id: `template-${item.id}`,
             description: item.name,
             imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
             imageHint: item.name,
-            width: settings.width || 300,
-            height: settings.height || 420,
+            width: item.width || 300,
+            height: item.height || 420,
             designJson: item.designJson,
-          };
-        });
+        }));
         setTemplates(formattedTemplates);
         setPlaceHolderImages(formattedTemplates);
       })
@@ -125,11 +113,22 @@ export default function Home() {
       .finally(() => {
         setIsLoading(false);
       });
-    } else if (USE_AUTH && !token) {
-        // Still waiting for credentials
-        setIsLoading(true);
+  };
+
+  useEffect(() => {
+    // This effect runs when auth is enabled and we get the credentials
+    if (USE_AUTH && token && tenantId) {
+      fetchTemplates({ token, tenantId });
     }
   }, [token, tenantId]);
+
+  useEffect(() => {
+    // This effect runs once on mount if auth is disabled
+    if (!USE_AUTH) {
+        fetchTemplates({ token: null, tenantId: 'dummy-tenant-id' }); // Tenant ID might still be needed
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
@@ -240,6 +239,7 @@ export default function Home() {
                                     <h3 className="font-semibold text-sm truncate">{template.description}</h3>
                                     {template.width && template.height && (
                                         <p className="text-xs text-muted-foreground">{template.width}px x {template.height}px</p>
+
                                     )}
                                 </div>
                             </CardContent>
