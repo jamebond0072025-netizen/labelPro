@@ -5,7 +5,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType, Template } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { USE_DUMMY_TEMPLATES } from '@/lib/config';
-import { getTemplatesAction } from '@/app/actions';
+import { getMockTemplates } from '@/lib/mock-api';
+import { fetchWithAuth } from '@/lib/api';
+import { useAuth } from './use-auth';
 
 const initialObjects: CanvasObject[] = [];
 
@@ -18,8 +20,12 @@ export type Alignment =
 export const useCanvasObjects = (templateId: string | null, canvasSettings: CanvasSettings, onUpdateCanvasSettings: (settings: Partial<CanvasSettings>) => void) => {
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
+  const [loadedTemplate, setLoadedTemplate] = useState<Template | undefined>(undefined);
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
+
+  const { token, tenantId } = useAuth();
+
 
   const loadTemplate = useCallback((template: Template) => {
     try {
@@ -27,18 +33,22 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         ? JSON.parse(template.designJson) 
         : template.designJson;
 
-      // Assuming templateData has { settings, objects }
       onUpdateCanvasSettings(designJson.settings);
       setObjects(designJson.objects);
-
+      setLoadedTemplate(template);
       setSelectedObjectIds([]);
-      // Reset counters based on loaded objects
+      
       const counters = { text: 0, image: 0, barcode: 0 };
       designJson.objects.forEach((obj: CanvasObject) => {
         if ('key' in obj && obj.key) {
-            if (obj.type === 'text') counters.text++;
-            if (obj.type === 'image') counters.image++;
-            if (obj.type === 'barcode') counters.barcode++;
+            const match = obj.key.match(/^(text|image|barcode)_(\d+)$/);
+            if (match) {
+                const type = match[1] as 'text' | 'image' | 'barcode';
+                const num = parseInt(match[2], 10);
+                if (counters[type] < num) {
+                    counters[type] = num;
+                }
+            }
         }
       });
       objectCounters.current = counters;
@@ -59,12 +69,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
           onUpdateCanvasSettings(templateData.settings);
           setObjects(templateData.objects);
           setSelectedObjectIds([]);
+          setLoadedTemplate(undefined); // It's a new design, not an existing template
         } else {
           throw new Error("Invalid JSON format: 'settings' or 'objects' missing.");
         }
       } catch (error) {
         console.error("Failed to load or parse template file:", error);
-        // You might want to show a toast notification to the user here
       }
     };
     reader.readAsText(file);
@@ -72,24 +82,31 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
 
   useEffect(() => {
-    if (templateId) {
+    if (templateId && ((USE_DUMMY_TEMPLATES) || (token && tenantId))) {
       const fetchAndLoadTemplate = async () => {
-        let template: Template | undefined;
-        if (USE_DUMMY_TEMPLATES) {
-          const templates = await getTemplatesAction();
-          template = templates.find(t => t.id === parseInt(templateId, 10));
-        } else {
-          // TODO: Implement live API fetch for a single template
-          console.log("Fetching live template", templateId);
-        }
+        try {
+            let template: Template | undefined;
+            if (USE_DUMMY_TEMPLATES) {
+              const templates = await getMockTemplates();
+              template = templates.find(t => t.id === parseInt(templateId, 10));
+            } else {
+              const response = await fetchWithAuth(`LabelTemplate/${templateId}`, { token, tenantId });
+               if (!response.ok) {
+                throw new Error(`API error. Status: ${response.status}`);
+              }
+              template = await response.json();
+            }
 
-        if (template) {
-          loadTemplate(template);
+            if (template) {
+              loadTemplate(template);
+            }
+        } catch (error) {
+            console.error("Failed to fetch template for editing:", error);
         }
       }
       fetchAndLoadTemplate();
     }
-  }, [templateId, loadTemplate]);
+  }, [templateId, loadTemplate, token, tenantId]);
 
 
   const handleAddItem = (type: ItemType) => {
@@ -147,6 +164,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const handleClearAll = () => {
     setObjects([]);
     setSelectedObjectIds([]);
+    setLoadedTemplate(undefined);
     objectCounters.current = { text: 0, image: 0, barcode: 0 };
   };
 
@@ -183,8 +201,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         if (obj.id === id) {
           const updatedObj = { ...obj, ...newProps };
 
-          // If the key is updated, also update the placeholder content
-          if ('key' in newProps && newProps.key !== undefined) {
+          if ('key' in newProps && newProps.key !== undefined && newProps.key !== obj.key) {
             const newKey = newProps.key;
             if (updatedObj.type === 'text' && updatedObj.key) {
                (updatedObj as TextObject).text = `{{${newKey}}}`;
@@ -248,7 +265,6 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       return;
     }
   
-    // Bounding box for multi-object distribution
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     selectedObjects.forEach(obj => {
       minX = Math.min(minX, obj.x);
@@ -257,13 +273,28 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       maxY = Math.max(maxY, obj.y + obj.height);
     });
 
-    // Multi-object alignment (to each other, based on first selected)
     const primaryObject = selectedObjects[0];
     switch(alignment) {
       case 'left':
-        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, x: primaryObject.x} : o);
+        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, x: minX} : o);
         break;
-      // ... other multi-align cases would go here if needed ...
+      case 'center':
+        const bboxCenter = minX + (maxX - minX) / 2;
+        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, x: bboxCenter - o.width / 2} : o);
+        break;
+      case 'right':
+        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, x: maxX - o.width} : o);
+        break;
+      case 'top':
+         newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, y: minY} : o);
+        break;
+      case 'middle':
+        const bboxMiddle = minY + (maxY - minY) / 2;
+        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, y: bboxMiddle - o.height / 2} : o);
+        break;
+      case 'bottom':
+        newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, y: maxY - o.height} : o);
+        break;
     }
   
     if ((alignment === 'distribute-horizontally' || alignment === 'distribute-vertically') && selectedObjects.length > 1) {
@@ -305,7 +336,6 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     handleReplaceData,
     handleLoadTemplateFromJson,
     canvasRef,
+    loadedTemplate,
   };
 };
-
-    

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Pencil, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, MoreVertical, Loader2 } from 'lucide-react';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,7 +15,6 @@ import { setPlaceHolderImages } from '@/lib/placeholder-images';
 import { USE_AUTH, USE_DUMMY_TEMPLATES } from '@/lib/config';
 import { useAuth } from '@/hooks/use-auth';
 import type { Template } from '@/lib/types';
-import { getTemplatesAction, deleteTemplateAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -33,6 +32,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
+import { fetchWithAuth } from '@/lib/api';
+
 
 export default function Home() {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -46,20 +48,28 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getTemplatesAction();
+        let data: Template[];
+        if (USE_DUMMY_TEMPLATES) {
+            data = await getMockTemplates();
+        } else {
+            const response = await fetchWithAuth('LabelTemplate', { token, tenantId });
+            if (!response.ok) {
+                throw new Error(`API error. Status: ${response.status}`);
+            }
+            data = await response.json();
+        }
+
       if (!data || !Array.isArray(data)) {
         throw new Error("Received invalid data format.");
       }
       
       const parsedData = data.map(t => {
         try {
-          // The designJson might be a stringified JSON string, so we parse it.
-          // If it's already an object, this won't hurt.
           const design = typeof t.designJson === 'string' ? JSON.parse(t.designJson) : t.designJson;
           return { ...t, designJson: design };
         } catch (e) {
           console.warn(`Could not parse designJson for template ${t.id}`, t.designJson);
-          return { ...t, designJson: { settings: {}, objects: [] } }; // Graceful failure
+          return { ...t, designJson: { settings: {}, objects: [] } };
         }
       });
 
@@ -81,7 +91,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [token, tenantId]);
 
   useEffect(() => {
     if ((USE_AUTH && token && tenantId) || !USE_AUTH) {
@@ -124,7 +134,16 @@ export default function Home() {
       if (!deletingTemplate) return;
 
       try {
-          await deleteTemplateAction(deletingTemplate.id);
+          if (USE_DUMMY_TEMPLATES) {
+              await deleteMockTemplate(deletingTemplate.id);
+          } else {
+              const response = await fetchWithAuth(`LabelTemplate/${deletingTemplate.id}`, { token, tenantId }, {
+                  method: 'DELETE',
+              });
+              if (!response.ok) {
+                  throw new Error(`Failed to delete template. Status: ${response.status}`);
+              }
+          }
           toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
           setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
       } catch (err) {

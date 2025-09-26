@@ -19,7 +19,11 @@ import type { EditorState } from '@/contexts/editor-context';
 import { toPng } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
-import { createTemplateAction, updateTemplateAction } from '@/app/actions';
+import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
+import { USE_DUMMY_TEMPLATES } from '@/lib/config';
+import { fetchWithAuth } from '@/lib/api';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 
 function dataURLtoFile(dataurl: string, filename: string): File {
@@ -47,6 +51,8 @@ interface SaveTemplateDialogProps {
 
 export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existingTemplate }: SaveTemplateDialogProps) {
     const { toast } = useToast();
+    const router = useRouter();
+    const { token, tenantId } = useAuth();
     const [name, setName] = useState(existingTemplate?.name || '');
     const [description, setDescription] = useState(existingTemplate?.description || '');
     const [category, setCategory] = useState(existingTemplate?.category || '');
@@ -107,24 +113,52 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 objects: editorState.objects,
             });
 
-            const formData = new FormData();
-            formData.append('Name', name);
-            formData.append('Description', description);
-            formData.append('Category', category);
-            formData.append('DesignJson', designJson);
-            formData.append('BulkDataJson', bulkDataJson);
-            
-            const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
-            formData.append('PreviewImage', imageFile);
-
-            if (existingTemplate) {
-                await updateTemplateAction(existingTemplate.id, formData);
+            if (USE_DUMMY_TEMPLATES) {
+                const templateData = {
+                    name,
+                    description,
+                    category,
+                    designJson,
+                    bulkDataJson,
+                    previewImageUrl: previewImage
+                };
+                if (existingTemplate) {
+                    await updateMockTemplate(existingTemplate.id, templateData);
+                } else {
+                    await createMockTemplate(templateData);
+                }
             } else {
-                await createTemplateAction(formData);
+                const formData = new FormData();
+                formData.append('Name', name);
+                formData.append('Description', description);
+                formData.append('Category', category);
+                formData.append('DesignJson', designJson);
+                formData.append('BulkDataJson', bulkDataJson);
+                
+                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
+                formData.append('PreviewImage', imageFile);
+
+                const endpoint = existingTemplate ? `LabelTemplate/${existingTemplate.id}` : 'LabelTemplate';
+                const method = existingTemplate ? 'PUT' : 'POST';
+
+                const response = await fetchWithAuth(endpoint, { token, tenantId }, {
+                    method,
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("API Error Response:", errorText);
+                    throw new Error(`Failed to ${existingTemplate ? 'update' : 'create'} template. Status: ${response.status}`);
+                }
             }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
             onOpenChange(false);
+            // This is a bit of a hack to force a refresh on the homepage.
+            // A more robust solution might involve a global state management library.
+            router.push('/');
+            setTimeout(() => router.refresh(), 100);
 
         } catch (error) {
             console.error(error);
