@@ -15,10 +15,11 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
-import { AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { Separator } from '../ui/separator';
+import { useRef } from 'react';
 
 const googleFonts = [
     'Poppins', 'PT Sans', 'Roboto', 'Open Sans', 'Lato', 
@@ -40,6 +41,8 @@ export function PropertiesPanel({
   canvasSettings,
   onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!selectedObject) {
     if (canvasSettings && onUpdateCanvasSettings) {
       return (
@@ -75,6 +78,18 @@ export function PropertiesPanel({
   const handleImageUpdate = (props: Partial<ImageObject>) => {
     onUpdate(selectedObject.id, props);
   };
+
+  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        handleImageUpdate({ src: e.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const renderPlaceholderKeyProperty = () => {
     if (!('key' in selectedObject) || selectedObject.key === undefined) return null;
@@ -229,10 +244,33 @@ export function PropertiesPanel({
   
   const renderImageProperties = () => {
     if (selectedObject.type !== 'image') return null;
+    const imageObject = selectedObject as ImageObject;
+    const isPlaceholder = imageObject.key !== undefined;
     
+    if (isPlaceholder) return null;
+
     return (
-        <>
-        </>
+        <div className="space-y-2">
+            <Label htmlFor="image-src">Image Source</Label>
+            <div className="flex items-center gap-2">
+                <Input
+                    id="image-src"
+                    value={imageObject.src}
+                    onChange={(e) => handleImageUpdate({ src: e.target.value })}
+                    placeholder="Enter image URL"
+                />
+                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="h-4 w-4" />
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageFileChange}
+                    className="hidden"
+                    accept="image/*"
+                />
+            </div>
+        </div>
     )
   }
 
