@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,20 +18,31 @@ import { Loader2 } from 'lucide-react';
 import type { EditorState } from '@/contexts/editor-context';
 import { toPng } from 'html-to-image';
 import { Textarea } from './ui/textarea';
-
+import type { Template } from '@/lib/types';
+import { USE_DUMMY_TEMPLATES } from '@/lib/config';
+import { createTemplateAction, updateTemplateAction } from '@/app/actions';
 
 interface SaveTemplateDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
     editorState: EditorState;
+    existingTemplate?: Template;
 }
 
-export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTemplateDialogProps) {
+export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existingTemplate }: SaveTemplateDialogProps) {
     const { toast } = useToast();
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [category, setCategory] = useState('');
+    const [name, setName] = useState(existingTemplate?.name || '');
+    const [description, setDescription] = useState(existingTemplate?.description || '');
+    const [category, setCategory] = useState(existingTemplate?.category || '');
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (existingTemplate) {
+            setName(existingTemplate.name);
+            setDescription(existingTemplate.description || '');
+            setCategory(existingTemplate.category || '');
+        }
+    }, [existingTemplate]);
 
     const bulkDataJson = useMemo(() => {
         if (!editorState) return '[]';
@@ -53,7 +64,6 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
                 }
             }
         });
-        // The structure should be an array of objects for bulk operations
         return JSON.stringify([data], null, 2);
     }, [editorState]);
 
@@ -70,56 +80,57 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
         setIsSaving(true);
         
         try {
-            // 1. Generate Preview Image
             const previewImageUrl = await toPng(editorState.canvasRef.current, {
                 quality: 0.8,
                 width: editorState.canvasSettings.width,
                 height: editorState.canvasSettings.height,
             });
 
-            // 2. Prepare designJson
             const designJson = JSON.stringify({
                 settings: editorState.canvasSettings,
                 objects: editorState.objects,
             });
 
-            // 3. Construct the payload
             const payload = {
                 name,
                 description,
                 category,
                 designJson,
                 bulkDataJson,
-                previewImageUrl, // This is a base64 data URL. Your backend needs to handle it.
+                previewImageUrl,
             };
 
-            // 4. TODO: Send to your API
-            console.log("Saving template data:", payload);
-            // Example of what the fetch call would look like:
-            /*
-            const response = await fetch('YOUR_API_ENDPOINT', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // 'Authorization': `Bearer ${your_auth_token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to save template');
+            if (USE_DUMMY_TEMPLATES) {
+                if (existingTemplate) {
+                    await updateTemplateAction(existingTemplate.id, payload);
+                } else {
+                    await createTemplateAction(payload);
+                }
+            } else {
+                // TODO: Implement live API call
+                console.log("Saving with live API:", payload);
+                 // Example of what the fetch call would look like:
+                const endpoint = existingTemplate ? `LabelTemplate/${existingTemplate.id}` : 'LabelTemplate';
+                const method = existingTemplate ? 'PUT' : 'POST';
+                /*
+                const response = await fetch(endpoint, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error('Failed to save template');
+                */
             }
-            */
-
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            toast({ title: 'Template Saved!', description: 'Your design has been saved successfully.' });
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+            
+            toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
             onOpenChange(false);
 
         } catch (error) {
             console.error(error);
-            toast({ variant: 'destructive', title: 'Error Saving', description: 'Could not save the template.' });
+            const message = (error as Error).message || 'Could not save the template.';
+            toast({ variant: 'destructive', title: 'Error Saving', description: message });
         } finally {
             setIsSaving(false);
         }
@@ -130,9 +141,9 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-            <DialogTitle>Save Template</DialogTitle>
+            <DialogTitle>{existingTemplate ? 'Update Template' : 'Save New Template'}</DialogTitle>
             <DialogDescription>
-                Enter the details for your new template. This will be visible to others in your organization.
+                Enter the details for your template. This will be visible to others in your organization.
             </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -153,10 +164,12 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving ? 'Saving...' : 'Save Template'}
+                {isSaving ? 'Saving...' : (existingTemplate ? 'Update Template' : 'Save Template')}
             </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
+    

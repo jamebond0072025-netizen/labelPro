@@ -1,6 +1,5 @@
 
-
-import data from './placeholder-images.json';
+import type { Template } from "./types";
 
 export type ImagePlaceholder = {
   id: string;
@@ -9,7 +8,8 @@ export type ImagePlaceholder = {
   imageHint: string;
   width?: number;
   height?: number;
-  designJson?: string;
+  designJson?: string | object;
+  template?: Template;
 };
 
 // This is now populated from the API call in page.tsx

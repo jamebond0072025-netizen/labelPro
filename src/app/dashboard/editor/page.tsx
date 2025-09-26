@@ -18,7 +18,7 @@ import { useEditor } from '@/contexts/editor-context';
 
 export default function EditorPage() {
   const searchParams = useSearchParams();
-  const templateId = searchParams.get('template');
+  const templateId = searchParams.get('templateId');
 
   const [zoom, setZoom] = useState(1);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>({
@@ -45,9 +45,10 @@ export default function EditorPage() {
     handleLoadTemplateFromJson,
     canvasRef,
     setObjects,
+    loadedTemplate,
   } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
 
-  const { setEditorState, loadTemplate } = useEditor();
+  const { setEditorState, loadTemplate, setExistingTemplate } = useEditor();
 
    useEffect(() => {
     setEditorState({
@@ -62,6 +63,15 @@ export default function EditorPage() {
         loadTemplate.current = handleLoadTemplateFromJson;
     }
   }, [handleLoadTemplateFromJson, loadTemplate]);
+
+  useEffect(() => {
+    if (loadedTemplate) {
+      setExistingTemplate(loadedTemplate);
+    }
+     return () => {
+      setExistingTemplate(undefined);
+    };
+  }, [loadedTemplate, setExistingTemplate]);
 
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -172,3 +182,5 @@ export default function EditorPage() {
     </div>
   );
 }
+
+    

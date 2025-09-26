@@ -1,4 +1,5 @@
 
+
 export interface BaseObject {
   id: string;
   x: number;
@@ -54,5 +55,18 @@ export type ItemType =
   | 'placeholder-image'
   | 'static-image'
   | 'barcode';
+
+export interface Template {
+    id: number;
+    userId: string;
+    name: string;
+    description: string | null;
+    category: string | null;
+    designJson: string; // This is a JSON string
+    bulkDataJson: string | null;
+    previewImageUrl: string | null;
+    createdAt: string;
+    updatedAt: string | null;
+}
 
     

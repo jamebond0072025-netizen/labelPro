@@ -2,8 +2,10 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType } from '@/lib/types';
+import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType, Template } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { USE_DUMMY_TEMPLATES } from '@/lib/config';
+import { getTemplatesAction } from '@/app/actions';
 
 const initialObjects: CanvasObject[] = [];
 
@@ -19,18 +21,20 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
 
-  const loadTemplate = useCallback((designJson: string | object) => {
+  const loadTemplate = useCallback((template: Template) => {
     try {
-      const templateData = typeof designJson === 'string' ? JSON.parse(designJson) : designJson;
+      const designJson = typeof template.designJson === 'string' 
+        ? JSON.parse(template.designJson) 
+        : template.designJson;
 
       // Assuming templateData has { settings, objects }
-      onUpdateCanvasSettings(templateData.settings);
-      setObjects(templateData.objects);
+      onUpdateCanvasSettings(designJson.settings);
+      setObjects(designJson.objects);
 
       setSelectedObjectIds([]);
       // Reset counters based on loaded objects
       const counters = { text: 0, image: 0, barcode: 0 };
-      templateData.objects.forEach((obj: CanvasObject) => {
+      designJson.objects.forEach((obj: CanvasObject) => {
         if ('key' in obj && obj.key) {
             if (obj.type === 'text') counters.text++;
             if (obj.type === 'image') counters.image++;
@@ -69,12 +73,22 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
   useEffect(() => {
     if (templateId) {
-      const template = PlaceHolderImages.find(img => img.id === templateId);
-      if (template?.designJson) {
-         loadTemplate(template.designJson);
+      const fetchAndLoadTemplate = async () => {
+        let template: Template | undefined;
+        if (USE_DUMMY_TEMPLATES) {
+          const templates = await getTemplatesAction();
+          template = templates.find(t => t.id === parseInt(templateId, 10));
+        } else {
+          // TODO: Implement live API fetch for a single template
+          console.log("Fetching live template", templateId);
+        }
+
+        if (template) {
+          loadTemplate(template);
+        }
       }
+      fetchAndLoadTemplate();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [templateId, loadTemplate]);
 
 
@@ -293,3 +307,5 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
   };
 };
+
+    
