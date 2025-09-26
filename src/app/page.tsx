@@ -12,14 +12,15 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { setPlaceHolderImages } from '@/lib/placeholder-images';
+import { fetchWithAuth } from '@/lib/api';
 
 export default function Home() {
   const [templates, setTemplates] = useState<ImagePlaceholder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [token, setToken] = useState<string | null>("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjJmNzc1MjJkLTQ4YmYtNDU4Yi1kOGU5LTA4ZGQzNDY2OGU0MSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJMYWxhIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVGVuYW50T3duZXIiLCJUZW5hbnRJZCI6Ilt7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZWFtTWVtYmVyXCIsXCJOYW1lXCI6XCJTRUVESEFISVNBQlwifSx7XCJUZW5hbnRJRFwiOlwiYzYxNDJjYzgtNDk3Ny00YjJmLTkyYmYtYjVmODlhOTRhOGZhXCIsXCJSb2xlXCI6XCJUZW5hbnRPd25lclwiLFwiTmFtZVwiOlwiU0VFREhBSElTQUJcIn0se1wiVGVuYW50SURcIjpcIjE4MTg5MjZjLTE3ODQtNDJkMi1hNTI0LTQwMzlhOWJhMWZmOVwiLFwiUm9sZVwiOlwiVGVuYW50T3duZXJcIixcIk5hbWVcIjpcIllBSE9PR09PR0xFXCJ9LHtcIlRlbmFudElEXCI6XCJjODljZmVlZS0zNTcyLTRjNmEtYTE2My03YjAyNjVkZjQ0MzhcIixcIlJvbGVcIjpcIlRlbmFudE93bmVyXCIsXCJOYW1lXCI6XCJBTFBIQVwifV0iLCJFbWFpbCI6IjAxbW9oZGFzaWYwM0BnbWFpbC5jb20iLCJCdXNpbmVzc3R5cGUiOiIiLCJqdGkiOiI3Y2Q2NzdmZS01NTkxLTQxNGEtOTg5Yi1lZjU1MDZmNzFmZmMiLCJpYXQiOjE3NTg4Njc5NjcsImV4cCI6MTc1ODg3MTMyNCwiaXNzIjoiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImF1ZCI6WyJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIiwiaHR0cHM6Ly9jcm9zc2Jpei1hcGkuYXBleHBhdGguY29tLyIsImh0dHBzOi8vY3Jvc3NiaXotYXBpLmFwZXhwYXRoLmNvbS8iLCJodHRwczovL2Nyb3NzYml6LWFwaS5hcGV4cGF0aC5jb20vIl19.rCsSmtsojU9KWs-o6AV8QqOZpk_6vogjXvAhIPoe1LA");
-  const [tenantId, setTenantId] = useState<string | null>("c6142cc8-4977-4b2f-92bf-b5f89a94a8fa");
+  const [token, setToken] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string | null>(null);
 
  useEffect(() => {
     let retryInterval: NodeJS.Timeout;
@@ -60,32 +61,25 @@ export default function Home() {
   }, [token, tenantId]);
 
   useEffect(() => {
+    // This condition ensures we only fetch when we have the necessary credentials
+    // OR if authentication is disabled (in which case token/tenantId might be null).
+    // The `fetchWithAuth` function itself will handle the logic.
     if (token && tenantId) {
       setIsLoading(true);
       setError(null);
 
-      fetch('https://crossbiz-api.apexpath.com/inventory-service/api/LabelTemplate', {
-        headers: {
-          'accept': '*/*',
-          'X-Tenant-ID': tenantId,
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      fetchWithAuth('LabelTemplate', { token, tenantId })
       .then(response => {
         if (!response.ok) {
-          if (response.status==401) {
-            let retries = 0;
-            const maxRetries = 5;
-            const retryDelay = 1000; // 1s
-
-            while (retries < maxRetries && (!token || !tenantId)) {
-              window.parent.postMessage({ type: "GET_AUTH" }, "*");
-              retries ++;
-            }
-          }
-          else{
-          throw new Error(`Authentication failed or API error. Status: ${response.status}`)
-          }
+           if (response.status === 401) {
+             // Clear potentially stale credentials and trigger a refetch
+             setToken(null);
+             setTenantId(null);
+             localStorage.removeItem('authToken');
+             localStorage.removeItem('tenantId');
+             throw new Error("Authentication failed. Please log in and try again.");
+           }
+          throw new Error(`API error. Status: ${response.status}`);
         }
         return response.json();
       })
@@ -96,9 +90,12 @@ export default function Home() {
         const formattedTemplates = data.map((item: any) => {
           let design = {};
           try {
-            design = JSON.parse(item.designJson);
+            // Ensure designJson is a string before parsing
+            if (item.designJson && typeof item.designJson === 'string') {
+               design = JSON.parse(item.designJson);
+            }
           } catch(e) {
-            console.error('Could not parse designJson', e);
+            console.error('Could not parse designJson for item ID:', item.id, e);
           }
 
           const settings = (design as any).settings || {};
@@ -106,11 +103,11 @@ export default function Home() {
           return {
             id: `template-${item.id}`,
             description: item.name,
-            imageUrl: item.previewImageUrl || 'https://picsum.photos/seed/1/300/420',
+            imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
             imageHint: item.name,
             width: settings.width || 300,
             height: settings.height || 420,
-            designJson: item.designJson,
+            designJson: item.designJson, // Pass the raw JSON string
           };
         });
         setTemplates(formattedTemplates);
@@ -118,16 +115,16 @@ export default function Home() {
       })
       .catch(err => {
         console.error("Failed to fetch templates:", err);
-        setError(err.message || "Failed to load templates. Please ensure you are logged in and have access.");
+        setError(err.message || "Failed to load templates. Please ensure you have access.");
       })
       .finally(() => {
         setIsLoading(false);
       });
     } else {
-        if (!token || !tenantId) {
-            setIsLoading(false);
-            setError("Authentication failed. Please log in and try again.");
-        }
+        // This part handles the case where we are still waiting for credentials.
+        // It's separated from the main fetch logic for clarity.
+        // No need to set an error here immediately, as the effect will re-run once credentials arrive.
+        setIsLoading(false); 
     }
   }, [token, tenantId]);
 
@@ -270,10 +267,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-    
-
-    
-
-    

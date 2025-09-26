@@ -53,6 +53,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState }: SaveTe
                 }
             }
         });
+        // The structure should be an array of objects for bulk operations
         return JSON.stringify([data], null, 2);
     }, [editorState]);
 
