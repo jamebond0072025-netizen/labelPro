@@ -25,11 +25,11 @@ export async function fetchWithAuth(
     headers.set('Authorization', `Bearer ${auth.token}`);
     headers.set('X-Tenant-ID', auth.tenantId);
   } else {
-    // If auth is disabled, you might still need a tenant ID for some APIs.
-    // This part can be adjusted based on the unauthenticated API requirements.
-    // For now, we assume no headers are needed when auth is off.
-    // If a tenant ID is always required, you could add it here.
-    // headers.set('X-Tenant-ID', 'some-default-tenant-id');
+    // When auth is disabled, you might still need a tenant ID for some APIs.
+    // For many test environments, a non-empty tenant ID is still required.
+    // We can use a dummy value here if one isn't provided via the auth object.
+    const tenantId = auth.tenantId || 'dummy-tenant-id';
+    headers.set('X-Tenant-ID', tenantId);
   }
 
   const finalOptions: RequestInit = {
@@ -37,7 +37,15 @@ export async function fetchWithAuth(
     headers,
   };
   
-  const API_BASE_URL = 'https://crossbiz-api.apexpath.com/inventory-service/api';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  if (!API_BASE_URL) {
+    console.error("API base URL is not configured in environment variables.");
+    return new Response(JSON.stringify({ message: "API endpoint is not configured." }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
   const url = `${API_BASE_URL}/${endpoint}`;
 
   return fetch(url, finalOptions);
