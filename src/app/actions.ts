@@ -30,7 +30,7 @@ export async function getTemplatesAction(): Promise<Template[]> {
 
 export async function createTemplateAction(
     formData: FormData
-): Promise<Template> {
+): Promise<any> {
     if (USE_DUMMY_TEMPLATES) {
         const templateData = {
             name: formData.get('Name') as string,
@@ -40,7 +40,8 @@ export async function createTemplateAction(
             bulkDataJson: formData.get('BulkDataJson') as string,
             previewImageUrl: null // Mock API doesn't handle file uploads
         };
-        return await createMockTemplate(templateData);
+         
+       await createMockTemplate(templateData);
     }
 
     const response = await fetchWithAuth('LabelTemplate', { token: null, tenantId: null }, {
@@ -54,9 +55,9 @@ export async function createTemplateAction(
         throw new Error(`Failed to create template. Status: ${response.status}`);
     }
 
-    const result = await response.json();
+    // const result = await response.json();
     revalidatePath('/'); // Invalidate the cache for the homepage
-    return result;
+    return 
 }
 
 export async function updateTemplateAction(
