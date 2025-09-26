@@ -42,6 +42,7 @@ export default function EditorPage() {
     handleUpdateObject,
     handleAlign,
     handleReplaceData,
+    handleLoadTemplateFromJson,
     canvasRef,
     setObjects,
   } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
@@ -114,6 +115,7 @@ export default function EditorPage() {
           zoom={zoom}
           selectedObjectIds={selectedObjectIds}
           onAlign={handleAlign}
+          onLoadTemplate={handleLoadTemplateFromJson}
         />
         <EditorCanvas
           canvasRef={canvasRef}

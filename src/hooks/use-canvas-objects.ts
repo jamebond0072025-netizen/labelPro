@@ -59,6 +59,28 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     }
   }, [onUpdateCanvasSettings]);
 
+  const handleLoadTemplateFromJson = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const jsonString = event.target?.result as string;
+        const templateData = JSON.parse(jsonString);
+
+        if (templateData.settings && templateData.objects) {
+          onUpdateCanvasSettings(templateData.settings);
+          setObjects(templateData.objects);
+          setSelectedObjectIds([]);
+        } else {
+          throw new Error("Invalid JSON format: 'settings' or 'objects' missing.");
+        }
+      } catch (error) {
+        console.error("Failed to load or parse template file:", error);
+        // You might want to show a toast notification to the user here
+      }
+    };
+    reader.readAsText(file);
+  };
+
 
   useEffect(() => {
     if (templateId) {
@@ -282,10 +304,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     handleUpdateObject,
     handleAlign,
     handleReplaceData,
+    handleLoadTemplateFromJson,
     canvasRef,
   };
 };
-
-    
-
-    

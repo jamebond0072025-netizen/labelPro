@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useRef } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,7 @@ import {
   Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
   ChevronsUp, ChevronsDown, MoreVertical, AlignCenter, AlignStartHorizontal,
   AlignCenterHorizontal, AlignEndHorizontal, AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  Columns, Rows,
+  Columns, Rows, Upload,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -49,6 +50,7 @@ interface EditorToolbarProps {
   zoom: number;
   selectedObjectIds: string[];
   onAlign: (alignment: Alignment) => void;
+  onLoadTemplate: (file: File) => void;
 }
 
 export function EditorToolbar({ 
@@ -59,10 +61,21 @@ export function EditorToolbar({
     zoom,
     selectedObjectIds,
     onAlign,
+    onLoadTemplate,
 }: EditorToolbarProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const hasSelection = selectedObjectIds.length > 0;
   const hasMultipleSelection = selectedObjectIds.length > 1;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onLoadTemplate(file);
+      // Reset file input so the same file can be loaded again
+      e.target.value = '';
+    }
+  };
 
   const addElementMenu = (
     <TooltipProvider>
@@ -270,6 +283,23 @@ export function EditorToolbar({
         </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {addElementMenu}
+         <Tooltip>
+            <TooltipTrigger asChild>
+                <>
+                <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+                    <Upload />
+                </Button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".json"
+                    onChange={handleFileChange}
+                />
+                </>
+            </TooltipTrigger>
+            <TooltipContent><p>Load Template (JSON)</p></TooltipContent>
+        </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         <Tooltip>
             <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}><ChevronsUp /></Button></TooltipTrigger>
@@ -303,5 +333,3 @@ export function EditorToolbar({
     </TooltipProvider>
   );
 }
-
-    
