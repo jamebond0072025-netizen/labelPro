@@ -14,64 +14,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { setPlaceHolderImages } from '@/lib/placeholder-images';
 import { fetchWithAuth } from '@/lib/api';
 import { USE_AUTH } from '@/lib/config';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function Home() {
   const [templates, setTemplates] = useState<ImagePlaceholder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [token, setToken] = useState<string | null>(null);
-  const [tenantId, setTenantId] = useState<string | null>(null);
+  const { token, tenantId } = useAuth();
 
- useEffect(() => {
-    if (!USE_AUTH) {
-      return;
-    }
-
-    let retryInterval: NodeJS.Timeout;
-
-    const handleMessage = (event: MessageEvent) => {
-      if (
-        event.origin !== 'http://localhost:3000' &&
-        event.origin !== 'http://localhost:9002' &&
-        !event.origin.includes('apexpath.com')
-      ) {
-        console.warn(`Message from untrusted origin blocked: ${event.origin}`);
-        return;
-      }
-
-      const { type, token, tenantId } = event.data || {};
-      if (type === 'SET_AUTH' && token && tenantId) {
-        setToken(token);
-        setTenantId(tenantId);
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('tenantId', tenantId);
-        if (retryInterval) clearInterval(retryInterval);
-      }
-    };
-
-    const storedToken = localStorage.getItem('authToken');
-    const storedTenantId = localStorage.getItem('tenantId');
-
-    if (storedToken && storedTenantId) {
-      setToken(storedToken);
-      setTenantId(storedTenantId);
-    } else {
-        retryInterval = setInterval(() => {
-          if (!token || !tenantId) {
-            window.parent.postMessage({ type: 'GET_AUTH' }, '*');
-          }
-        }, 1000);
-    }
-
-    window.addEventListener('message', handleMessage);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      if (retryInterval) clearInterval(retryInterval);
-    };
-  }, [token, tenantId]);
-  
   const fetchTemplates = (authCreds: { token: string | null, tenantId: string | null }) => {
       setIsLoading(true);
       setError(null);
@@ -80,10 +31,7 @@ export default function Home() {
       .then(response => {
         if (!response.ok) {
            if (response.status === 401 && USE_AUTH) {
-             setToken(null);
-             setTenantId(null);
-             localStorage.removeItem('authToken');
-             localStorage.removeItem('tenantId');
+             // If auth fails, useAuth hook will handle re-requesting credentials
              throw new Error("Authentication failed. Please log in and try again.");
            }
           throw new Error(`API error. Status: ${response.status}`);
@@ -270,5 +218,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
