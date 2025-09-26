@@ -12,7 +12,6 @@ import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { setPlaceHolderImages } from '@/lib/placeholder-images';
-import { fetchWithAuth } from '@/lib/api';
 import { USE_AUTH, USE_DUMMY_TEMPLATES } from '@/lib/config';
 import { useAuth } from '@/hooks/use-auth';
 import type { Template } from '@/lib/types';
@@ -47,26 +46,26 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     try {
-      let data: Template[];
-      if (USE_DUMMY_TEMPLATES) {
-        data = await getTemplatesAction();
-      } else {
-        const response = await fetchWithAuth('LabelTemplate', { token, tenantId });
-        if (!response.ok) {
-          if (response.status === 401 && USE_AUTH) {
-            throw new Error("Authentication failed. Please log in and try again.");
-          }
-          throw new Error(`API error. Status: ${response.status}`);
-        }
-        data = await response.json();
-      }
-
+      const data = await getTemplatesAction();
       if (!data || !Array.isArray(data)) {
         throw new Error("Received invalid data format.");
       }
-      setTemplates(data);
+      
+      const parsedData = data.map(t => {
+        try {
+          // The designJson might be a stringified JSON string, so we parse it.
+          // If it's already an object, this won't hurt.
+          const design = typeof t.designJson === 'string' ? JSON.parse(t.designJson) : t.designJson;
+          return { ...t, designJson: design };
+        } catch (e) {
+          console.warn(`Could not parse designJson for template ${t.id}`, t.designJson);
+          return { ...t, designJson: { settings: {}, objects: [] } }; // Graceful failure
+        }
+      });
 
-      const formattedPlaceholders = data.map((item: Template) => ({
+      setTemplates(parsedData);
+
+      const formattedPlaceholders = parsedData.map((item: Template) => ({
         id: `template-${item.id}`,
         description: item.name,
         imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
@@ -82,10 +81,9 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, tenantId]);
+  }, []);
 
   useEffect(() => {
-    // This effect runs when auth is enabled and we get the credentials, or when using dummy data
     if ((USE_AUTH && token && tenantId) || !USE_AUTH) {
       fetchTemplates();
     }
@@ -126,12 +124,7 @@ export default function Home() {
       if (!deletingTemplate) return;
 
       try {
-          if (USE_DUMMY_TEMPLATES) {
-              await deleteTemplateAction(deletingTemplate.id);
-          } else {
-              // TODO: Implement live API delete
-              console.log("Deleting with live API", deletingTemplate.id);
-          }
+          await deleteTemplateAction(deletingTemplate.id);
           toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
           setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
       } catch (err) {

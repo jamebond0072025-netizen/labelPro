@@ -19,8 +19,24 @@ import type { EditorState } from '@/contexts/editor-context';
 import { toPng } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
-import { USE_DUMMY_TEMPLATES } from '@/lib/config';
 import { createTemplateAction, updateTemplateAction } from '@/app/actions';
+
+
+function dataURLtoFile(dataurl: string, filename: string): File {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) {
+        throw new Error('Invalid data URL');
+    }
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
 
 interface SaveTemplateDialogProps {
     isOpen: boolean;
@@ -80,7 +96,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImageUrl = await toPng(editorState.canvasRef.current, {
+            const previewImage = await toPng(editorState.canvasRef.current, {
                 quality: 0.8,
                 width: editorState.canvasSettings.width,
                 height: editorState.canvasSettings.height,
@@ -91,38 +107,21 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 objects: editorState.objects,
             });
 
-            const payload = {
-                name,
-                description,
-                category,
-                designJson,
-                bulkDataJson,
-                previewImageUrl,
-            };
-
-            if (USE_DUMMY_TEMPLATES) {
-                if (existingTemplate) {
-                    await updateTemplateAction(existingTemplate.id, payload);
-                } else {
-                    await createTemplateAction(payload);
-                }
-            } else {
-                // TODO: Implement live API call
-                console.log("Saving with live API:", payload);
-                 // Example of what the fetch call would look like:
-                const endpoint = existingTemplate ? `LabelTemplate/${existingTemplate.id}` : 'LabelTemplate';
-                const method = existingTemplate ? 'PUT' : 'POST';
-                /*
-                const response = await fetch(endpoint, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) throw new Error('Failed to save template');
-                */
-            }
+            const formData = new FormData();
+            formData.append('Name', name);
+            formData.append('Description', description);
+            formData.append('Category', category);
+            formData.append('DesignJson', designJson);
+            formData.append('BulkDataJson', bulkDataJson);
             
-            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+            const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
+            formData.append('PreviewImage', imageFile);
+
+            if (existingTemplate) {
+                await updateTemplateAction(existingTemplate.id, formData);
+            } else {
+                await createTemplateAction(formData);
+            }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
             onOpenChange(false);
@@ -171,5 +170,3 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
     </Dialog>
   );
 }
-
-    
