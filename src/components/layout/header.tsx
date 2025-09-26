@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Save, Image as ImageIcon, FileJson, ChevronDown, Printer, Loader2, Upload } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Type } from 'lucide-react';
 import { useEditor } from '@/contexts/editor-context';
@@ -19,14 +19,18 @@ import { useToast } from '@/hooks/use-toast';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { SaveTemplateDialog } from '../save-template-dialog';
+import type { Template } from '@/lib/types';
 
 
 export function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const templateId = searchParams.get('templateId');
+
   const isEditor = pathname.includes('/editor');
   const isPrintPreview = pathname.includes('/print-preview');
   
-  const { editorState, loadTemplate } = useEditor();
+  const { editorState, loadTemplate, existingTemplate } = useEditor();
   const { printPageSettings } = usePrint();
   const { toast } = useToast();
   const [isPrinting, setIsPrinting] = useState(false);
@@ -161,7 +165,7 @@ export function Header() {
                 />
               <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)}>
                 <Save className="mr-2 h-4 w-4" />
-                Save
+                {templateId ? 'Update' : 'Save'}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -200,8 +204,11 @@ export function Header() {
           isOpen={isSaveDialogOpen}
           onOpenChange={setIsSaveDialogOpen}
           editorState={editorState}
+          existingTemplate={existingTemplate}
         />
       )}
     </>
   );
 }
+
+    
