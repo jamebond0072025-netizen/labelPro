@@ -49,7 +49,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
       if (typeof designJson === 'string') {
          if (designJson.trim().startsWith('{')) {
-            designJson = JSON.parse(designJson);
+            try {
+                designJson = JSON.parse(designJson);
+            } catch (e) {
+                 console.error("Error parsing designJson on second attempt", e);
+                 designJson = { settings: {}, objects: [] };
+            }
          } else {
             console.warn("designJson is not a valid JSON object string after first parse. Treating as empty.", designJson);
             designJson = { settings: {}, objects: [] };
@@ -128,7 +133,8 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       }
       fetchAndLoadTemplate();
     }
-  }, [templateId, loadTemplate, token, tenantId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateId, token, tenantId]);
 
 
   const handleAddItem = (type: ItemType) => {
