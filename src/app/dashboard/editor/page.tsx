@@ -103,7 +103,7 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col md:grid md:grid-cols-[auto_1fr_auto] overflow-hidden">
+    <div className="flex-1 flex flex-col grid grid-cols-[auto_1fr_auto] overflow-hidden">
       <LeftSidebar
           objects={objects}
           selectedObjectIds={selectedObjectIds}
