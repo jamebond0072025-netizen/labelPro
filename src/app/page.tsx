@@ -105,7 +105,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           if (t.previewImageUrl && t.previewImageUrl.startsWith('data:image')) {
             previewImageUrl = t.previewImageUrl; // It's a data URL
           } else if (t.previewImageUrl) {
-             previewImageUrl = `${IMAGE_URL}${t.previewImageUrl}`;
+             previewImageUrl =  `${IMAGE_URL}${tenantId}/${t.previewImageUrl}`;
              if (t.updatedAt) {
                 previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
              }

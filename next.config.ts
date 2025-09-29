@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+       {
+      protocol: 'https',
+      hostname: 'crossbiz-api.apexpath.com',
+      port: '',
+      pathname: '/inventory-service/images/labeltemplates/**',
+    },
     ],
   },
 };

@@ -17,7 +17,6 @@ import { useEditor } from '@/contexts/editor-context';
 import { toPng } from 'html-to-image';
 import { SaveTemplateDialog } from '../save-template-dialog';
 import type { Template } from '@/lib/types';
-import { ChevronLeft } from 'lucide-react';
 import { usePrint } from '@/contexts/print-context';
 
 

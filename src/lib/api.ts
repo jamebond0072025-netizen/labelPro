@@ -18,54 +18,76 @@ const api = axios.create({
   headers: { Accept: "*/*" },
 });
 
-export const uploadImage = async (file: File, auth: AuthTokens, toast: (options: { variant: 'destructive', title: string, description: string }) => void): Promise<string> => {
-    const MAX_FILE_SIZE_KB = 50;
-    if (file.size > MAX_FILE_SIZE_KB * 1024) {
+export const uploadImage = async (
+  file: File,
+  auth: AuthTokens,
+  toast: (options: { variant: 'destructive'; title: string; description: string }) => void,
+  retryCount = 0
+): Promise<string> => {
+  const MAX_FILE_SIZE_KB = 50;
+  if (file.size > MAX_FILE_SIZE_KB * 1024) {
+    toast({
+      variant: 'destructive',
+      title: 'Image Too Large',
+      description: `Please upload an image smaller than ${MAX_FILE_SIZE_KB} KB.`,
+    });
+    throw new Error(`File size exceeds ${MAX_FILE_SIZE_KB} KB`);
+  }
+
+  if (!USE_AUTH) {
+    // Fallback for local development without auth
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (!auth.token || !auth.tenantId) {
+    throw new Error("Authentication credentials not provided for image upload.");
+  }
+
+  const formData = new FormData();
+  formData.append('File', file);
+
+  try {
+    const response = await api.post('/LabelTemplate/UploadImage', formData, {
+      headers: {
+        'Authorization': `Bearer ${auth.token}`,
+        'X-Tenant-ID': auth.tenantId,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    const { fileName } = response.data;
+    if (!fileName) throw new Error("API did not return a filename.");
+
+    return `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/${auth.tenantId}/${fileName}`;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+
+    if (axiosError.response?.status === 401 && USE_AUTH && retryCount < 5) {
+      try {
+        // Get new auth tokens from parent
+        const newAuth = await waitForAuth();
+
+        // Retry the upload with new token
+        return await uploadImage(file, newAuth, toast, retryCount + 1);
+      } catch (authError) {
         toast({
-            variant: 'destructive',
-            title: 'Image Too Large',
-            description: `Please upload an image smaller than ${MAX_FILE_SIZE_KB} KB.`,
+          variant: 'destructive',
+          title: 'Authentication Failed',
+          description: 'Could not refresh token for image upload.',
         });
-        throw new Error(`File size exceeds ${MAX_FILE_SIZE_KB} KB`);
+        throw authError;
+      }
     }
 
-    if (!USE_AUTH) {
-        // Fallback for local development without auth
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target?.result as string);
-            reader.readAsDataURL(file);
-        });
-    }
-
-    if (!auth.token || !auth.tenantId) {
-        throw new Error("Authentication credentials not provided for image upload.");
-    }
-
-    const formData = new FormData();
-    formData.append('File', file);
-
-    try {
-        const response = await api.post('/LabelTemplate/UploadImage', formData, {
-            headers: {
-                'Authorization': `Bearer ${auth.token}`,
-                'X-Tenant-ID': auth.tenantId,
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-        
-        const { fileName } = response.data;
-        if (!fileName) {
-            throw new Error("API did not return a filename for the uploaded image.");
-        }
-
-        return `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/${fileName}`;
-
-    } catch (error) {
-        console.error("Image upload failed:", error);
-        throw new Error("Could not upload the image.");
-    }
+    console.error("Image upload failed:", error);
+    throw new Error("Could not upload the image.");
+  }
 };
+
 
 
 // --- Helper: wait for SET_AUTH message from parent ---
