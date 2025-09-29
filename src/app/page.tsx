@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -80,7 +81,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
                 // if the first parse fails, it may be a doubly-escaped string
               }
             } else {
-                console.warn("designJson is not a valid JSON object string. Treating as empty.", designJson);
+                console.warn("designJson is not a valid JSON object string. Treating as empty.", t.designJson);
                 design = { settings: {}, objects: [] };
             }
           }
@@ -94,7 +95,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
                      design = { settings: {}, objects: [] };
                 }
              } else {
-                console.warn("designJson is not a valid JSON object string after first parse. Treating as empty.", designJson);
+                console.warn("designJson is not a valid JSON object string after first parse. Treating as empty.", t.designJson);
                 design = { settings: {}, objects: [] };
              }
           }
@@ -274,7 +275,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
                                         </Button>
                                         <Button size="sm" variant="secondary" onClick={() => setEnlargedImage(template.previewImageUrl)} className="w-full">
                                             <Expand className="mr-2 h-4 w-4" />
-                                            Enlarge
+                                            Preview
                                         </Button>
                                     </div>
                                     <div className="absolute top-1 right-1">
@@ -344,7 +345,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
 
        {enlargedImage && (
         <Dialog open onOpenChange={() => setEnlargedImage(null)}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-2xl">
              <Image
                 src={enlargedImage}
                 alt="Enlarged template preview"
