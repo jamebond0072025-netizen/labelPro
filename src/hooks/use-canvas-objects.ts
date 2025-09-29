@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType, Template } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { USE_DUMMY_TEMPLATES } from '@/lib/config';
+import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
 import { getMockTemplates } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
 import { useAuth } from './use-auth';
@@ -127,14 +126,16 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
             if (template) {
               loadTemplate(template);
             }
-        } catch (error) {
+        } catch (error: any) {
+            if (error.response?.status === 401 && USE_AUTH) {
+                window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+            }
             console.error("Failed to fetch template for editing:", error);
         }
       }
       fetchAndLoadTemplate();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId, token, tenantId]);
+  }, [templateId, token, tenantId, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {
@@ -367,3 +368,5 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     loadedTemplate,
   };
 };
+
+    

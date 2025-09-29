@@ -20,7 +20,7 @@ import { toJpeg } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
-import { USE_DUMMY_TEMPLATES } from '@/lib/config';
+import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
 import { apiCall } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -192,6 +192,9 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
 
         } catch (error: any) {
             console.error(error);
+             if (error.response?.status === 401 && USE_AUTH) {
+                window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+            }
             const message = error.response?.data?.message || error.message || 'Could not save the template.';
             toast({ variant: 'destructive', title: 'Error Saving', description: message });
         } finally {
@@ -234,3 +237,5 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
     </Dialog>
   );
 }
+
+    

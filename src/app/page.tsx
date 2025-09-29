@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Pencil, Trash2, MoreVertical, Loader2 } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, MoreVertical, Loader2, Expand } from 'lucide-react';
 import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,6 +32,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
 
@@ -41,6 +45,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   const { token, tenantId } = useAuth();
 
@@ -67,15 +72,31 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           // The designJson might be a string that itself contains a stringified JSON, so we may need to parse it twice.
           let design = t.designJson;
           if (typeof design === 'string') {
-            try {
-              design = JSON.parse(design);
-            } catch (e) {
-                // If the first parse fails, it's not a doubly encoded JSON, but might still be a valid JSON string.
-                // We'll let the next check handle it.
+            if (design.trim().startsWith('{')) {
+              try {
+                design = JSON.parse(design);
+              } catch (e) {
+                console.error("Primary parse failed, attempting secondary parse for doubly-escaped JSON", e);
+                // if the first parse fails, it may be a doubly-escaped string
+              }
+            } else {
+                console.warn("designJson is not a valid JSON object string. Treating as empty.", designJson);
+                design = { settings: {}, objects: [] };
             }
           }
+
           if (typeof design === 'string') {
-             design = JSON.parse(design); // This should handle the doubly escaped string.
+             if (design.trim().startsWith('{')) {
+                try {
+                    design = JSON.parse(design);
+                } catch (e) {
+                     console.error("Error parsing designJson on second attempt", e);
+                     design = { settings: {}, objects: [] };
+                }
+             } else {
+                console.warn("designJson is not a valid JSON object string after first parse. Treating as empty.", designJson);
+                design = { settings: {}, objects: [] };
+             }
           }
 
           let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
@@ -104,10 +125,10 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
 
     } catch (err: any) {
       console.error("Failed to fetch templates:", err);
-      if (err.status ===401) {
+      if (err.response?.status === 401 && USE_AUTH) {
           window.parent.postMessage({ type: 'GET_AUTH' }, '*');
         }
-      const errorMessage = err.response?.data || err.message || "Failed to load templates. Please ensure you have access.";
+      const errorMessage = err.response?.data?.message || err.message || "Failed to load templates. Please ensure you have access.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -163,6 +184,9 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
           setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
       } catch (err: any) {
+          if (err.response?.status === 401 && USE_AUTH) {
+              window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+          }
           const errorMessage = err.response?.data?.message || err.message || "Could not delete template.";
           toast({ variant: 'destructive', title: 'Error', description: errorMessage });
       } finally {
@@ -244,9 +268,13 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
                                         data-ai-hint={template.name}
                                         unoptimized
                                     />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
                                         <Button size="sm" onClick={() => handleUse(template)} className="w-full">
                                             Use
+                                        </Button>
+                                        <Button size="sm" variant="secondary" onClick={() => setEnlargedImage(template.previewImageUrl)} className="w-full">
+                                            <Expand className="mr-2 h-4 w-4" />
+                                            Enlarge
                                         </Button>
                                     </div>
                                     <div className="absolute top-1 right-1">
@@ -313,6 +341,23 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
             </AlertDialogContent>
         </AlertDialog>
       )}
+
+       {enlargedImage && (
+        <Dialog open onOpenChange={() => setEnlargedImage(null)}>
+          <DialogContent className="max-w-3xl">
+             <Image
+                src={enlargedImage}
+                alt="Enlarged template preview"
+                width={800}
+                height={1120}
+                className="w-full h-auto object-contain rounded-lg"
+                unoptimized
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
+
+    
