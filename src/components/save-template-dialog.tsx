@@ -22,7 +22,7 @@ import { Textarea } from './ui/textarea';
 import type { QRCodeObject, Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
-import { apiCall, uploadImage } from '@/lib/api';
+import { apiCall } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
@@ -157,38 +157,23 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             } else {
                 const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
-                try {
-                    const uploadedImageUrl = await uploadImage(imageFile, { token, tenantId }, toast);
+                const formData = new FormData();
+                formData.append('Name', name);
+                formData.append('Description', description);
+                formData.append('Category', category);
+                formData.append('DesignJson', designJson);
+                formData.append('BulkDataJson', bulkDataJson);
+                formData.append('PreviewImage', imageFile);
 
-                    const templatePayload = {
-                        Name: name,
-                        Description: description,
-                        Category: category,
-                        DesignJson: designJson,
-                        BulkDataJson: bulkDataJson,
-                        PreviewImageUrl: uploadedImageUrl,
-                    };
-                    
-                    const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
-                    const method = existingTemplate ? 'PUT' : 'POST';
+                const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
+                const method = existingTemplate ? 'PUT' : 'POST';
 
-                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
-
-                } catch (uploadError) {
-                    // uploadImage already shows a toast on failure, so we just log and stop
-                    console.error(uploadError);
-                    setIsSaving(false);
-                    return;
-                }
+                await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
             }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
             onOpenChange(false);
-            if (USE_DUMMY_TEMPLATES) {
-                window.location.href = '/';
-            } else {
-                router.push('/');
-            }
+            router.push('/');
 
         } catch (error: any) {
             console.error(error);
