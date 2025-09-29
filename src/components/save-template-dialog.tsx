@@ -16,7 +16,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { EditorState } from '@/contexts/editor-context';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
@@ -102,7 +102,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImage = await toPng(editorState.canvasRef.current, {
+            const previewImage = await toJpeg(editorState.canvasRef.current, {
                 quality: 0.8,
                 width: editorState.canvasSettings.width,
                 height: editorState.canvasSettings.height,
@@ -135,7 +135,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 formData.append('DesignJson', designJson);
                 formData.append('BulkDataJson', bulkDataJson);
                 
-                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
+                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 formData.append('PreviewImage', imageFile);
 
                 const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
