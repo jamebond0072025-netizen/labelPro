@@ -22,6 +22,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
   const [loadedTemplate, setLoadedTemplate] = useState<Template | undefined>(undefined);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
 
@@ -114,6 +115,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   useEffect(() => {
     if (templateId && ((USE_DUMMY_TEMPLATES) || (token && tenantId))) {
       const fetchAndLoadTemplate = async () => {
+        setIsLoadingTemplate(true);
         try {
             let template: Template | undefined;
             if (USE_DUMMY_TEMPLATES) {
@@ -132,11 +134,13 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
                 window.parent.postMessage({ type: 'GET_AUTH' }, '*');
             }
             console.error("Failed to fetch template for editing:", error);
+        } finally {
+            setIsLoadingTemplate(false);
         }
       }
       fetchAndLoadTemplate();
     }
-  }, [templateId, token, tenantId]);
+  }, [templateId, token, tenantId, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {
@@ -367,6 +371,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     handleLoadTemplateFromJson,
     canvasRef,
     loadedTemplate,
+    isLoadingTemplate,
   };
 };
 

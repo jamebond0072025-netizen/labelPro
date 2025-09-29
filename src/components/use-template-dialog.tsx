@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import type { Template } from "@/lib/types"
 import { useRouter } from 'next/navigation';
-import { Upload, ClipboardPaste, ArrowLeft, ArrowRight, PlusCircle, Trash2 } from 'lucide-react';
+import { Upload, ClipboardPaste, ArrowLeft, ArrowRight, PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from './ui/textarea';
@@ -99,6 +99,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     
     const [templatePlaceholders, setTemplatePlaceholders] = useState<TemplatePlaceholder[]>([]);
     const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+    const [isCreatingLabels, setIsCreatingLabels] = useState(false);
     const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
     const [manualData, setManualData] = useState<Record<string, any>[]>([{}]);
 
@@ -260,17 +261,20 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     }
 
     const handleCreateLabels = () => {
+        setIsCreatingLabels(true);
         let finalData: Record<string, any>[] | null = null;
         
         if(step === 'manual-data'){
             finalData = manualData.filter(row => Object.values(row).some(val => val !== ''));
             if(finalData.length === 0){
                 toast({ variant: 'destructive', title: 'Empty Data', description: 'Please enter at least one row of data.'});
+                setIsCreatingLabels(false);
                 return;
             }
         } else {
             if (!parsedData) {
                 toast({ variant: 'destructive', title: 'Something went wrong', description: 'No data to process.'});
+                setIsCreatingLabels(false);
                 return;
             }
 
@@ -278,6 +282,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
             if (!isMappingComplete) {
                 toast({ variant: 'destructive', title: 'Mapping Incomplete', description: 'Please map all template fields.'});
+                setIsCreatingLabels(false);
                 return;
             }
 
@@ -297,6 +302,8 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             setData(finalData);
             setTemplate(template);
             router.push('/dashboard/print-preview');
+        } else {
+            setIsCreatingLabels(false);
         }
     }
 
@@ -434,8 +441,9 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('upload-data')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                <Button onClick={handleCreateLabels} disabled={unmappedPlaceholders.length > 0 || isLoadingTemplate}>
-                    Create Labels
+                <Button onClick={handleCreateLabels} disabled={unmappedPlaceholders.length > 0 || isLoadingTemplate || isCreatingLabels}>
+                    {isCreatingLabels && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isCreatingLabels ? 'Creating...' : 'Create Labels'}
                 </Button>
             </DialogFooter>
         </>
@@ -498,8 +506,9 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setStep('upload-data')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-                <Button onClick={handleCreateLabels} disabled={isLoadingTemplate}>
-                    Create Labels
+                <Button onClick={handleCreateLabels} disabled={isLoadingTemplate || isCreatingLabels}>
+                     {isCreatingLabels && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isCreatingLabels ? 'Creating...' : 'Create Labels'}
                 </Button>
             </DialogFooter>
         </>

@@ -12,7 +12,7 @@ import { EditorCanvas } from '@/components/editor/editor-canvas';
 import { useCanvasObjects } from '@/hooks/use-canvas-objects';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight } from 'lucide-react';
+import { PanelLeft, PanelRight, Loader2 } from 'lucide-react';
 import type { CanvasSettings } from '@/lib/types';
 import { useEditor } from '@/contexts/editor-context';
 
@@ -47,6 +47,7 @@ export default function EditorPage() {
     canvasRef,
     setObjects,
     loadedTemplate,
+    isLoadingTemplate
   } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
 
   const { setEditorState, loadTemplate, setExistingTemplate } = useEditor();
@@ -94,6 +95,15 @@ export default function EditorPage() {
     }
   }
   
+  if (isLoadingTemplate) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="ml-2">Loading Template...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] overflow-hidden">
       {isDesktop ? (
