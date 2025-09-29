@@ -100,7 +100,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
              }
           }
 
-          let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
+          let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${tenantId}/${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
           if (t.previewImageUrl && t.updatedAt) {
             previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
           }
@@ -117,7 +117,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
       const formattedPlaceholders = parsedData.map((item: Template) => ({
         id: `template-${item.id}`,
         description: item.name,
-        imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
+        imageUrl: `${IMAGE_URL}${tenantId}/${item.previewImageUrl}` || `https://picsum.photos/seed/${item.id}/300/420`,
         imageHint: item.name,
         designJson: item.designJson,
         template: item,
