@@ -145,7 +145,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     } else {
         setIsLoadingTemplate(false);
     }
-  }, [templateId, token, tenantId, loadTemplate]);
+  }, [templateId, token, tenantId]);
 
 
 
