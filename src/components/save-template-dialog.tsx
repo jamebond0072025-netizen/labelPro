@@ -42,6 +42,35 @@ function dataURLtoFile(dataurl: string, filename: string): File {
     return new File([u8arr], filename, {type:mime});
 }
 
+const getCompressedImage = async (node: HTMLElement, width: number, height: number): Promise<string> => {
+    let quality = 0.95;
+    const targetSize = 48 * 1024; // 48KB target, leaving a small buffer
+
+    while (quality > 0.1) {
+        const dataUrl = await toJpeg(node, {
+            quality,
+            width,
+            height,
+        });
+
+        // Check size of the data URL
+        // Formula: (length * 3/4) - padding
+        const sizeInBytes = (dataUrl.length * (3/4)) - (dataUrl.endsWith('==') ? 2 : (dataUrl.endsWith('=') ? 1: 0));
+
+        if (sizeInBytes <= targetSize) {
+            return dataUrl;
+        }
+        quality -= 0.1;
+    }
+    
+    // If loop finishes, return lowest quality version
+     return toJpeg(node, {
+        quality: 0.1,
+        width,
+        height,
+    });
+};
+
 interface SaveTemplateDialogProps {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
@@ -102,11 +131,11 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImage = await toJpeg(editorState.canvasRef.current, {
-                quality: 0.8,
-                width: editorState.canvasSettings.width,
-                height: editorState.canvasSettings.height,
-            });
+            const previewImage = await getCompressedImage(
+                editorState.canvasRef.current,
+                editorState.canvasSettings.width,
+                editorState.canvasSettings.height
+            );
 
             const designJson = JSON.stringify({
                 settings: editorState.canvasSettings,
