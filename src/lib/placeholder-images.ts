@@ -1,7 +1,8 @@
 
+
 import type { Template } from "./types";
 
-export type ImagePlaceholder = {
+export interface ImagePlaceholder {
   id: string;
   description: string;
   imageUrl: string;
@@ -19,5 +20,3 @@ export let PlaceHolderImages: ImagePlaceholder[] = [];
 export function setPlaceHolderImages(images: ImagePlaceholder[]) {
   PlaceHolderImages = images;
 }
-
-    

@@ -8,6 +8,7 @@ export interface BaseObject {
   height: number;
   rotation: number;
   opacity: number;
+  key?: string;
 }
 
 export interface TextObject extends BaseObject {
@@ -18,19 +19,16 @@ export interface TextObject extends BaseObject {
   fontFamily: string;
   color: string;
   textAlign: 'left' | 'center' | 'right';
-  key?: string;
 }
 
 export interface ImageObject extends BaseObject {
   type: 'image';
   src: string;
-  key?: string;
 }
 
 export interface BarcodeObject extends BaseObject {
   type: 'barcode';
   value: string;
-  key?: string;
 }
 
 export type CanvasObject = TextObject | ImageObject | BarcodeObject;
@@ -62,11 +60,9 @@ export interface Template {
     name: string;
     description: string | null;
     category: string | null;
-    designJson: string; // This is a JSON string
+    designJson: string | { settings: CanvasSettings; objects: CanvasObject[] };
     bulkDataJson: string | null;
     previewImageUrl: string | null;
     createdAt: string;
     updatedAt: string | null;
 }
-
-    

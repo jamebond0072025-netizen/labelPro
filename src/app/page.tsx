@@ -9,7 +9,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Pencil, Trash2, MoreVertical, Loader2, Expand } from 'lucide-react';
-import type { ImagePlaceholder } from '@/lib/placeholder-images';
 import { UseTemplateDialog } from '@/components/use-template-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { setPlaceHolderImages } from '@/lib/placeholder-images';
@@ -145,7 +144,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
 
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(12);
-  const [useTemplate, setUseTemplate] = useState<ImagePlaceholder | null>(null);
+  const [useTemplate, setUseTemplate] = useState<Template | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<Template | null>(null);
 
 
@@ -162,15 +161,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
   };
 
   const handleUse = (template: Template) => {
-    const placeholder = {
-        id: `template-${template.id}`,
-        description: template.name,
-        imageUrl: template.previewImageUrl || `https://picsum.photos/seed/${template.id}/300/420`,
-        imageHint: template.name,
-        designJson: template.designJson,
-        template: template,
-    };
-    setUseTemplate(placeholder);
+    setUseTemplate(template);
   };
 
   const handleDelete = async () => {

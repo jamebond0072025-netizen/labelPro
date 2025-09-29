@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -11,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { ImagePlaceholder } from "@/lib/placeholder-images"
+import type { Template } from "@/lib/types"
 import { useRouter } from 'next/navigation';
 import { Upload, ClipboardPaste, ArrowLeft, ArrowRight, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,7 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 
 interface UseTemplateDialogProps {
-  template: ImagePlaceholder;
+  template: Template;
   onOpenChange: (isOpen: boolean) => void;
 }
 
@@ -110,8 +111,8 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 ? JSON.parse(template.designJson) 
                 : template.designJson;
 
-            const placeholders = templateData.objects
-                .filter((obj: CanvasObject): obj is CanvasObject & { key: string } => 'key' in obj && obj.key != null)
+            const placeholders = (templateData.objects as CanvasObject[])
+                .filter((obj): obj is CanvasObject & { key: string } => 'key' in obj && !!obj.key)
                 .map((obj: any) => ({
                     key: obj.key,
                     type: obj.type,
@@ -329,7 +330,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderUploadData = () => (
         <>
             <DialogHeader>
-                <DialogTitle>Use Template: {template.description}</DialogTitle>
+                <DialogTitle>Use Template: {template.name}</DialogTitle>
                 <DialogDescription>
                     Upload a data file (JSON, CSV, Excel) or paste JSON to populate your labels. The data should be an array of objects.
                 </DialogDescription>
@@ -393,7 +394,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderMapFields = () => (
          <>
             <DialogHeader>
-                <DialogTitle>Map Fields for: {template.description}</DialogTitle>
+                <DialogTitle>Map Fields for: {template.name}</DialogTitle>
                 <DialogDescription>
                     Match the placeholders in your template to the fields from your data source. Fields with matching names have been pre-selected.
                 </DialogDescription>
@@ -443,7 +444,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const renderManualData = () => (
         <>
             <DialogHeader>
-                <DialogTitle>Enter Data for: {template.description}</DialogTitle>
+                <DialogTitle>Enter Data for: {template.name}</DialogTitle>
                 <DialogDescription>
                    Add rows and fill in the data for each label you want to create.
                 </DialogDescription>

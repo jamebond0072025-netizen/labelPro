@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -46,7 +47,10 @@ export default function PrintPreviewPage() {
       router.replace('/');
     } else if (template.designJson) {
         try {
-            const parsedTemplate = JSON.parse(template.designJson);
+            const parsedTemplate = typeof template.designJson === 'string' 
+                ? JSON.parse(template.designJson)
+                : template.designJson;
+
              const settingsWithOriginals = {
                 ...parsedTemplate.settings,
                 originalWidth: parsedTemplate.settings.width,

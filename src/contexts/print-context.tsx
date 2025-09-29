@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import type { ImagePlaceholder } from '@/lib/placeholder-images';
+import type { Template } from '@/lib/types';
 
 interface PrintPageSettings {
   pageSize: any;
@@ -10,8 +11,8 @@ interface PrintPageSettings {
 }
 
 interface PrintContextType {
-  template: ImagePlaceholder | null;
-  setTemplate: (template: ImagePlaceholder) => void;
+  template: Template | null;
+  setTemplate: (template: Template) => void;
   data: Record<string, any>[] | null;
   setData: (data: Record<string, any>[]) => void;
   printPageSettings: PrintPageSettings | null;
@@ -21,11 +22,11 @@ interface PrintContextType {
 const PrintContext = createContext<PrintContextType | undefined>(undefined);
 
 export function PrintProvider({ children }: { children: ReactNode }) {
-  const [template, setTemplate] = useState<ImagePlaceholder | null>(null);
+  const [template, setTemplate] = useState<Template | null>(null);
   const [data, setData] = useState<Record<string, any>[] | null>(null);
   const [printPageSettings, setPrintPageSettings] = useState<PrintPageSettings | null>(null);
 
-  const setTemplateCallback = useCallback((newTemplate: ImagePlaceholder) => {
+  const setTemplateCallback = useCallback((newTemplate: Template) => {
     setTemplate(newTemplate);
   }, []);
 
