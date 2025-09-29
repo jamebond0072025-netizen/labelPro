@@ -16,7 +16,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { EditorState } from '@/contexts/editor-context';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
@@ -41,6 +41,35 @@ function dataURLtoFile(dataurl: string, filename: string): File {
     }
     return new File([u8arr], filename, {type:mime});
 }
+
+const getCompressedImage = async (node: HTMLElement, width: number, height: number): Promise<string> => {
+    let quality = 0.95;
+    const targetSize = 48 * 1024; // 48KB target, leaving a small buffer
+
+    while (quality > 0.1) {
+        const dataUrl = await toJpeg(node, {
+            quality,
+            width,
+            height,
+        });
+
+        // Check size of the data URL
+        // Formula: (length * 3/4) - padding
+        const sizeInBytes = (dataUrl.length * (3/4)) - (dataUrl.endsWith('==') ? 2 : (dataUrl.endsWith('=') ? 1: 0));
+
+        if (sizeInBytes <= targetSize) {
+            return dataUrl;
+        }
+        quality -= 0.1;
+    }
+    
+    // If loop finishes, return lowest quality version
+     return toJpeg(node, {
+        quality: 0.1,
+        width,
+        height,
+    });
+};
 
 interface SaveTemplateDialogProps {
     isOpen: boolean;
@@ -102,11 +131,11 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImage = await toPng(editorState.canvasRef.current, {
-                quality: 0.8,
-                width: editorState.canvasSettings.width,
-                height: editorState.canvasSettings.height,
-            });
+            const previewImage = await getCompressedImage(
+                editorState.canvasRef.current,
+                editorState.canvasSettings.width,
+                editorState.canvasSettings.height
+            );
 
             const designJson = JSON.stringify({
                 settings: editorState.canvasSettings,
@@ -135,7 +164,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 formData.append('DesignJson', designJson);
                 formData.append('BulkDataJson', bulkDataJson);
                 
-                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.png`);
+                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 formData.append('PreviewImage', imageFile);
 
                 const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
