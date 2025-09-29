@@ -17,7 +17,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { EditorState } from '@/contexts/editor-context';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import { Textarea } from './ui/textarea';
 import type { QRCodeObject, Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
@@ -129,8 +129,8 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImageDataUrl = await toPng(editorState.canvasRef.current, {
-                quality: 0.95,
+            const previewImageDataUrl = await toJpeg(editorState.canvasRef.current, {
+                quality: 0.8,
                 width: editorState.canvasSettings.width,
                 height: editorState.canvasSettings.height,
             });
@@ -155,7 +155,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     await createMockTemplate(templateData);
                 }
             } else {
-                const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.png`);
+                const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
                 try {
                     const uploadedImageUrl = await uploadImage(imageFile, { token, tenantId }, toast);

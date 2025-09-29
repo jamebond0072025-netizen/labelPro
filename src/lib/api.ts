@@ -18,6 +18,53 @@ const api = axios.create({
   headers: { Accept: "*/*" },
 });
 
+const dataURLtoFile = (dataurl: string, filename: string): File => {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) {
+        throw new Error('Invalid data URL');
+    }
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
+
+
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return reject(new Error('Could not get canvas context'));
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress to 80% quality JPEG
+        const compressedFile = dataURLtoFile(compressedDataUrl, file.name.replace(/\.[^/.]+$/, ".jpg"));
+        
+        resolve(compressedFile);
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+
 export const uploadImage = async (
   file: File,
   auth: AuthTokens,
@@ -25,11 +72,14 @@ export const uploadImage = async (
   retryCount = 0
 ): Promise<string> => {
   const MAX_FILE_SIZE_KB = 50;
-  if (file.size > MAX_FILE_SIZE_KB * 1024) {
+
+  const compressedFile = await compressImage(file);
+
+  if (compressedFile.size > MAX_FILE_SIZE_KB * 1024) {
     toast({
       variant: 'destructive',
       title: 'Image Too Large',
-      description: `Please upload an image smaller than ${MAX_FILE_SIZE_KB} KB.`,
+      description: `Even after compression, the image is larger than ${MAX_FILE_SIZE_KB} KB. Please use a smaller image.`,
     });
     throw new Error(`File size exceeds ${MAX_FILE_SIZE_KB} KB`);
   }
@@ -39,7 +89,7 @@ export const uploadImage = async (
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target?.result as string);
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
     });
   }
 
@@ -48,7 +98,7 @@ export const uploadImage = async (
   }
 
   const formData = new FormData();
-  formData.append('File', file);
+  formData.append('File', compressedFile);
 
   try {
     const response = await api.post('/LabelTemplate/UploadImage', formData, {
