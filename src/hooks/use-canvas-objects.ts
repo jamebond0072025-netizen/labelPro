@@ -136,7 +136,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       }
       fetchAndLoadTemplate();
     }
-  }, [templateId, token, tenantId, loadTemplate]);
+  }, [templateId, token, tenantId]);
 
 
   const handleAddItem = (type: ItemType) => {
