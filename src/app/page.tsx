@@ -46,6 +46,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { token, tenantId } = useAuth();
 
@@ -167,6 +168,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
   const handleDelete = async () => {
       if (!deletingTemplate) return;
 
+      setIsDeleting(true);
       try {
           if (USE_DUMMY_TEMPLATES) {
               await deleteMockTemplate(deletingTemplate.id);
@@ -182,6 +184,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           const errorMessage = err.response?.data?.message || err.message || "Could not delete template.";
           toast({ variant: 'destructive', title: 'Error', description: errorMessage });
       } finally {
+          setIsDeleting(false);
           setDeletingTemplate(null);
       }
   }
@@ -318,7 +321,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
       )}
 
       {deletingTemplate && (
-        <AlertDialog open onOpenChange={() => setDeletingTemplate(null)}>
+        <AlertDialog open onOpenChange={(isOpen) => !isOpen && setDeletingTemplate(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -327,8 +330,11 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+                       {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                       {isDeleting ? 'Deleting...' : 'Delete'}
+                    </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -351,5 +357,3 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
     </div>
   );
 }
-
-    

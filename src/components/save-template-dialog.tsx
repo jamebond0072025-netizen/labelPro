@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -230,12 +231,10 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving ? 'Saving...' : (existingTemplate ? 'Update Template' : 'Save Template')}
+                {isSaving ? (existingTemplate ? 'Updating...' : 'Saving...') : (existingTemplate ? 'Update Template' : 'Save Template')}
             </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-
-    
