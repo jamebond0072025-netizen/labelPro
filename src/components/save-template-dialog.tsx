@@ -51,6 +51,11 @@ const getCompressedImage = async (node: HTMLElement, width: number, height: numb
             quality,
             width,
             height,
+            style: {
+                transform: 'scale(1)',
+                width: `${width}px`,
+                height: `${height}px`,
+            }
         });
 
         // Check size of the data URL
@@ -68,6 +73,11 @@ const getCompressedImage = async (node: HTMLElement, width: number, height: numb
         quality: 0.1,
         width,
         height,
+        style: {
+            transform: 'scale(1)',
+            width: `${width}px`,
+            height: `${height}px`,
+        }
     });
 };
 
@@ -178,7 +188,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             // This is a bit of a hack to force a refresh on the homepage.
             // A more robust solution might involve a global state management library.
             router.push('/');
-            setTimeout(() => router.refresh(), 100);
+            setTimeout(() => window.location.reload(), 100);
 
         } catch (error: any) {
             console.error(error);
