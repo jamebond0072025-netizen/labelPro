@@ -156,6 +156,7 @@ export default function EditorPage() {
           zoom={zoom}
           canvasSettings={canvasSettings}
           onDeselectAll={handleDeselectAll}
+  
           onSetSelectedObjectIds={setSelectedObjectIds}
           editingObjectId={editingObjectId}
           onObjectDoubleClick={handleObjectDoubleClick}

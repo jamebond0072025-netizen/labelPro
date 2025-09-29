@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
+import { Header } from '@/components/header';
 
 
 export default function Home() {
@@ -101,8 +102,15 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           }
 
           let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${tenantId}/${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
-          if (t.previewImageUrl && t.updatedAt) {
-            previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
+          if (t.previewImageUrl && t.previewImageUrl.startsWith('data:image')) {
+            previewImageUrl = t.previewImageUrl; // It's a data URL
+          } else if (t.previewImageUrl) {
+             previewImageUrl = `${IMAGE_URL}${t.previewImageUrl}`;
+             if (t.updatedAt) {
+                previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
+             }
+          } else {
+              previewImageUrl = `https://picsum.photos/seed/${t.id}/300/420`;
           }
      
           return { ...t, designJson: design, previewImageUrl };
@@ -167,6 +175,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
 
 const handleDelete = async () => {
   if (!deletingTemplate) return;
+  setIsDeleting(true);
 
   try {
     if (USE_DUMMY_TEMPLATES) {
@@ -194,6 +203,7 @@ const handleDelete = async () => {
       description: errorMessage
     });
   } finally {
+    setIsDeleting(false);
     setDeletingTemplate(null);
   }
 };
@@ -209,18 +219,17 @@ const handleDelete = async () => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                       <div className="space-y-2">
                            <Skeleton className="h-10 w-64" />
-                           <Skeleton className="h-6 w-96" />
                       </div>
                       <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <Skeleton className="h-10 w-full sm:w-[300px]" />
                         <Skeleton className="h-11 w-full sm:w-[180px]" />
                       </div>
                   </div>
-                  <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                  <div className="mx-auto grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {Array.from({ length: 10 }).map((_, i) => (
                       <Card key={i}>
                         <CardContent className="p-0">
-                          <Skeleton className="aspect-[10/14] w-full" />
+                          <Skeleton className="aspect-[3/4] w-full" />
                           <div className="p-3 space-y-2">
                             <Skeleton className="h-4 w-3/4" />
                             <Skeleton className="h-3 w-1/2" />
@@ -240,6 +249,9 @@ const handleDelete = async () => {
                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                     <div className="space-y-2">
                         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Templates</h1>
+                        <p className="text-muted-foreground md:text-lg/relaxed">
+                            Kickstart your project with one of our professionally designed templates.
+                        </p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                       <div className="relative w-full sm:w-auto">
@@ -257,16 +269,16 @@ const handleDelete = async () => {
                       </Button>
                     </div>
                 </div>
-                <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div className="mx-auto grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {templatesToShow.map(template => (
                         <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                             <CardContent className="p-0 flex flex-col flex-1">
-                                <div className="relative aspect-[10/14] w-full">
+                                <div className="relative aspect-[3/4] w-full bg-muted/30">
                                     <Image
                                         src={template.previewImageUrl || `https://picsum.photos/seed/${template.id}/300/420`}
                                         alt={template.name}
                                         fill
-                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        className="object-contain transition-transform duration-300 group-hover:scale-105 p-2"
                                         data-ai-hint={template.name}
                                         unoptimized
                                     />

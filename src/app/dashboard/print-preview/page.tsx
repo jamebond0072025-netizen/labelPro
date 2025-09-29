@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrint } from '@/contexts/print-context';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelLeft, PanelRight } from 'lucide-react';
+import { ArrowLeft, PanelLeft, PanelRight, Printer, Loader2 } from 'lucide-react';
 import { LabelPreview } from '@/components/label-preview';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +24,7 @@ export const pageSizes = [
 
 export default function PrintPreviewPage() {
   const router = useRouter();
-  const { template, data, setData, setPrintPageSettings } = usePrint();
+  const { template, data, setData, setPrintPageSettings, printPageSettings } = usePrint();
   const { toast } = useToast();
   const [templateJson, setTemplateJson] = useState<{ settings: CanvasSettings; objects: CanvasObject[] } | null>(null);
   const [pageSize, setPageSize] = useState(pageSizes[0]);

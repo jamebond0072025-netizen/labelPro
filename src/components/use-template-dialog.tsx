@@ -12,7 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { Template } from "@/lib/types"
+import type { Template, QRCodeObject } from "@/lib/types"
 import { useRouter } from 'next/navigation';
 import { Upload, ClipboardPaste, ArrowLeft, ArrowRight, PlusCircle, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,9 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Input } from './ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { useAuth } from '@/hooks/use-auth';
+import { uploadImage } from '@/lib/api';
 
 
 interface UseTemplateDialogProps {
@@ -40,20 +42,26 @@ type Step = 'upload-data' | 'map-fields' | 'manual-data';
 
 interface TemplatePlaceholder {
     key: string;
-    type: 'text' | 'image' | 'barcode';
+    type: 'text' | 'image' | 'barcode' | 'qrcode';
+    qrCodeType?: 'text' | 'url' | 'phone' | 'email' | 'whatsapp' | 'location';
 }
 
-const ImageInput = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+const ImageInput = ({ value, onChange, auth, toast }: { value: string; onChange: (value: string) => void; auth: { token: string | null; tenantId: string | null }, toast: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                onChange(event.target?.result as string);
-            };
-            reader.readAsDataURL(file);
+            setIsUploading(true);
+            try {
+                const imageUrl = await uploadImage(file, auth, toast);
+                onChange(imageUrl);
+            } catch (error) {
+                console.error("Image upload failed", error);
+            } finally {
+                setIsUploading(false);
+            }
         }
     };
 
@@ -70,8 +78,9 @@ const ImageInput = ({ value, onChange }: { value: string; onChange: (value: stri
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
             >
-                <Upload className="h-4 w-4" />
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             </Button>
             <input
                 type="file"
@@ -89,6 +98,8 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const router = useRouter();
     const { setTemplate, setData } = usePrint();
     const { toast } = useToast();
+    const isMobile = useMediaQuery("(max-width: 768px)");
+    const { token, tenantId } = useAuth();
 
     const [step, setStep] = useState<Step>('upload-data');
     const [fileName, setFileName] = useState<string | null>(null);
@@ -114,17 +125,29 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
 
             const placeholders = (templateData.objects as CanvasObject[])
                 .filter((obj): obj is CanvasObject & { key: string } => 'key' in obj && !!obj.key)
-                .map((obj: any) => ({
-                    key: obj.key,
-                    type: obj.type,
-                }));
+                .map((obj: any) => {
+                    const placeholder: TemplatePlaceholder = {
+                        key: obj.key,
+                        type: obj.type,
+                    };
+                    if (obj.type === 'qrcode') {
+                        placeholder.qrCodeType = (obj as QRCodeObject).qrCodeType;
+                    }
+                    return placeholder;
+                });
             
             const uniquePlaceholders = Array.from(new Map(placeholders.map((p: any) => [p.key, p])).values());
             setTemplatePlaceholders(uniquePlaceholders);
             
             // Initialize manual data with keys
-            const initialRow: Record<string, string> = {};
-            uniquePlaceholders.forEach(p => initialRow[p.key] = '');
+            const initialRow: Record<string, any> = {};
+            uniquePlaceholders.forEach(p => {
+                 if (p.type === 'qrcode' && p.qrCodeType !== 'text' && p.qrCodeType !== 'phone' && p.qrCodeType !== 'url') {
+                    initialRow[p.key] = {}; // Initialize as object for complex types
+                } else {
+                    initialRow[p.key] = '';
+                }
+            });
             setManualData([initialRow]);
 
         } catch (error) {
@@ -265,7 +288,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         let finalData: Record<string, any>[] | null = null;
         
         if(step === 'manual-data'){
-            finalData = manualData.filter(row => Object.values(row).some(val => val !== ''));
+            finalData = manualData.filter(row => Object.values(row).some(val => val !== '' && (typeof val !== 'object' || Object.values(val).some(subVal => subVal !== ''))));
             if(finalData.length === 0){
                 toast({ variant: 'destructive', title: 'Empty Data', description: 'Please enter at least one row of data.'});
                 setIsCreatingLabels(false);
@@ -311,17 +334,29 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         setFieldMapping(prev => ({...prev, [templateKey]: dataKey}));
     }
 
-    const handleManualDataChange = (rowIndex: number, key: string, value: string) => {
+    const handleManualDataChange = (rowIndex: number, key: string, value: string | Record<string, string>, subKey?: string) => {
         setManualData(prev => {
             const newData = [...prev];
-            newData[rowIndex] = {...newData[rowIndex], [key]: value};
+            const newRow = { ...newData[rowIndex] };
+            if (subKey) {
+                newRow[key] = { ...(newRow[key] || {}), [subKey]: value };
+            } else {
+                newRow[key] = value;
+            }
+            newData[rowIndex] = newRow;
             return newData;
         });
     }
 
     const addManualRow = () => {
-        const newRow: Record<string, string> = {};
-        templatePlaceholders.forEach(p => newRow[p.key] = '');
+        const newRow: Record<string, any> = {};
+        templatePlaceholders.forEach(p => {
+             if (p.type === 'qrcode' && p.qrCodeType !== 'text' && p.qrCodeType !== 'url' && p.qrCodeType !== 'phone') {
+                newRow[p.key] = {};
+            } else {
+                newRow[p.key] = '';
+            }
+        });
         setManualData(prev => [...prev, newRow]);
     }
 
@@ -449,6 +484,101 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
         </>
     );
 
+     const renderManualDataInputs = (placeholder: TemplatePlaceholder, rowIndex: number, row: Record<string, any>) => {
+        if (placeholder.type === 'image') {
+            return (
+                <ImageInput
+                    value={row[placeholder.key] || ''}
+                    onChange={(value) => handleManualDataChange(rowIndex, placeholder.key, value)}
+                    auth={{ token, tenantId }}
+                    toast={toast}
+                />
+            );
+        }
+
+        if (placeholder.type === 'qrcode' && placeholder.qrCodeType) {
+            switch(placeholder.qrCodeType) {
+                case 'email':
+                    return <div className="space-y-2">
+                        <Input placeholder="Email" value={row[placeholder.key]?.email || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'email')} className="h-8" />
+                        <Input placeholder="Subject" value={row[placeholder.key]?.subject || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'subject')} className="h-8" />
+                        <Textarea placeholder="Body" value={row[placeholder.key]?.body || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'body')} rows={2} />
+                    </div>;
+                case 'whatsapp':
+                    return <div className="space-y-2">
+                        <Input placeholder="Phone Number" value={row[placeholder.key]?.phone || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'phone')} className="h-8" />
+                        <Textarea placeholder="Message" value={row[placeholder.key]?.message || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'message')} rows={2} />
+                    </div>;
+                case 'location':
+                    return <div className="grid grid-cols-2 gap-2">
+                        <Input placeholder="Latitude" value={row[placeholder.key]?.latitude || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'latitude')} className="h-8" />
+                        <Input placeholder="Longitude" value={row[placeholder.key]?.longitude || ''} onChange={e => handleManualDataChange(rowIndex, placeholder.key, e.target.value, 'longitude')} className="h-8" />
+                    </div>;
+                case 'url':
+                case 'phone':
+                case 'text':
+                default:
+                     return <Input value={row[placeholder.key] || ''} onChange={(e) => handleManualDataChange(rowIndex, placeholder.key, e.target.value)} className="h-8" />;
+            }
+        }
+
+        return <Input value={row[placeholder.key] || ''} onChange={(e) => handleManualDataChange(rowIndex, placeholder.key, e.target.value)} className="h-8" />;
+    };
+
+
+    const renderManualDataDesktop = () => (
+         <Table>
+            <TableHeader>
+                <TableRow>
+                    {templatePlaceholders.map(p => <TableHead key={p.key}>{p.key}</TableHead>)}
+                    <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {manualData.map((row, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                        {templatePlaceholders.map(p => (
+                            <TableCell key={p.key}>
+                                {renderManualDataInputs(p, rowIndex, row)}
+                            </TableCell>
+                        ))}
+                        <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => removeManualRow(rowIndex)} disabled={manualData.length === 1}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    );
+
+    const renderManualDataMobile = () => (
+        <div className="space-y-4">
+            {manualData.map((row, rowIndex) => (
+                <div key={rowIndex} className="border rounded-lg p-4 space-y-4 relative">
+                    <h4 className="font-semibold">Label #{rowIndex + 1}</h4>
+                     {templatePlaceholders.map(p => (
+                        <div key={p.key} className="space-y-2">
+                            <Label htmlFor={`manual-${rowIndex}-${p.key}`}>{p.key}</Label>
+                            {renderManualDataInputs(p, rowIndex, row)}
+                        </div>
+                    ))}
+                    {manualData.length > 1 && (
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full mt-2"
+                            onClick={() => removeManualRow(rowIndex)}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Label
+                        </Button>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+
     const renderManualData = () => (
         <>
             <DialogHeader>
@@ -457,49 +587,14 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                    Add rows and fill in the data for each label you want to create.
                 </DialogDescription>
             </DialogHeader>
-             <div className="py-4 max-h-[60vh] overflow-y-auto">
+             <div className="py-4 max-h-[60vh] overflow-y-auto pr-2">
                 {isLoadingTemplate ? (
                      <div className="space-y-4">
                         <Skeleton className="h-10 w-full" />
                         <Skeleton className="h-10 w-full" />
                     </div>
-                ) : (
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {templatePlaceholders.map(p => <TableHead key={p.key}>{p.key}</TableHead>)}
-                            <TableHead className="w-[50px]"></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {manualData.map((row, rowIndex) => (
-                            <TableRow key={rowIndex}>
-                                {templatePlaceholders.map(p => (
-                                    <TableCell key={p.key}>
-                                        {p.type === 'image' ? (
-                                            <ImageInput
-                                                value={row[p.key] || ''}
-                                                onChange={(value) => handleManualDataChange(rowIndex, p.key, value)}
-                                            />
-                                        ) : (
-                                            <Input 
-                                                value={row[p.key] || ''}
-                                                onChange={(e) => handleManualDataChange(rowIndex, p.key, e.target.value)}
-                                                className="h-8"
-                                            />
-                                        )}
-                                    </TableCell>
-                                ))}
-                                <TableCell>
-                                    <Button variant="ghost" size="icon" onClick={() => removeManualRow(rowIndex)} disabled={manualData.length === 1}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                )}
+                ) : isMobile ? renderManualDataMobile() : renderManualDataDesktop()
+                }
                  <Button variant="outline" size="sm" onClick={addManualRow} className="mt-4">
                     <PlusCircle className="mr-2 h-4 w-4" /> Add Row
                 </Button>

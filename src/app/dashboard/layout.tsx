@@ -3,7 +3,6 @@
 import { Header } from '@/components/layout/header';
 import { PrintProvider } from '@/contexts/print-context';
 import { EditorProvider } from '@/contexts/editor-context';
-import { useState, useEffect } from 'react';
 
 export default function DashboardLayout({
   children,

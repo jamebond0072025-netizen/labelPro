@@ -31,7 +31,23 @@ export interface BarcodeObject extends BaseObject {
   value: string;
 }
 
-export type CanvasObject = TextObject | ImageObject | BarcodeObject;
+export type QRCodeType = 'text' | 'url' | 'phone' | 'email' | 'whatsapp' | 'location';
+
+export interface QRCodeObject extends BaseObject {
+    type: 'qrcode';
+    qrCodeType: QRCodeType;
+    value: string; // For text and URL
+    phone?: string; // For phone & whatsapp
+    email?: string;
+    subject?: string;
+    body?: string;
+    message?: string; // For whatsapp
+    latitude?: string;
+    longitude?: string;
+}
+
+
+export type CanvasObject = TextObject | ImageObject | BarcodeObject | QRCodeObject;
 
 export interface CanvasSettings {
   width: number;
@@ -52,7 +68,9 @@ export type ItemType =
   | 'static-text'
   | 'placeholder-image'
   | 'static-image'
-  | 'barcode';
+  | 'barcode'
+  | 'placeholder-qr'
+  | 'static-qr';
 
 export interface Template {
     id: number;

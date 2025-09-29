@@ -17,12 +17,12 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { EditorState } from '@/contexts/editor-context';
-import { toJpeg } from 'html-to-image';
+import { toPng } from 'html-to-image';
 import { Textarea } from './ui/textarea';
-import type { Template } from '@/lib/types';
+import type { QRCodeObject, Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
-import { apiCall } from '@/lib/api';
+import { apiCall, uploadImage } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
@@ -43,44 +43,6 @@ function dataURLtoFile(dataurl: string, filename: string): File {
     return new File([u8arr], filename, {type:mime});
 }
 
-const getCompressedImage = async (node: HTMLElement, width: number, height: number): Promise<string> => {
-    let quality = 0.95;
-    const targetSize = 48 * 1024; // 48KB target, leaving a small buffer
-
-    while (quality > 0.1) {
-        const dataUrl = await toJpeg(node, {
-            quality,
-            width,
-            height,
-            style: {
-                transform: 'scale(1)',
-                width: `${width}px`,
-                height: `${height}px`,
-            }
-        });
-
-        // Check size of the data URL
-        // Formula: (length * 3/4) - padding
-        const sizeInBytes = (dataUrl.length * (3/4)) - (dataUrl.endsWith('==') ? 2 : (dataUrl.endsWith('=') ? 1: 0));
-
-        if (sizeInBytes <= targetSize) {
-            return dataUrl;
-        }
-        quality -= 0.1;
-    }
-    
-    // If loop finishes, return lowest quality version
-     return toJpeg(node, {
-        quality: 0.1,
-        width,
-        height,
-        style: {
-            transform: 'scale(1)',
-            width: `${width}px`,
-            height: `${height}px`,
-        }
-    });
-};
 
 interface SaveTemplateDialogProps {
     isOpen: boolean;
@@ -123,6 +85,31 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     case 'barcode':
                         data[obj.key] = "123456789012";
                         break;
+                    case 'qrcode':
+                        const qrObject = obj as QRCodeObject;
+                        switch(qrObject.qrCodeType) {
+                            case 'text':
+                                data[obj.key] = "Sample QR Text";
+                                break;
+                             case 'url':
+                                data[obj.key] = "https://example.com";
+                                break;
+                            case 'phone':
+                                data[obj.key] = "14155552671";
+                                break;
+                            case 'email':
+                                data[obj.key] = { email: "test@example.com", subject: "Hello", body: "This is a test email" };
+                                break;
+                            case 'whatsapp':
+                                data[obj.key] = { phone: "14155552671", message: "Hello from my label!" };
+                                break;
+                            case 'location':
+                                data[obj.key] = { latitude: "37.7749", longitude: "-122.4194" };
+                                break;
+                            default:
+                                data[obj.key] = "Sample Value";
+                        }
+                        break;
                 }
             }
         });
@@ -142,11 +129,11 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
         setIsSaving(true);
         
         try {
-            const previewImage = await getCompressedImage(
-                editorState.canvasRef.current,
-                editorState.canvasSettings.width,
-                editorState.canvasSettings.height
-            );
+            const previewImageDataUrl = await toPng(editorState.canvasRef.current, {
+                quality: 0.95,
+                width: editorState.canvasSettings.width,
+                height: editorState.canvasSettings.height,
+            });
 
             const designJson = JSON.stringify({
                 settings: editorState.canvasSettings,
@@ -160,7 +147,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     category,
                     designJson,
                     bulkDataJson,
-                    previewImageUrl: previewImage
+                    previewImageUrl: previewImageDataUrl
                 };
                 if (existingTemplate) {
                     await updateMockTemplate(existingTemplate.id, templateData);
@@ -168,28 +155,40 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     await createMockTemplate(templateData);
                 }
             } else {
-                const formData = new FormData();
-                formData.append('Name', name);
-                formData.append('Description', description);
-                formData.append('Category', category);
-                formData.append('DesignJson', designJson);
-                formData.append('BulkDataJson', bulkDataJson);
+                const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.png`);
                 
-                const imageFile = dataURLtoFile(previewImage, `${name.replace(/\s+/g, '-')}-preview.jpg`);
-                formData.append('PreviewImage', imageFile);
+                try {
+                    const uploadedImageUrl = await uploadImage(imageFile, { token, tenantId }, toast);
 
-                const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
-                const method = existingTemplate ? 'PUT' : 'POST';
+                    const templatePayload = {
+                        Name: name,
+                        Description: description,
+                        Category: category,
+                        DesignJson: designJson,
+                        BulkDataJson: bulkDataJson,
+                        PreviewImageUrl: uploadedImageUrl,
+                    };
+                    
+                    const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
+                    const method = existingTemplate ? 'PUT' : 'POST';
 
-                await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
+                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
+
+                } catch (uploadError) {
+                    // uploadImage already shows a toast on failure, so we just log and stop
+                    console.error(uploadError);
+                    setIsSaving(false);
+                    return;
+                }
             }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });
             onOpenChange(false);
-            // This is a bit of a hack to force a refresh on the homepage.
-            // A more robust solution might involve a global state management library.
-            router.push('/');
-            // setTimeout(() => window.location.reload(), 100);
+            if (USE_DUMMY_TEMPLATES) {
+                window.location.href = '/';
+            } else {
+                router.push('/');
+            }
 
         } catch (error: any) {
             console.error(error);

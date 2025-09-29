@@ -1,8 +1,9 @@
+
 'use client';
 
 import { CanvasObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Layers, Type, Image as ImageIcon, Barcode, Trash2 } from 'lucide-react';
+import { Layers, Type, Image as ImageIcon, Barcode, Trash2, QrCode } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -24,6 +25,9 @@ const getObjectDisplayName = (object: CanvasObject) => {
         case 'barcode':
             if (object.key) return `{{${object.key}}}`;
             return 'Barcode';
+        case 'qrcode':
+            if (object.key) return `{{${object.key}}}`;
+            return 'QR Code';
         default:
             return 'Object';
     }
@@ -37,6 +41,8 @@ const getObjectIcon = (object: CanvasObject) => {
             return <ImageIcon className="h-4 w-4" />;
         case 'barcode':
             return <Barcode className="h-4 w-4" />;
+        case 'qrcode':
+            return <QrCode className="h-4 w-4" />;
         default:
             return <Layers className="h-4 w-4" />;
     }

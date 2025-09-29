@@ -1,14 +1,16 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
-import type { CanvasObject } from '@/lib/types';
+import { useState, useMemo, useCallback } from 'react';
+import type { CanvasObject, QRCodeObject } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
-import { Copy } from 'lucide-react';
+import { Copy, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
+import Papa from 'papaparse';
 
 
 interface DataPanelProps {
@@ -35,6 +37,31 @@ export function DataPanel({ objects, onReplaceData }: DataPanelProps) {
                         break;
                     case 'barcode':
                         data[obj.key] = "123456789012";
+                        break;
+                    case 'qrcode':
+                        const qrObject = obj as QRCodeObject;
+                        switch(qrObject.qrCodeType) {
+                            case 'text':
+                                data[obj.key] = "Sample QR Text";
+                                break;
+                             case 'url':
+                                data[obj.key] = "https://example.com";
+                                break;
+                            case 'phone':
+                                data[obj.key] = "14155552671";
+                                break;
+                            case 'email':
+                                data[obj.key] = { email: "test@example.com", subject: "Hello", body: "This is a test email" };
+                                break;
+                            case 'whatsapp':
+                                data[obj.key] = { phone: "14155552671", message: "Hello from my label!" };
+                                break;
+                            case 'location':
+                                data[obj.key] = { latitude: "37.7749", longitude: "-122.4194" };
+                                break;
+                            default:
+                                data[obj.key] = "Sample Value";
+                        }
                         break;
                 }
             }
@@ -70,24 +97,63 @@ export function DataPanel({ objects, onReplaceData }: DataPanelProps) {
         }
     }
 
+     const handleDownloadCSV = useCallback(() => {
+        const dataForCsv = [placeholderData];
+
+        const csvData = dataForCsv.map(row => {
+            const newRow: { [key: string]: string } = {};
+            for (const key in row) {
+                if (typeof row[key] === 'object' && row[key] !== null) {
+                    newRow[key] = JSON.stringify(row[key]);
+                } else {
+                    newRow[key] = row[key];
+                }
+            }
+            return newRow;
+        });
+
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'template_data.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, [placeholderData]);
+
 
     return (
        <ScrollArea className="h-full">
             <div className="p-4 pt-4 space-y-4">
                 <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
-                        Use the schema below to structure your data. Paste your JSON data in the field to test your template.
+                        Use the schema below to structure your data. You can paste JSON data for testing or download a sample CSV.
                     </p>
 
                     <div className="relative">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 h-7 w-7"
-                            onClick={handleCopySchema}
-                        >
-                            <Copy className="h-4 w-4" />
-                        </Button>
+                        <div className="absolute top-2 right-2 flex gap-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={handleDownloadCSV}
+                                title="Download CSV template"
+                            >
+                                <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={handleCopySchema}
+                                title="Copy JSON schema"
+                            >
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
                         <pre className="bg-muted rounded-md p-4 text-xs overflow-x-auto">
                             <code className="whitespace-pre-wrap break-words">{jsonSchemaString}</code>
                         </pre>

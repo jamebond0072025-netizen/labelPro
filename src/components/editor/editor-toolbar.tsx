@@ -25,7 +25,7 @@ import {
   Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
   ChevronsUp, ChevronsDown, MoreVertical, AlignCenter, AlignStartHorizontal,
   AlignCenterHorizontal, AlignEndHorizontal, AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  Columns, Rows,
+  Columns, Rows, Save, FileJson, ChevronDown, Upload, QrCode,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -114,6 +114,21 @@ export function EditorToolbar({
         <DropdownMenuItem onClick={() => onAddItem('barcode')}>
           <Barcode className="mr-2" /> Barcode
         </DropdownMenuItem>
+         <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+                <QrCode className="mr-2" /> QR Code
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+                <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => onAddItem('placeholder-qr')}>
+                        Placeholder QR
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => onAddItem('static-qr')}>
+                        Static QR
+                    </DropdownMenuItem>
+                </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
     </TooltipProvider>

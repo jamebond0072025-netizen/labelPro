@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -9,18 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Image as ImageIcon, FileJson, ChevronDown, Printer, Loader2, Upload } from 'lucide-react';
+import { Save, Image as ImageIcon, FileJson, ChevronDown, ChevronLeft, Upload, Printer, Loader2 } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Type } from 'lucide-react';
 import { useEditor } from '@/contexts/editor-context';
-import { usePrint } from '@/contexts/print-context';
-import { useToast } from '@/hooks/use-toast';
 import { toPng } from 'html-to-image';
-import jsPDF from 'jspdf';
 import { SaveTemplateDialog } from '../save-template-dialog';
 import type { Template } from '@/lib/types';
 import { ChevronLeft } from 'lucide-react';
+import { usePrint } from '@/contexts/print-context';
 
 
 export function Header() {
@@ -32,9 +30,8 @@ export function Header() {
   const isPrintPreview = pathname.includes('/print-preview');
   
   const { editorState, loadTemplate, existingTemplate } = useEditor();
-  const { printPageSettings } = usePrint();
-  const { toast } = useToast();
-  const [isPrinting, setIsPrinting] = useState(false);
+  const { handleDownloadPdf, isPrinting } = usePrint();
+
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,62 +88,15 @@ export function Header() {
     }
   };
 
- const handleDownloadPdf = async () => {
-    if (!printPageSettings) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Print settings not available.' });
-        return;
-    }
-
-    setIsPrinting(true);
-    const { pageSize } = printPageSettings;
-    const { orientation, unit, format } = pageSize.pdf;
-    const pdf = new jsPDF(orientation, unit, format);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const sheets = Array.from(document.querySelectorAll('.sheet'));
-
-    try {
-        for (let i = 0; i < sheets.length; i++) {
-            const sheet = sheets[i] as HTMLElement;
-             if (i > 0) {
-                pdf.addPage();
-            }
-            
-            const dataUrl = await toPng(sheet, {
-                quality: 1,
-                pixelRatio: 2,
-                width: pageSize.pxWidth,
-                height: pageSize.pxHeight,
-                style: {
-                    // Ensure the content is visible for capture
-                    //transform: 'scale(1)',
-                }
-            });
-
-            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        }
-
-        pdf.save('labels.pdf');
-
-    } catch (e) {
-        console.error(e);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate PDF.' });
-    } finally {
-        setIsPrinting(false);
-    }
-  };
-
-
   return (
     <>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-             <ChevronLeft className="h-6 w-6 text-primary" />      
-              <span className="font-semibold font-headline">Back</span>
-              </Button>
+            <Button variant="outline" size="sm">
+                <ChevronLeft className="h-6 w-6 text-primary" />      
+                <span className="font-semibold font-headline">Back</span>
+            </Button>
           </Link>
         </div>
 
@@ -197,8 +147,8 @@ export function Header() {
 
         {isPrintPreview && (
           <Button onClick={handleDownloadPdf} disabled={isPrinting}>
-            {isPrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
-            {isPrinting ? 'Generating...' : 'Download PDF'}
+              {isPrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
+              {isPrinting ? 'Generating...' : 'Download PDF'}
           </Button>
         )}
       </header>
@@ -213,5 +163,3 @@ export function Header() {
     </>
   );
 }
-
-    

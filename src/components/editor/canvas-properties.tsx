@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { CanvasSettings } from '@/lib/types';
@@ -14,6 +15,10 @@ import {
 } from '@/components/ui/select';
 import { Button } from '../ui/button';
 import { useState, useRef } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { uploadImage } from '@/lib/api';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface CanvasPropertiesProps {
   settings: CanvasSettings;
@@ -33,6 +38,9 @@ const standardSizes = [
 export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) {
   const [selectedSize, setSelectedSize] = useState('Custom');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { token, tenantId } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
@@ -42,14 +50,18 @@ export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) 
     }
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        onUpdate({ backgroundImage: e.target?.result as string });
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const imageUrl = await uploadImage(file, { token, tenantId }, toast);
+        onUpdate({ backgroundImage: imageUrl });
+      } catch (error) {
+        console.error("Image upload failed", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -122,7 +134,8 @@ export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) 
         <div className="space-y-2">
             <Label>Background Image</Label>
             <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                     {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Upload Image
                 </Button>
                 <input

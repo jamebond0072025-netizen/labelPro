@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { CanvasObject, TextObject, ImageObject, BarcodeObject, CanvasSettings, ItemType, Template } from '@/lib/types';
+import type { CanvasObject, TextObject, ImageObject, BarcodeObject, QRCodeObject, CanvasSettings, ItemType, Template } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
 import { getMockTemplates } from '@/lib/mock-api';
@@ -24,7 +24,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const [loadedTemplate, setLoadedTemplate] = useState<Template | undefined>(undefined);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const objectCounters = useRef({ text: 0, image: 0, barcode: 0 });
+  const objectCounters = useRef({ text: 0, image: 0, barcode: 0, qrcode: 0 });
 
   const { token, tenantId } = useAuth();
 
@@ -69,12 +69,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       setLoadedTemplate(template);
       setSelectedObjectIds([]);
       
-      const counters = { text: 0, image: 0, barcode: 0 };
+      const counters = { text: 0, image: 0, barcode: 0, qrcode: 0 };
       (finalDesign.objects || []).forEach((obj: CanvasObject) => {
         if ('key' in obj && obj.key) {
-            const match = obj.key.match(/^(text|image|barcode)_(\d+)$/);
+            const match = obj.key.match(/^(text|image|barcode|qrcode|qr)_(\d+)$/);
             if (match) {
-                const type = match[1] as 'text' | 'image' | 'barcode';
+                const type = match[1] === 'qr' ? 'qrcode' : (match[1] as 'text' | 'image' | 'barcode' | 'qrcode');
                 const num = parseInt(match[2], 10);
                 if (counters[type] < num) {
                     counters[type] = num;
@@ -113,39 +113,44 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
 
   useEffect(() => {
-  if (templateId && (USE_DUMMY_TEMPLATES || (token && tenantId))) {
-    const fetchAndLoadTemplate = async () => {
-      try {
-        let template: Template | undefined;
+    if (templateId) {
+      setIsLoadingTemplate(true);
+      const fetchAndLoadTemplate = async () => {
+        try {
+          let template: Template | undefined;
 
-        if (USE_DUMMY_TEMPLATES) {
-          const templates = await getMockTemplates();
-          template = templates.find(t => t.id === parseInt(templateId, 10));
-        } else {
-          // This will automatically handle 401 → GET_AUTH → retry
-          const response = await apiCall(
-            { url: `/LabelTemplate/${templateId}`, method: 'GET' },
-            { token, tenantId }
-          );
-          template = response.data;
+          if (USE_DUMMY_TEMPLATES) {
+            const templates = await getMockTemplates();
+            template = templates.find(t => t.id === parseInt(templateId, 10));
+          } else {
+             if (token && tenantId) {
+                const response = await apiCall({ url: `/LabelTemplate/${templateId}`, method: 'GET' }, { token, tenantId });
+                template = response.data;
+             }
+          }
+
+          if (template) {
+            loadTemplate(template);
+          }
+        } catch (error) {
+          console.error("Failed to fetch template for editing:", error);
+        } finally {
+            setIsLoadingTemplate(false);
         }
+      };
 
-        if (template) {
-          loadTemplate(template);
+       if (USE_DUMMY_TEMPLATES || (token && tenantId)) {
+            fetchAndLoadTemplate();
         }
-      } catch (error) {
-        console.error("Failed to fetch template for editing:", error);
-      }
-    };
-
-    fetchAndLoadTemplate();
-  }
-}, [templateId, token, tenantId]);
+    } else {
+        setIsLoadingTemplate(false);
+    }
+  }, [templateId, token, tenantId, loadTemplate]);
 
 
 
   const handleAddItem = (type: ItemType) => {
-    const newId = `${type}${Date.now()}`;
+    const newId = `${type}-${Date.now()}`;
     let newObject: CanvasObject;
     const canvasCenterX = (canvasRef.current?.offsetWidth || 0) / 2;
     const canvasCenterY = (canvasRef.current?.offsetHeight || 0) / 2;
@@ -190,6 +195,23 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
           key: barcodeKey,
         } as BarcodeObject;
         break;
+       case 'placeholder-qr':
+        objectCounters.current.qrcode++;
+        const qrKey = `qr_${objectCounters.current.qrcode}`;
+        newObject = {
+          id: newId, type: 'qrcode', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
+          value: `{{${qrKey}}}`,
+          qrCodeType: 'text',
+          key: qrKey,
+        } as QRCodeObject;
+        break;
+      case 'static-qr':
+        newObject = {
+          id: newId, type: 'qrcode', x: canvasCenterX - 50, y: canvasCenterY - 50, width: 100, height: 100, rotation: 0, opacity: 1,
+          qrCodeType: 'text',
+          value: 'https://example.com',
+        } as QRCodeObject;
+        break;
     }
 
     setObjects((prev) => [...prev, newObject]);
@@ -200,7 +222,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     setObjects([]);
     setSelectedObjectIds([]);
     setLoadedTemplate(undefined);
-    objectCounters.current = { text: 0, image: 0, barcode: 0 };
+    objectCounters.current = { text: 0, image: 0, barcode: 0, qrcode: 0 };
   };
 
   const handleLayerAction = (action: 'bring-forward' | 'send-backward' | 'delete') => {
@@ -236,12 +258,15 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         if (obj.id === id) {
           const updatedObj = { ...obj, ...newProps };
 
-          if ('key' in newProps && newProps.key !== undefined && newProps.key !== obj.key) {
+          if ('key' in newProps && newProps.key !== undefined && obj.key !== undefined) {
             const newKey = newProps.key;
             if (updatedObj.type === 'text' && updatedObj.key) {
                (updatedObj as TextObject).text = `{{${newKey}}}`;
             } else if (updatedObj.type === 'image' && updatedObj.key) {
                (updatedObj as ImageObject).src = `https://placehold.co/200x200.png?text={{${newKey}}}`;
+            }
+             else if (updatedObj.type === 'qrcode' && updatedObj.key) {
+               (updatedObj as QRCodeObject).value = `{{${newKey}}}`;
             }
           }
           return updatedObj;
@@ -261,7 +286,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
             if (obj.type === 'image') {
                 return { ...obj, src: newValue };
             }
-            if (obj.type === 'barcode') {
+            if (obj.type === 'barcode' || obj.type === 'qrcode') {
                 return { ...obj, value: newValue };
             }
         }

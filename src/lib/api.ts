@@ -6,7 +6,8 @@ interface AuthTokens {
   tenantId: string | null;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://crossbiz-api.apexpath.com/inventory-service/api";
+
 
 if (!API_BASE_URL) {
   console.error("API base URL is not configured in environment variables.");
@@ -16,6 +17,56 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { Accept: "*/*" },
 });
+
+export const uploadImage = async (file: File, auth: AuthTokens, toast: (options: { variant: 'destructive', title: string, description: string }) => void): Promise<string> => {
+    const MAX_FILE_SIZE_KB = 50;
+    if (file.size > MAX_FILE_SIZE_KB * 1024) {
+        toast({
+            variant: 'destructive',
+            title: 'Image Too Large',
+            description: `Please upload an image smaller than ${MAX_FILE_SIZE_KB} KB.`,
+        });
+        throw new Error(`File size exceeds ${MAX_FILE_SIZE_KB} KB`);
+    }
+
+    if (!USE_AUTH) {
+        // Fallback for local development without auth
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (!auth.token || !auth.tenantId) {
+        throw new Error("Authentication credentials not provided for image upload.");
+    }
+
+    const formData = new FormData();
+    formData.append('File', file);
+
+    try {
+        const response = await api.post('/LabelTemplate/UploadImage', formData, {
+            headers: {
+                'Authorization': `Bearer ${auth.token}`,
+                'X-Tenant-ID': auth.tenantId,
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        
+        const { fileName } = response.data;
+        if (!fileName) {
+            throw new Error("API did not return a filename for the uploaded image.");
+        }
+
+        return `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/${fileName}`;
+
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        throw new Error("Could not upload the image.");
+    }
+};
+
 
 // --- Helper: wait for SET_AUTH message from parent ---
 function waitForAuth(): Promise<AuthTokens> {

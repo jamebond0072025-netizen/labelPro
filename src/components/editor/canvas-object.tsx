@@ -1,12 +1,14 @@
 
+
 'use client';
 
-import React, { useRef, useEffect } from 'react';
-import { CanvasObject as CanvasObjectType, TextObject, BarcodeObject as BarcodeObjectType, ImageObject as ImageObjectType } from '@/lib/types';
+import React, { useRef, useEffect, useState } from 'react';
+import { CanvasObject as CanvasObjectType, TextObject, BarcodeObject as BarcodeObjectType, ImageObject as ImageObjectType, QRCodeObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import JsBarcode from 'jsbarcode';
-import { RotateCcw } from 'lucide-react';
+import QRCode from 'qrcode';
+import { RotateCcw, QrCode } from 'lucide-react';
 import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-interactions';
 
 interface CanvasObjectProps {
@@ -26,6 +28,29 @@ interface CanvasObjectProps {
   zoom: number;
 }
 
+const getQRCodeValue = (object: QRCodeObject): string => {
+    if (object.key) return object.value || '';
+    
+    switch (object.qrCodeType) {
+        case 'url':
+            return object.value || '';
+        case 'phone':
+            return `tel:${object.phone || ''}`;
+        case 'email':
+            const subject = object.subject ? `?subject=${encodeURIComponent(object.subject)}` : '';
+            const body = object.body ? `${subject ? '&' : '?'}body=${encodeURIComponent(object.body)}` : '';
+            return `mailto:${object.email || ''}${subject}${body}`;
+        case 'whatsapp':
+            const message = object.message ? `?text=${encodeURIComponent(object.message)}` : '';
+            return `https://wa.me/${object.phone || ''}${message}`;
+        case 'location':
+            return `geo:${object.latitude || 0},${object.longitude || 0}`;
+        case 'text':
+        default:
+            return object.value || '';
+    }
+}
+
 export function CanvasObject({
   object,
   isSelected,
@@ -39,6 +64,8 @@ export function CanvasObject({
 }: CanvasObjectProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const barcodeRef = useRef<SVGSVGElement>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
+
 
   useEffect(() => {
     if (isEditing && textAreaRef.current) {
@@ -63,6 +90,21 @@ export function CanvasObject({
       }
     }
   }, [object, object.width, object.height, object.value]);
+
+  useEffect(() => {
+    if (object.type === 'qrcode') {
+        const qrObject = object as QRCodeObject;
+        const qrValue = getQRCodeValue(qrObject);
+        if (qrValue) {
+             QRCode.toDataURL(qrValue, { errorCorrectionLevel: 'H' }, (err, url) => {
+                if (err) console.error(err);
+                setQrCodeDataUrl(url);
+            });
+        } else {
+             setQrCodeDataUrl('');
+        }
+    }
+  }, [object]);
 
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -114,6 +156,16 @@ export function CanvasObject({
                  <svg ref={barcodeRef} />
             </div>
         );
+      case 'qrcode':
+            if (qrCodeDataUrl) {
+                return <Image src={qrCodeDataUrl} alt="QR Code" layout="fill" objectFit="contain" />;
+            }
+            return (
+                 <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground text-xs p-2">
+                    <QrCode className="w-1/2 h-1/2" />
+                    <span>QR Code</span>
+                </div>
+            )
       default:
         return null;
     }

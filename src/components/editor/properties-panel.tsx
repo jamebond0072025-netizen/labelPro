@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { CanvasObject, TextObject, BarcodeObject, CanvasSettings, ImageObject } from '@/lib/types';
+import { CanvasObject, TextObject, BarcodeObject, QRCodeObject, CanvasSettings, ImageObject, QRCodeType } from '@/lib/types';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
@@ -15,15 +16,27 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
-import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { Separator } from '../ui/separator';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { uploadImage } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
 
 const googleFonts = [
     'Poppins', 'PT Sans', 'Roboto', 'Open Sans', 'Lato', 
     'Montserrat', 'Oswald', 'Raleway', 'Merriweather', 'Playfair Display'
+];
+
+const qrCodeTypes: { value: QRCodeType, label: string }[] = [
+    { value: 'text', label: 'Text' },
+    { value: 'url', label: 'URL' },
+    { value: 'phone', label: 'Phone Number' },
+    { value: 'email', label: 'Email' },
+    { value: 'whatsapp', label: 'WhatsApp' },
+    { value: 'location', label: 'Location' },
 ];
 
 interface PropertiesPanelProps {
@@ -42,6 +55,10 @@ export function PropertiesPanel({
   onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { token, tenantId } = useAuth();
+    const [isUploading, setIsUploading] = useState(false);
+    const { toast } = useToast();
+
 
   if (!selectedObject) {
     if (canvasSettings && onUpdateCanvasSettings) {
@@ -74,19 +91,27 @@ export function PropertiesPanel({
   const handleBarcodeUpdate = (props: Partial<BarcodeObject>) => {
     onUpdate(selectedObject.id, props);
   };
+
+  const handleQRCodeUpdate = (props: Partial<QRCodeObject>) => {
+    onUpdate(selectedObject.id, props);
+  };
   
   const handleImageUpdate = (props: Partial<ImageObject>) => {
     onUpdate(selectedObject.id, props);
   };
 
-  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        handleImageUpdate({ src: e.target?.result as string });
-      };
-      reader.readAsDataURL(file);
+      setIsUploading(true);
+      try {
+        const imageUrl = await uploadImage(file, { token, tenantId }, toast);
+        handleImageUpdate({ src: imageUrl });
+      } catch (error) {
+        console.error("Image upload failed", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -241,6 +266,161 @@ export function PropertiesPanel({
       </>
     );
   };
+
+  const renderQRCodeProperties = () => {
+    if (selectedObject.type !== 'qrcode') return null;
+    const qrCodeObject = selectedObject as QRCodeObject;
+    const isPlaceholder = qrCodeObject.key !== undefined;
+
+    return (
+      <>
+        <div className="space-y-2">
+            <Label htmlFor="qrcode-type">QR Code Type</Label>
+            <Select
+                value={qrCodeObject.qrCodeType}
+                onValueChange={(value: QRCodeType) => handleQRCodeUpdate({ qrCodeType: value })}
+            >
+                <SelectTrigger id="qrcode-type">
+                    <SelectValue placeholder="Select QR Code Type" />
+                </SelectTrigger>
+                <SelectContent>
+                    {qrCodeTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        
+        {isPlaceholder && (
+            <p className="text-xs text-muted-foreground">
+                The value for this {qrCodeObject.qrCodeType} QR code will be provided by the <code>{qrCodeObject.key}</code> data field.
+            </p>
+        )}
+
+        {!isPlaceholder && qrCodeObject.qrCodeType === 'text' && (
+            <div className="space-y-2">
+                <Label htmlFor="qrcode-value">Text</Label>
+                <Textarea
+                    id="qrcode-value"
+                    value={qrCodeObject.value}
+                    onChange={(e) => handleQRCodeUpdate({ value: e.target.value })}
+                    rows={3}
+                />
+            </div>
+        )}
+        
+        {!isPlaceholder && qrCodeObject.qrCodeType === 'url' && (
+            <div className="space-y-2">
+                <Label htmlFor="qrcode-url">URL</Label>
+                <Input
+                    id="qrcode-url"
+                    type="url"
+                    value={qrCodeObject.value || ''}
+                    onChange={(e) => handleQRCodeUpdate({ value: e.target.value })}
+                    placeholder="https://example.com"
+                />
+            </div>
+        )}
+
+        {!isPlaceholder && qrCodeObject.qrCodeType === 'phone' && (
+             <div className="space-y-2">
+                <Label htmlFor="qrcode-phone">Phone Number</Label>
+                <Input
+                    id="qrcode-phone"
+                    type="tel"
+                    value={qrCodeObject.phone || ''}
+                    onChange={(e) => handleQRCodeUpdate({ phone: e.target.value })}
+                    placeholder="e.g. +14155552671"
+                />
+            </div>
+        )}
+
+        {!isPlaceholder && qrCodeObject.qrCodeType === 'email' && (
+             <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="qrcode-email-address">Email Address</Label>
+                    <Input
+                        id="qrcode-email-address"
+                        type="email"
+                        value={qrCodeObject.email || ''}
+                        onChange={(e) => handleQRCodeUpdate({ email: e.target.value })}
+                        placeholder="e.g. name@example.com"
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="qrcode-email-subject">Subject</Label>
+                    <Input
+                        id="qrcode-email-subject"
+                        value={qrCodeObject.subject || ''}
+                        onChange={(e) => handleQRCodeUpdate({ subject: e.target.value })}
+                        placeholder="Optional subject line"
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="qrcode-email-body">Body</Label>
+                     <Textarea
+                        id="qrcode-email-body"
+                        value={qrCodeObject.body || ''}
+                        onChange={(e) => handleQRCodeUpdate({ body: e.target.value })}
+                        placeholder="Optional email body"
+                        rows={3}
+                    />
+                </div>
+            </div>
+        )}
+
+        {!isPlaceholder && qrCodeObject.qrCodeType === 'whatsapp' && (
+             <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="qrcode-whatsapp-phone">Phone Number</Label>
+                    <Input
+                        id="qrcode-whatsapp-phone"
+                        type="tel"
+                        value={qrCodeObject.phone || ''}
+                        onChange={(e) => handleQRCodeUpdate({ phone: e.target.value })}
+                        placeholder="Include country code, e.g. 14155552671"
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="qrcode-whatsapp-message">Message</Label>
+                    <Textarea
+                        id="qrcode-whatsapp-message"
+                        value={qrCodeObject.message || ''}
+                        onChange={(e) => handleQRCodeUpdate({ message: e.target.value })}
+                        placeholder="Optional pre-filled message"
+                        rows={3}
+                    />
+                </div>
+            </div>
+        )}
+
+         {!isPlaceholder && qrCodeObject.qrCodeType === 'location' && (
+             <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                        <Label htmlFor="qrcode-location-lat">Latitude</Label>
+                        <Input
+                            id="qrcode-location-lat"
+                            value={qrCodeObject.latitude || ''}
+                            onChange={(e) => handleQRCodeUpdate({ latitude: e.target.value })}
+                            placeholder="e.g. 37.7749"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="qrcode-location-lon">Longitude</Label>
+                        <Input
+                            id="qrcode-location-lon"
+                            value={qrCodeObject.longitude || ''}
+                            onChange={(e) => handleQRCodeUpdate({ longitude: e.target.value })}
+                            placeholder="e.g. -122.4194"
+                        />
+                    </div>
+                </div>
+            </div>
+        )}
+      </>
+    );
+  };
   
   const renderImageProperties = () => {
     if (selectedObject.type !== 'image') return null;
@@ -259,8 +439,8 @@ export function PropertiesPanel({
                     onChange={(e) => handleImageUpdate({ src: e.target.value })}
                     placeholder="Enter image URL"
                 />
-                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="h-4 w-4" />
+                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 </Button>
                 <input
                     type="file"
@@ -352,6 +532,7 @@ export function PropertiesPanel({
         {renderTextProperties()}
         {renderImageProperties()}
         {renderBarcodeProperties()}
+        {renderQRCodeProperties()}
 
         <Separator />
         
