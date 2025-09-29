@@ -77,11 +77,16 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
           if (typeof design === 'string') {
              design = JSON.parse(design); // This should handle the doubly escaped string.
           }
+
+          let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
+          if (t.previewImageUrl && t.updatedAt) {
+            previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
+          }
      
-          return { ...t, designJson: design,previewImageUrl:IMAGE_URL+t.previewImageUrl };
+          return { ...t, designJson: design, previewImageUrl };
         } catch (e) {
           console.warn(`Could not parse designJson for template ${t.id}`, t.designJson);
-          return { ...t, designJson: { settings: {}, objects: [] } };
+          return { ...t, designJson: { settings: {}, objects: [] }, previewImageUrl: `https://picsum.photos/seed/${t.id}/300/420` };
         }
       });
 
@@ -90,7 +95,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
       const formattedPlaceholders = parsedData.map((item: Template) => ({
         id: `template-${item.id}`,
         description: item.name,
-        imageUrl: IMAGE_URL+item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
+        imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
         imageHint: item.name,
         designJson: item.designJson,
         template: item,
