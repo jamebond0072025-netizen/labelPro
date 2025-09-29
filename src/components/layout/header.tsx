@@ -20,6 +20,7 @@ import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { SaveTemplateDialog } from '../save-template-dialog';
 import type { Template } from '@/lib/types';
+import { ChevronLeft } from 'lucide-react';
 
 
 export function Header() {
@@ -142,8 +143,10 @@ export function Header() {
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
-              <Type className="h-6 w-6 text-primary" />
-              <span className="font-semibold font-headline">Label Designer</span>
+          <Button variant="outline" size="sm">
+             <ChevronLeft className="h-6 w-6 text-primary" />      
+              <span className="font-semibold font-headline">Back</span>
+              </Button>
           </Link>
         </div>
 

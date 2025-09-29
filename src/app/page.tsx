@@ -240,9 +240,6 @@ const handleDelete = async () => {
                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                     <div className="space-y-2">
                         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Templates</h1>
-                        <p className="text-muted-foreground md:text-lg/relaxed">
-                            Kickstart your project with one of our professionally designed templates.
-                        </p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                       <div className="relative w-full sm:w-auto">
