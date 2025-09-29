@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelRight } from 'lucide-react';
+import { ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
@@ -34,10 +34,7 @@ export function PrintLayoutSettings({
   onPageSizeChange,
   isSheet = false 
 }: PrintLayoutSettingsProps) {
-  const [isPinned, setIsPinned] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const isOpen = isPinned || isHovered;
+  const [isOpen, setIsOpen] = useState(true);
 
   const content = (
     <div className="p-4 pt-12 space-y-4">
@@ -117,21 +114,19 @@ export function PrintLayoutSettings({
     <TooltipProvider>
       <div
         className={cn(
-          "bg-card border-l relative transition-all duration-300 print-hidden",
+          "bg-card border-l relative transition-all duration-300 print-hidden h-full",
           isOpen ? 'w-[300px]' : 'w-[56px]'
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="absolute top-2 left-2 z-10">
+        <div className="absolute top-1/2 -left-[15px] z-10 -translate-y-1/2">
           <Tooltip>
             <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
-                    <PanelRight className={cn("h-5 w-5", isPinned && "text-primary")} />
+                <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => setIsOpen(!isOpen)}>
+                    {isOpen ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5" />}
                 </Button>
             </TooltipTrigger>
              <TooltipContent side="left">
-                <p>{isPinned ? 'Unpin' : 'Pin'} Panel</p>
+                <p>{isOpen ? 'Collapse' : 'Expand'} Panel</p>
             </TooltipContent>
           </Tooltip>
         </div>

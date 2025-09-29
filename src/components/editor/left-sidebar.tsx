@@ -7,7 +7,7 @@ import { LayersPanel } from '@/components/editor/layers-panel';
 import { DataPanel } from '@/components/editor/data-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeft, Layers, Database } from 'lucide-react';
+import { PanelLeft, Layers, Database, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -34,14 +34,11 @@ export function LeftSidebar({
     onReplaceData,
     isSheet = false,
 }: LeftSidebarProps) {
-  const [isPinned, setIsPinned] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const isOpen = isPinned || isHovered;
+  const [isOpen, setIsOpen] = useState(true);
 
   const sidebarContent = (
       <ScrollArea className="h-full">
-        <div className="h-full flex flex-col pt-12">
+        <div className="h-full flex flex-col pt-4">
           <Accordion type="multiple" defaultValue={['layers', 'data']} className="w-full px-4">
               <AccordionItem value="layers">
                   <AccordionTrigger>
@@ -77,7 +74,7 @@ export function LeftSidebar({
 
   if (isSheet) {
     return (
-        <div className="bg-card h-full">
+        <div className="bg-card h-full pt-8">
             {sidebarContent}
         </div>
     )
@@ -87,37 +84,39 @@ export function LeftSidebar({
     <TooltipProvider>
       <div
         className={cn(
-          "bg-card border-r relative transition-all duration-300",
+          "bg-card border-r relative transition-all duration-300 h-full",
           isOpen ? 'w-[260px]' : 'w-[56px]'
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="absolute top-2 right-2 z-10 pt-1">
+        <div className="absolute top-1/2 -right-[15px] z-10 -translate-y-1/2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
-                 <PanelLeft className={cn("h-5 w-5", isPinned && "text-primary")} />
+              <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => setIsOpen(!isOpen)}>
+                 {isOpen ? <ChevronsLeft className="h-5 w-5" /> : <ChevronsRight className="h-5 w-5" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>{isPinned ? 'Unpin' : 'Pin'} Panel</p>
+              <p>{isOpen ? 'Collapse' : 'Expand'} Panel</p>
             </TooltipContent>
           </Tooltip>
         </div>
         {isOpen ? (
           sidebarContent
         ) : (
-          <div className="flex flex-col items-center gap-4 p-2 pt-16">
+          <div className="flex flex-col items-center gap-4 p-2 pt-6">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Layers className="h-6 w-6 text-muted-foreground" />
+                 <Button variant="ghost" size="icon">
+                    <Layers className="h-6 w-6 text-muted-foreground" />
+                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right"><p>Layers</p></TooltipContent>
             </Tooltip>
              <Tooltip>
               <TooltipTrigger asChild>
-                <Database className="h-6 w-6 text-muted-foreground" />
+                <Button variant="ghost" size="icon">
+                  <Database className="h-6 w-6 text-muted-foreground" />
+                </Button>
               </TooltipTrigger>
               <TooltipContent side="right"><p>Data</p></TooltipContent>
             </Tooltip>

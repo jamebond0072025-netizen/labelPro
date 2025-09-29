@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeft, Database, Trash2 } from 'lucide-react';
+import { Database, Trash2, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -27,10 +27,7 @@ export function PrintDataPanel({
     onDataUpdate,
     isSheet = false,
 }: PrintDataPanelProps) {
-  const [isPinned, setIsPinned] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const isOpen = isPinned || isHovered;
+  const [isOpen, setIsOpen] = useState(true);
 
   const handleValueChange = (rowIndex: number, key: string, value: string) => {
     const newData = [...data];
@@ -42,7 +39,6 @@ export function PrintDataPanel({
     const newData = data.filter((_, index) => index !== rowIndex);
     onDataUpdate(newData);
   };
-
 
   const sidebarContent = (
       <ScrollArea className="h-full">
@@ -107,21 +103,19 @@ export function PrintDataPanel({
     <TooltipProvider>
       <div
         className={cn(
-          "bg-card border-r relative transition-all duration-300 print-hidden",
+          "bg-card border-r relative transition-all duration-300 print-hidden h-full",
           isOpen ? 'w-[300px]' : 'w-[56px]'
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="absolute top-2 right-2 z-10 pt-1">
+        <div className="absolute top-1/2 -right-[15px] z-10 -translate-y-1/2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => setIsPinned(!isPinned)}>
-                 <PanelLeft className={cn("h-5 w-5", isPinned && "text-primary")} />
+              <Button variant="outline" size="icon" className="rounded-full h-8 w-8" onClick={() => setIsOpen(!isOpen)}>
+                 {isOpen ? <ChevronsLeft className="h-5 w-5" /> : <ChevronsRight className="h-5 w-5" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>{isPinned ? 'Unpin' : 'Pin'} Panel</p>
+              <p>{isOpen ? 'Collapse' : 'Expand'} Panel</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -131,7 +125,9 @@ export function PrintDataPanel({
           <div className="flex flex-col items-center gap-4 p-2 pt-16">
              <Tooltip>
               <TooltipTrigger asChild>
-                <Database className="h-6 w-6 text-muted-foreground" />
+                <Button variant="ghost" size="icon">
+                    <Database className="h-6 w-6 text-muted-foreground" />
+                </Button>
               </TooltipTrigger>
               <TooltipContent side="right"><p>Data</p></TooltipContent>
             </Tooltip>
