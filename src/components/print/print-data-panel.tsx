@@ -19,15 +19,15 @@ import { Label } from '../ui/label';
 interface PrintDataPanelProps {
     data: Record<string, any>[];
     onDataUpdate: (data: Record<string, any>[]) => void;
-    isSheet?: boolean;
+    defaultCollapsed?: boolean;
 }
 
 export function PrintDataPanel({ 
     data,
     onDataUpdate,
-    isSheet = false,
+    defaultCollapsed = false,
 }: PrintDataPanelProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
   const handleValueChange = (rowIndex: number, key: string, value: string) => {
     const newData = [...data];
@@ -91,14 +91,6 @@ export function PrintDataPanel({
       </ScrollArea>
   );
 
-  if (isSheet) {
-    return (
-        <div className="bg-card h-full w-full">
-            {sidebarContent}
-        </div>
-    )
-  }
-  
   return (
     <TooltipProvider>
       <div

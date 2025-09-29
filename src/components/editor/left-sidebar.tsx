@@ -7,7 +7,7 @@ import { LayersPanel } from '@/components/editor/layers-panel';
 import { DataPanel } from '@/components/editor/data-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { PanelLeft, Layers, Database, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Layers, Database, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -23,7 +23,7 @@ interface LeftSidebarProps {
   onSelectObject: (id: string) => void;
   onLayerAction: (action: 'delete') => void;
   onReplaceData: (data: Record<string, any>) => void;
-  isSheet?: boolean;
+  defaultCollapsed?: boolean;
 }
 
 export function LeftSidebar({ 
@@ -32,9 +32,9 @@ export function LeftSidebar({
     onSelectObject, 
     onLayerAction,
     onReplaceData,
-    isSheet = false,
+    defaultCollapsed = false,
 }: LeftSidebarProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
   const sidebarContent = (
       <ScrollArea className="h-full">
@@ -72,14 +72,6 @@ export function LeftSidebar({
       </ScrollArea>
   );
 
-  if (isSheet) {
-    return (
-        <div className="bg-card h-full pt-8">
-            {sidebarContent}
-        </div>
-    )
-  }
-  
   return (
     <TooltipProvider>
       <div

@@ -16,7 +16,7 @@ interface RightSidebarProps {
   canvasSettings: CanvasSettings;
   onUpdateCanvasSettings: (newSettings: Partial<CanvasSettings>) => void;
   onDelete: () => void;
-  isSheet?: boolean;
+  defaultCollapsed?: boolean;
 }
 
 export function RightSidebar({ 
@@ -25,9 +25,9 @@ export function RightSidebar({
   canvasSettings,
   onUpdateCanvasSettings,
   onDelete,
-  isSheet = false 
+  defaultCollapsed = false 
 }: RightSidebarProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
   const propertiesPanelContent = (
     <PropertiesPanel
@@ -39,14 +39,6 @@ export function RightSidebar({
     />
   );
   
-  if (isSheet) {
-    return (
-      <ScrollArea className="h-full pt-8">
-        {propertiesPanelContent}
-      </ScrollArea>
-    )
-  }
-
   return (
     <TooltipProvider>
       <div

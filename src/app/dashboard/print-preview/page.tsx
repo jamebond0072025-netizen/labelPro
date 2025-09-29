@@ -6,11 +6,10 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrint } from '@/contexts/print-context';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelLeft, PanelRight, Printer, Loader2 } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { LabelPreview } from '@/components/label-preview';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { PrintDataPanel } from '@/components/print/print-data-panel';
 import { PrintLayoutSettings } from '@/components/print/print-layout-settings';
@@ -171,49 +170,19 @@ export default function PrintPreviewPage() {
 
   return (
     <>
-      <div className="flex-1 flex w-full">
-        {isDesktop ? (
-            <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} />
-        ) : (
-             <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80 print-hidden">
-                        <PanelLeft className="h-5 w-5"/>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[300px]">
-                   <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} isSheet />
-                </SheetContent>
-            </Sheet>
-        )}
+      <div className="flex-1 flex w-full md:grid md:grid-cols-[auto_1fr_auto]">
+        <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} defaultCollapsed={!isDesktop} />
         
         {mainContent}
 
-        {isDesktop ? (
-            <PrintLayoutSettings 
-              layout={layout} 
-              onLayoutChange={handleLayoutChange} 
-              pageSize={pageSize.name}
-              onPageSizeChange={handleSizeChange}
-            />
-        ) : (
-            <Sheet>
-              <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-20 bg-background/80 print-hidden">
-                      <PanelRight className="h-5 w-5"/>
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[300px]">
-                  <PrintLayoutSettings 
-                    layout={layout} 
-                    onLayoutChange={handleLayoutChange} 
-                    isSheet
-                    pageSize={pageSize.name}
-                    onPageSizeChange={handleSizeChange}
-                  />
-              </SheetContent>
-          </Sheet>
-        )}
+        <PrintLayoutSettings 
+          layout={layout} 
+          onLayoutChange={handleLayoutChange} 
+          pageSize={pageSize.name}
+          onPageSizeChange={handleSizeChange}
+          defaultCollapsed={!isDesktop}
+        />
+
       </div>
       <style jsx global>{`
         @page {

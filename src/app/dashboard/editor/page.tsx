@@ -10,9 +10,7 @@ import { LeftSidebar } from '@/components/editor/left-sidebar';
 import { RightSidebar } from '@/components/editor/right-sidebar';
 import { EditorCanvas } from '@/components/editor/editor-canvas';
 import { useCanvasObjects } from '@/hooks/use-canvas-objects';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { PanelLeft, PanelRight, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { CanvasSettings } from '@/lib/types';
 import { useEditor } from '@/contexts/editor-context';
 
@@ -105,34 +103,15 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] overflow-hidden">
-      {isDesktop ? (
-          <LeftSidebar
-              objects={objects}
-              selectedObjectIds={selectedObjectIds}
-              onSelectObject={(id) => setSelectedObjectIds([id])}
-              onLayerAction={handleLayerAction}
-              onReplaceData={handleReplaceData}
-          />
-      ) : (
-          <Sheet>
-              <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] left-2 z-20 bg-background/80">
-                      <PanelLeft className="h-5 w-5"/>
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[260px]">
-                  <LeftSidebar
-                      objects={objects}
-                      selectedObjectIds={selectedObjectIds}
-                      onSelectObject={(id) => setSelectedObjectIds([id])}
-                      onLayerAction={handleLayerAction}
-                      onReplaceData={handleReplaceData}
-                      isSheet
-                  />
-              </SheetContent>
-          </Sheet>
-      )}
+    <div className="flex-1 flex flex-col md:grid md:grid-cols-[auto_1fr_auto] overflow-hidden">
+      <LeftSidebar
+          objects={objects}
+          selectedObjectIds={selectedObjectIds}
+          onSelectObject={(id) => setSelectedObjectIds([id])}
+          onLayerAction={handleLayerAction}
+          onReplaceData={handleReplaceData}
+          defaultCollapsed={!isDesktop}
+      />
 
       <div className="flex flex-col overflow-hidden">
         <EditorToolbar
@@ -164,35 +143,14 @@ export default function EditorPage() {
         />
       </div>
       
-      {isDesktop ? (
-          <RightSidebar 
+       <RightSidebar 
             selectedObject={selectedObject} 
             onUpdate={handleUpdateObject}
             canvasSettings={canvasSettings}
             onUpdateCanvasSettings={handleUpdateCanvasSettings}
             onDelete={() => handleLayerAction('delete')}
-          />
-      ) : (
-           <Sheet>
-              <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="lg:hidden fixed top-[4.5rem] right-2 z-20 bg-background/80">
-                      <PanelRight className="h-5 w-5"/>
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="p-0 w-[300px]">
-                  <RightSidebar 
-                    selectedObject={selectedObject} 
-                    onUpdate={handleUpdateObject} 
-                    canvasSettings={canvasSettings}
-                    onUpdateCanvasSettings={handleUpdateCanvasSettings}
-                    onDelete={() => handleLayerAction('delete')}
-                    isSheet 
-                  />
-              </SheetContent>
-          </Sheet>
-      )}
+            defaultCollapsed={!isDesktop}
+        />
     </div>
   );
 }
-
-    

@@ -24,7 +24,7 @@ interface PrintLayoutSettingsProps {
     onLayoutChange: (newLayout: Partial<PrintLayoutSettingsProps['layout']>) => void;
     pageSize: string;
     onPageSizeChange: (value: string) => void;
-    isSheet?: boolean;
+    defaultCollapsed?: boolean;
 }
 
 export function PrintLayoutSettings({ 
@@ -32,9 +32,9 @@ export function PrintLayoutSettings({
   onLayoutChange,
   pageSize,
   onPageSizeChange,
-  isSheet = false 
+  defaultCollapsed = false 
 }: PrintLayoutSettingsProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
   const content = (
     <div className="p-4 pt-12 space-y-4">
@@ -102,14 +102,6 @@ export function PrintLayoutSettings({
     </div>
   );
   
-  if (isSheet) {
-    return (
-      <ScrollArea className="h-full">
-        {content}
-      </ScrollArea>
-    )
-  }
-
   return (
     <TooltipProvider>
       <div
