@@ -36,6 +36,7 @@ const dataURLtoFile = (dataurl: string, filename: string): File => {
 
 
 const compressImage = (file: File): Promise<File> => {
+  const MAX_FILE_SIZE_KB = 50;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -52,9 +53,17 @@ const compressImage = (file: File): Promise<File> => {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
+        
+        let quality = 0.8;
+        let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        let compressedFile = dataURLtoFile(compressedDataUrl, file.name.replace(/\.[^/.]+$/, ".jpg"));
 
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8); // Compress to 80% quality JPEG
-        const compressedFile = dataURLtoFile(compressedDataUrl, file.name.replace(/\.[^/.]+$/, ".jpg"));
+        // Iteratively reduce quality if file is still too large
+        while (compressedFile.size > MAX_FILE_SIZE_KB * 1024 && quality > 0.1) {
+          quality -= 0.1;
+          compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          compressedFile = dataURLtoFile(compressedDataUrl, file.name.replace(/\.[^/.]+$/, ".jpg"));
+        }
         
         resolve(compressedFile);
       };
