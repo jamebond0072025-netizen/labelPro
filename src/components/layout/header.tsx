@@ -14,7 +14,7 @@ import { Save, Image as ImageIcon, FileJson, ChevronDown, ChevronLeft, Upload, P
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEditor } from '@/contexts/editor-context';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg } from 'html-to-image';
 import { SaveTemplateDialog } from '../save-template-dialog';
 import type { Template } from '@/lib/types';
 import { usePrint } from '@/contexts/print-context';
@@ -92,9 +92,9 @@ export function Header() {
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-4">
                 <ChevronLeft className="h-6 w-6 text-primary" />      
-                <span className="font-semibold font-headline">Back</span>
+                <span className="font-semibold font-headline hidden sm:inline">Back</span>
             </Button>
           </Link>
         </div>
@@ -104,9 +104,9 @@ export function Header() {
         
         {isEditor && (
           <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="mr-2 h-4 w-4" />
-                Load
+              <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-3" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Load</span>
               </Button>
                <input
                     type="file"
@@ -115,15 +115,15 @@ export function Header() {
                     accept=".json"
                     onChange={handleFileChange}
                 />
-              <Button variant="outline" size="sm" onClick={() => setIsSaveDialogOpen(true)}>
-                <Save className="mr-2 h-4 w-4" />
-                {templateId ? 'Update' : 'Save'}
+              <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-3" onClick={() => setIsSaveDialogOpen(true)}>
+                <Save className="h-4 w-4" />
+                <span className="hidden sm:inline">{templateId ? 'Update' : 'Save'}</span>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm">
-                    Export
-                    <ChevronDown className="ml-2 h-4 w-4" />
+                  <Button size="sm" className="h-9 sm:h-10 px-2 sm:px-3">
+                    <span className="hidden sm:inline">Export</span>
+                    <ChevronDown className="h-4 w-4 sm:ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -145,9 +145,9 @@ export function Header() {
         )}
 
         {isPrintPreview && (
-          <Button onClick={handleDownloadPdf} disabled={isPrinting}>
-              {isPrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
-              {isPrinting ? 'Generating...' : 'Download PDF'}
+          <Button onClick={handleDownloadPdf} disabled={isPrinting} size="sm" className="h-9 sm:h-10 px-2 sm:px-3">
+              {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+              <span className="hidden sm:inline">{isPrinting ? 'Generating...' : 'Download PDF'}</span>
           </Button>
         )}
       </header>
