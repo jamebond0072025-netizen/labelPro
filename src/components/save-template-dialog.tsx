@@ -189,7 +189,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             // This is a bit of a hack to force a refresh on the homepage.
             // A more robust solution might involve a global state management library.
             router.push('/');
-            setTimeout(() => window.location.reload(), 100);
+            // setTimeout(() => window.location.reload(), 100);
 
         } catch (error: any) {
             console.error(error);

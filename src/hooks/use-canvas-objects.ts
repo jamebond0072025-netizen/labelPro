@@ -113,34 +113,35 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
 
   useEffect(() => {
-    if (templateId && ((USE_DUMMY_TEMPLATES) || (token && tenantId))) {
-      const fetchAndLoadTemplate = async () => {
-        setIsLoadingTemplate(true);
-        try {
-            let template: Template | undefined;
-            if (USE_DUMMY_TEMPLATES) {
-              const templates = await getMockTemplates();
-              template = templates.find(t => t.id === parseInt(templateId, 10));
-            } else {
-              const response = await apiCall({ url: `/LabelTemplate/${templateId}`, method: 'GET' }, { token, tenantId });
-              template = response.data;
-            }
+  if (templateId && (USE_DUMMY_TEMPLATES || (token && tenantId))) {
+    const fetchAndLoadTemplate = async () => {
+      try {
+        let template: Template | undefined;
 
-            if (template) {
-              loadTemplate(template);
-            }
-        } catch (error: any) {
-            if (error.response?.status === 401 && USE_AUTH) {
-                window.parent.postMessage({ type: 'GET_AUTH' }, '*');
-            }
-            console.error("Failed to fetch template for editing:", error);
-        } finally {
-            setIsLoadingTemplate(false);
+        if (USE_DUMMY_TEMPLATES) {
+          const templates = await getMockTemplates();
+          template = templates.find(t => t.id === parseInt(templateId, 10));
+        } else {
+          // This will automatically handle 401 → GET_AUTH → retry
+          const response = await apiCall(
+            { url: `/LabelTemplate/${templateId}`, method: 'GET' },
+            { token, tenantId }
+          );
+          template = response.data;
         }
+
+        if (template) {
+          loadTemplate(template);
+        }
+      } catch (error) {
+        console.error("Failed to fetch template for editing:", error);
       }
-      fetchAndLoadTemplate();
-    }
-  }, [templateId, token, tenantId, loadTemplate]);
+    };
+
+    fetchAndLoadTemplate();
+  }
+}, [templateId, token, tenantId]);
+
 
 
   const handleAddItem = (type: ItemType) => {

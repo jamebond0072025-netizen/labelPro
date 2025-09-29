@@ -165,29 +165,39 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
     setUseTemplate(template);
   };
 
-  const handleDelete = async () => {
-      if (!deletingTemplate) return;
+const handleDelete = async () => {
+  if (!deletingTemplate) return;
 
-      setIsDeleting(true);
-      try {
-          if (USE_DUMMY_TEMPLATES) {
-              await deleteMockTemplate(deletingTemplate.id);
-          } else {
-              await apiCall({ url: `/LabelTemplate/${deletingTemplate.id}`, method: 'DELETE' }, { token, tenantId });
-          }
-          toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
-          setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
-      } catch (err: any) {
-          if (err.response?.status === 401 && USE_AUTH) {
-              window.parent.postMessage({ type: 'GET_AUTH' }, '*');
-          }
-          const errorMessage = err.response?.data?.message || err.message || "Could not delete template.";
-          toast({ variant: 'destructive', title: 'Error', description: errorMessage });
-      } finally {
-          setIsDeleting(false);
-          setDeletingTemplate(null);
-      }
+  try {
+    if (USE_DUMMY_TEMPLATES) {
+      await deleteMockTemplate(deletingTemplate.id);
+    } else {
+      // apiCall automatically retries if 401 occurs
+      await apiCall(
+        { url: `/LabelTemplate/${deletingTemplate.id}`, method: 'DELETE' },
+        { token, tenantId }
+      );
+    }
+
+    toast({
+      title: 'Template Deleted',
+      description: `"${deletingTemplate.name}" has been deleted.`
+    });
+
+    setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
+  } catch (err: any) {
+    const errorMessage =
+      err.response?.data?.message || err.message || "Could not delete template.";
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description: errorMessage
+    });
+  } finally {
+    setDeletingTemplate(null);
   }
+};
+
 
 
   return (
