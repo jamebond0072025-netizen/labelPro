@@ -44,6 +44,8 @@ export default function Home() {
 
   const { token, tenantId } = useAuth();
 
+const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/`;
+
   const fetchTemplates = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -75,7 +77,8 @@ export default function Home() {
           if (typeof design === 'string') {
              design = JSON.parse(design); // This should handle the doubly escaped string.
           }
-          return { ...t, designJson: design };
+     
+          return { ...t, designJson: design,previewImageUrl:IMAGE_URL+t.previewImageUrl };
         } catch (e) {
           console.warn(`Could not parse designJson for template ${t.id}`, t.designJson);
           return { ...t, designJson: { settings: {}, objects: [] } };
@@ -87,7 +90,7 @@ export default function Home() {
       const formattedPlaceholders = parsedData.map((item: Template) => ({
         id: `template-${item.id}`,
         description: item.name,
-        imageUrl: item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
+        imageUrl: IMAGE_URL+item.previewImageUrl || `https://picsum.photos/seed/${item.id}/300/420`,
         imageHint: item.name,
         designJson: item.designJson,
         template: item,
@@ -96,7 +99,10 @@ export default function Home() {
 
     } catch (err: any) {
       console.error("Failed to fetch templates:", err);
-      const errorMessage = err.response?.data?.message || err.message || "Failed to load templates. Please ensure you have access.";
+      if (err.status ===401) {
+          window.parent.postMessage({ type: 'GET_AUTH' }, '*');
+        }
+      const errorMessage = err.response?.data || err.message || "Failed to load templates. Please ensure you have access.";
       setError(errorMessage);
     } finally {
       setIsLoading(false);
