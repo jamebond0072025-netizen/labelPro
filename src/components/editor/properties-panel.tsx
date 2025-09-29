@@ -293,7 +293,7 @@ export function PropertiesPanel({
         
         {isPlaceholder && (
             <p className="text-xs text-muted-foreground">
-                The value for this {qrCodeObject.qrCodeType} QR code will be provided by the <code>{qrCodeObject.key}</code> data field.
+                The value for this {qrCodeObject.qrCodeType} QR code will be provided by the <code>{`{{${qrCodeObject.key}}}`}</code> data field.
             </p>
         )}
 
