@@ -60,7 +60,7 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
               key={obj.id}
               onClick={() => onSelectObject(obj.id)}
               className={cn(
-                'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 group',
+                'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2',
                 'hover:bg-muted',
                 selectedObjectIds.includes(obj.id) ? 'bg-muted' : 'bg-transparent'
               )}
@@ -70,7 +70,7 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
                   <span className="truncate">{getObjectDisplayName(obj)}</span>
               </div>
               {selectedObjectIds.includes(obj.id) && (
-                 <div className="flex items-center opacity-0 group-hover:opacity-100">
+                 <div className="flex items-center">
                     <Button 
                         variant="ghost" 
                         size="icon" 
