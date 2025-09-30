@@ -149,7 +149,11 @@ export function EditorToolbar({
   const clearAllDialog = (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        {clearAllTrigger}
+        {isMobile ? (
+          <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive">
+            <Trash2 className="mr-2" /> Clear All
+          </div>
+        ) : clearAllTrigger }
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -274,7 +278,7 @@ export function EditorToolbar({
                   </DropdownMenuPortal>
                 </DropdownMenuSub>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="p-0 focus:bg-transparent">
                  {clearAllDialog}
               </DropdownMenuItem>
             </DropdownMenuContent>
