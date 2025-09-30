@@ -155,7 +155,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         setIsLoadingTemplate(false);
         clearHistory();
     }
-  }, [templateId, token, tenantId, loadTemplate, clearHistory]);
+  }, [templateId, token, tenantId,  clearHistory]);
 
 
   const handleAddItem = (type: ItemType) => {

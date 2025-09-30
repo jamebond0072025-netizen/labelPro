@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback,useRef } from 'react';
 
 type HistoryState<T> = {
   past: T[];
@@ -10,9 +10,10 @@ type HistoryState<T> = {
 };
 
 export const useHistory = <T>(initialPresent: T) => {
+  const initial = useRef(initialPresent); 
   const [state, setState] = useState<HistoryState<T>>({
     past: [],
-    present: initialPresent,
+    present:  initial.current,
     future: [],
   });
 
@@ -67,13 +68,13 @@ export const useHistory = <T>(initialPresent: T) => {
     });
   }, []);
   
-  const clear = useCallback(() => {
+   const clear = useCallback(() => {
     setState({
-        past: [],
-        present: initialPresent,
-        future: [],
+      past: [],
+      present: initial.current, // stable ref
+      future: [],
     });
-  }, [initialPresent]);
+  }, []);
 
 
   return [state.present, { set, undo, redo, clear, canUndo, canRedo }] as const;
