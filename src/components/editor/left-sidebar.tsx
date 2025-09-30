@@ -1,13 +1,13 @@
 
+
 'use client';
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { LayersPanel } from '@/components/editor/layers-panel';
-import { DataPanel } from '@/components/editor/data-panel';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Layers, Database, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Layers, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -39,8 +39,8 @@ export function LeftSidebar({
   const sidebarContent = (
       <ScrollArea className="h-full">
         <div className="h-full flex flex-col pt-4">
-          <Accordion type="multiple" defaultValue={['layers', 'data']} className="w-full px-4">
-              <AccordionItem value="layers">
+          <Accordion type="single" collapsible defaultValue="layers" className="w-full px-4">
+              <AccordionItem value="layers" className="border-none">
                   <AccordionTrigger>
                       <div className="flex items-center gap-2">
                           <Layers className="h-4 w-4" />
@@ -54,17 +54,6 @@ export function LeftSidebar({
                           onSelectObject={onSelectObject}
                           onLayerAction={onLayerAction}
                       />
-                  </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="data">
-                  <AccordionTrigger>
-                      <div className="flex items-center gap-2">
-                          <Database className="h-4 w-4" />
-                          <span>Data Schema</span>
-                      </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                      <DataPanel objects={objects} onReplaceData={onReplaceData} />
                   </AccordionContent>
               </AccordionItem>
           </Accordion>

@@ -171,7 +171,7 @@ export default function PrintPreviewPage() {
   return (
     <>
       <div className="flex-1 flex w-full grid grid-cols-[auto_1fr_auto]">
-        <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} defaultCollapsed={!isDesktop} />
+        <PrintDataPanel data={data} onDataUpdate={handleDataUpdate} defaultCollapsed={true} />
         
         {mainContent}
 

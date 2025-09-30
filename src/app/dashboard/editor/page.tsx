@@ -110,7 +110,7 @@ export default function EditorPage() {
           onSelectObject={(id) => setSelectedObjectIds([id])}
           onLayerAction={handleLayerAction}
           onReplaceData={handleReplaceData}
-          defaultCollapsed={!isDesktop}
+          defaultCollapsed={true}
       />
 
       <div className="flex flex-col overflow-hidden">
