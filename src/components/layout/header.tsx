@@ -64,7 +64,7 @@ export function Header() {
 
     if (canvasRef?.current) {
       const node = canvasRef.current;
-      const exporter = format === 'png' ? toPng : (node: HTMLElement) => toPng(node, { quality: 1, backgroundColor: '#FFFFFF' });
+      const exporter = format === 'png' ? toPng : toJpeg;
 
 
       exporter(node, {
@@ -75,6 +75,7 @@ export function Header() {
           transform: 'scale(1)',
           width: `${canvasSettings.width}px`,
           height: `${canvasSettings.height}px`,
+          backgroundColor: canvasSettings.backgroundColor,
         }
       })
         .then((dataUrl) => {
@@ -168,5 +169,3 @@ export function Header() {
     </>
   );
 }
-
-    
