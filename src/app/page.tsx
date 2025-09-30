@@ -39,10 +39,13 @@ import {
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
 
+// In-memory cache
+let templateCache: Template[] | null = null;
+
 
 export default function Home() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [templates, setTemplates] = useState<Template[]>(templateCache || []);
+  const [isLoading, setIsLoading] = useState(!templateCache); // Only show loading skeleton on first visit
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
@@ -52,8 +55,10 @@ export default function Home() {
 
 const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/`;
 
-  const fetchTemplates = useCallback(async () => {
-    setIsLoading(true);
+  const fetchTemplates = useCallback(async (isBackgroundFetch = false) => {
+    if (!isBackgroundFetch) {
+        setIsLoading(true);
+    }
     setError(null);
     try {
       let data: Template[];
@@ -120,6 +125,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
       });
 
       setTemplates(parsedData);
+      templateCache = parsedData; // Update the cache
 
       const formattedPlaceholders = parsedData.map((item: Template) => ({
         id: `template-${item.id}`,
@@ -145,7 +151,9 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
 
   useEffect(() => {
     if ((USE_AUTH && token && tenantId) || !USE_AUTH) {
-      fetchTemplates();
+      // If we have cached data, don't show the main loader, fetch in background
+      const isBackground = !!templateCache;
+      fetchTemplates(isBackground);
     }
   }, [token, tenantId, fetchTemplates]);
 
@@ -191,8 +199,10 @@ const handleDelete = async () => {
       title: 'Template Deleted',
       description: `"${deletingTemplate.name}" has been deleted.`
     });
-
-    setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
+    
+    const newTemplates = templates.filter(t => t.id !== deletingTemplate.id);
+    setTemplates(newTemplates);
+    templateCache = newTemplates; // Update cache
   } catch (err: any) {
     const errorMessage =
       err.response?.data?.message || err.message || "Could not delete template.";
