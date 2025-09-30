@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -104,7 +103,10 @@ export default function Home() {
         // Dummy data handling remains mostly the same, but we can simulate search/pagination
         let allMockTemplates = await getMockTemplates();
         if (query) {
-          allMockTemplates = allMockTemplates.filter(t => t.name.toLowerCase().includes(query.toLowerCase()));
+          allMockTemplates = allMockTemplates.filter(t => 
+            t.name.toLowerCase().includes(query.toLowerCase()) ||
+            (t.category && t.category.toLowerCase().includes(query.toLowerCase()))
+          );
         }
         const paginatedData = allMockTemplates.slice((pageNum - 1) * pageSize, pageNum * pageSize);
         data = paginatedData;
@@ -112,14 +114,21 @@ export default function Home() {
       } else {
         const tableId = "LabelTemplate-Info";
         const endpoint = `/Inventory/global/${tableId}`;
-        const searchParams = query ? JSON.stringify([{ "labelName-contains": query }]) : "[]";
+        
+        let searchParamsArray = [];
+        if (query) {
+          searchParamsArray = [
+            { columnName: "labelName", operator: "LIKE", value: query, dataType: "VARCHAR(MAX)", logicOperator: "OR" },
+            { columnName: "Category", operator: "LIKE", value: query, dataType: "VARCHAR(MAX)", logicOperator: "OR" },
+          ];
+        }
         
         const params = {
           columns: "*",
           pageNumber: pageNum,
           pageSize,
           sortData: "",
-          searchParams,
+          searchParams: JSON.stringify(searchParamsArray),
           tableName: tableId,
           sortBy: "DESC",
           qID: 0,
