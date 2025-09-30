@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -53,9 +54,12 @@ function useDebounce(value: string, delay: number) {
   return debouncedValue;
 }
 
+// In-memory cache for templates
+let templateCache: Template[] | null = null;
+
 export default function Home() {
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [templates, setTemplates] = useState<Template[]>(templateCache || []);
+  const [isLoading, setIsLoading] = useState(!templateCache); // Only show main loader if cache is empty
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
@@ -87,20 +91,18 @@ export default function Home() {
   }
 
   const fetchTemplates = useCallback(async (query: string, pageNum: number, isNewSearch: boolean) => {
-    if (isNewSearch) {
+    if (isNewSearch && !templateCache) {
       setIsLoading(true);
-      setTemplates([]);
-    } else {
+    } else if (!isNewSearch) {
       setIsFetchingMore(true);
     }
     setError(null);
 
     try {
       let data: Template[] = [];
-      const pageSize = 3;
+      const pageSize = 10;
 
       if (USE_DUMMY_TEMPLATES) {
-        // Dummy data handling remains mostly the same, but we can simulate search/pagination
         let allMockTemplates = await getMockTemplates();
         if (query) {
           allMockTemplates = allMockTemplates.filter(t => 
@@ -114,11 +116,10 @@ export default function Home() {
       } else {
         const tableId = "LabelTemplate-Info";
         const endpoint = `/Inventory/global/${tableId}`;
-        let searchParamsArray = [];
+        
         let additionalWhere = "";
         if (query) {
-          
-          additionalWhere = `(labelName LIKE '%${query}%'  OR Category LIKE '%${query}%')`
+          additionalWhere = `(labelName LIKE '%${query}%' OR Category LIKE '%${query}%')`;
         }
         
         const params = {
@@ -126,10 +127,11 @@ export default function Home() {
           pageNumber: pageNum,
           pageSize,
           sortData: "",
-          searchParams: JSON.stringify(searchParamsArray),
+          searchParams: JSON.stringify([]),
           tableName: tableId,
           sortBy: "DESC",
-          additionalWhere
+          additionalWhere,
+          qID: 0,
         };
 
         const response = await apiCall({ url: endpoint, method: 'POST', data: params }, { token, tenantId });
@@ -170,8 +172,15 @@ export default function Home() {
       
       if (isNewSearch) {
         setTemplates(parsedData);
+        if(query === ''){
+           templateCache = parsedData;
+        }
       } else {
-        setTemplates(prev => [...prev, ...parsedData]);
+        const newTemplates = [...templates, ...parsedData];
+        setTemplates(newTemplates);
+        if(query === ''){
+            templateCache = newTemplates;
+        }
       }
 
       setPlaceHolderImages(parsedData.map((item: Template) => ({
@@ -191,7 +200,7 @@ export default function Home() {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [token, tenantId]);
+  }, [token, tenantId, templates]);
 
 
   useEffect(() => {
@@ -199,6 +208,7 @@ export default function Home() {
         setPage(1);
         fetchTemplates(debouncedSearchQuery, 1, true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchQuery, token, tenantId]);
 
   const [useTemplate, setUseTemplate] = useState<Template | null>(null);
@@ -224,7 +234,11 @@ export default function Home() {
         await apiCall({ url: `/LabelTemplate/${deletingTemplate.id}`, method: 'DELETE' }, { token, tenantId });
       }
       toast({ title: 'Template Deleted', description: `"${deletingTemplate.name}" has been deleted.` });
-      setTemplates(prev => prev.filter(t => t.id !== deletingTemplate.id));
+      
+      const newTemplates = templates.filter(t => t.id !== deletingTemplate.id);
+      setTemplates(newTemplates);
+      templateCache = newTemplates;
+
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || "Could not delete template.";
       toast({ variant: 'destructive', title: 'Error', description: errorMessage });
