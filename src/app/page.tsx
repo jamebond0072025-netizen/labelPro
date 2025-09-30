@@ -56,18 +56,64 @@ export default function Home() {
 
 const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/`;
 
+
+function transformLabelTemplate(original: any) {
+  return {
+    id: original.Id,
+    userId: original.UserId,
+    name: original.labelName,
+    description: original.Description ?? '',
+    category: original.Category ?? '',
+    designJson: original.DesignJson,
+    bulkDataJson: original.BulkDataJson,
+    previewImageUrl: original.PreviewImageUrl,
+    createdAt: original.CreatedAt,
+    updatedAt: original.UpdatedAt,
+  };
+}
+
+
+const fetchLabelTemplateInfo = useCallback(async () => {
+  try {
+    const tableId = "LabelTemplate-Info";
+    const endpoint = `/Inventory/global/${tableId}`;
+    const params = {
+      columns: "*",
+      pageNumber: 1,
+      pageSize: 50,
+      sortData: "",
+      searchParams: "[]",
+      tableName: tableId,
+      sortBy: "DESC",
+      qID: 0,
+    };
+
+    const response = await apiCall(
+      { url: endpoint, method: 'POST', data: params },
+      { token, tenantId }
+    );
+
+    return response.data;
+  } catch (err: any) {
+    console.error("Failed to fetch LabelTemplate-Info:", err);
+  
+  } 
+}, [token, tenantId]);
+
+
   const fetchTemplates = useCallback(async (isBackgroundFetch = false) => {
     if (!isBackgroundFetch) {
         setIsLoading(true);
     }
     setError(null);
     try {
-      let data: Template[];
+      let data: Template[]=[];
       if (USE_DUMMY_TEMPLATES) {
         data = await getMockTemplates();
       } else {
-        const response = await apiCall({ url: '/LabelTemplate', method: 'GET' }, { token, tenantId });
-        data = response.data;
+        const response = await  fetchLabelTemplateInfo();
+        data = response.results;
+        
       }
 
       if (!data || !Array.isArray(data)) {
@@ -75,6 +121,7 @@ const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/la
       }
       
       const parsedData = data.map(t => {
+        t=transformLabelTemplate(t)
         try {
           // The designJson might be a string that itself contains a stringified JSON, so we may need to parse it twice.
           let design = t.designJson;
