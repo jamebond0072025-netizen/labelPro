@@ -77,7 +77,7 @@ export function LeftSidebar({
       <div
         className={cn(
           "bg-card border-r relative transition-all duration-300 h-full",
-          isOpen ? 'w-[260px]' : 'w-[56px]'
+          isOpen ? 'w-[260px]' : 'w-[40px]'
         )}
       >
         <div className="absolute top-1/2 -right-[15px] z-10 -translate-y-1/2">
@@ -92,28 +92,7 @@ export function LeftSidebar({
             </TooltipContent>
           </Tooltip>
         </div>
-        {isOpen ? (
-          sidebarContent
-        ) : (
-          <div className="flex flex-col items-center gap-4 p-2 pt-6">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                 <Button variant="ghost" size="icon">
-                    <Layers className="h-6 w-6 text-muted-foreground" />
-                 </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right"><p>Layers</p></TooltipContent>
-            </Tooltip>
-             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Database className="h-6 w-6 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right"><p>Data</p></TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+        {isOpen && sidebarContent}
       </div>
     </TooltipProvider>
   );

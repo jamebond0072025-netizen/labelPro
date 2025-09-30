@@ -96,7 +96,7 @@ export function PrintDataPanel({
       <div
         className={cn(
           "bg-card border-r relative transition-all duration-300 print-hidden h-full",
-          isOpen ? 'w-[300px]' : 'w-[56px]'
+          isOpen ? 'w-[300px]' : 'w-[40px]'
         )}
       >
         <div className="absolute top-1/2 -right-[15px] z-10 -translate-y-1/2">
@@ -111,20 +111,7 @@ export function PrintDataPanel({
             </TooltipContent>
           </Tooltip>
         </div>
-        {isOpen ? (
-          sidebarContent
-        ) : (
-          <div className="flex flex-col items-center gap-4 p-2 pt-16">
-             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Database className="h-6 w-6 text-muted-foreground" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right"><p>Data</p></TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+        {isOpen && sidebarContent}
       </div>
     </TooltipProvider>
   );

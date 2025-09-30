@@ -107,7 +107,7 @@ export function PrintLayoutSettings({
       <div
         className={cn(
           "bg-card border-l relative transition-all duration-300 print-hidden h-full",
-          isOpen ? 'w-[300px]' : 'w-[56px]'
+          isOpen ? 'w-[300px]' : 'w-[40px]'
         )}
       >
         <div className="absolute top-1/2 -left-[15px] z-10 -translate-y-1/2">
@@ -122,14 +122,10 @@ export function PrintLayoutSettings({
             </TooltipContent>
           </Tooltip>
         </div>
-        {isOpen ? (
+        {isOpen && (
           <ScrollArea className="h-full">
             {content}
           </ScrollArea>
-        ) : (
-          <div className="flex flex-col items-center gap-2 p-2 pt-14">
-            {/* Icons can be placed here for collapsed view if needed */}
-          </div>
         )}
       </div>
     </TooltipProvider>
