@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
+import { Badge } from '@/components/ui/badge';
 
 // In-memory cache
 let templateCache: Template[] | null = null;
@@ -241,6 +242,7 @@ const handleDelete = async () => {
                         <CardContent className="p-0">
                           <Skeleton className="aspect-[3/4] w-full" />
                           <div className="p-3 space-y-2">
+                             <Skeleton className="h-4 w-1/2 mb-2" />
                             <Skeleton className="h-4 w-3/4" />
                             <Skeleton className="h-3 w-1/2" />
                           </div>
@@ -319,8 +321,11 @@ const handleDelete = async () => {
                                         </DropdownMenu>
                                     </div>
                                 </div>
-                                <div className="p-3 mt-auto">
-                                    <h3 className="font-semibold text-sm truncate">{template.name}</h3>
+                                <div className="p-3 mt-auto space-y-1">
+                                    {template.category && (
+                                        <Badge variant="secondary" className="font-normal">{template.category}</Badge>
+                                    )}
+                                    <h3 className="font-semibold text-sm truncate pt-1">{template.name}</h3>
                                     <p className="text-xs text-muted-foreground truncate">{template.description || 'No description'}</p>
                                 </div>
                             </CardContent>
