@@ -97,7 +97,7 @@ export default function Home() {
 
     try {
       let data: Template[] = [];
-      const pageSize = 10;
+      const pageSize = 3;
 
       if (USE_DUMMY_TEMPLATES) {
         // Dummy data handling remains mostly the same, but we can simulate search/pagination
@@ -114,13 +114,11 @@ export default function Home() {
       } else {
         const tableId = "LabelTemplate-Info";
         const endpoint = `/Inventory/global/${tableId}`;
-        
         let searchParamsArray = [];
+        let additionalWhere = "";
         if (query) {
-          searchParamsArray = [
-            { columnName: "labelName", operator: "LIKE", value: query, dataType: "VARCHAR(MAX)", logicOperator: "OR" },
-            { columnName: "Category", operator: "LIKE", value: query, dataType: "VARCHAR(MAX)", logicOperator: "OR" },
-          ];
+          
+          additionalWhere = `(labelName LIKE '%${query}%'  OR Category LIKE '%${query}%')`
         }
         
         const params = {
@@ -131,7 +129,7 @@ export default function Home() {
           searchParams: JSON.stringify(searchParamsArray),
           tableName: tableId,
           sortBy: "DESC",
-          qID: 0,
+          additionalWhere
         };
 
         const response = await apiCall({ url: endpoint, method: 'POST', data: params }, { token, tenantId });
