@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -29,9 +28,6 @@ import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Input } from './ui/input';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useAuth } from '@/hooks/use-auth';
-import { uploadImage } from '@/lib/api';
-
 
 interface UseTemplateDialogProps {
   template: Template;
@@ -46,22 +42,26 @@ interface TemplatePlaceholder {
     qrCodeType?: 'text' | 'url' | 'phone' | 'email' | 'whatsapp' | 'location';
 }
 
-const ImageInput = ({ value, onChange, auth, toast }: { value: string; onChange: (value: string) => void; auth: { token: string | null; tenantId: string | null }, toast: any }) => {
+const ImageInput = ({ value, onChange }: { value: string; onChange: (value: string) => void; }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setIsUploading(true);
-            try {
-                const imageUrl = await uploadImage(file, auth, toast);
-                onChange(imageUrl);
-            } catch (error) {
-                console.error("Image upload failed", error);
-            } finally {
-                setIsUploading(false);
-            }
+            setIsProcessing(true);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                onChange(dataUrl);
+                setIsProcessing(false);
+            };
+            reader.onerror = () => {
+                setIsProcessing(false);
+                // You might want to add a toast notification for the error here
+                console.error("Failed to read file.");
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -72,22 +72,23 @@ const ImageInput = ({ value, onChange, auth, toast }: { value: string; onChange:
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="Image URL or upload"
                 className="h-8 flex-1"
+                disabled={isProcessing}
             />
             <Button
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                disabled={isProcessing}
             >
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             </Button>
             <input
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={handleImageFileChange}
             />
         </div>
     );
@@ -99,7 +100,6 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     const { setTemplate, setData } = usePrint();
     const { toast } = useToast();
     const isMobile = useMediaQuery("(max-width: 768px)");
-    const { token, tenantId } = useAuth();
 
     const [step, setStep] = useState<Step>('upload-data');
     const [fileName, setFileName] = useState<string | null>(null);
@@ -490,8 +490,6 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                 <ImageInput
                     value={row[placeholder.key] || ''}
                     onChange={(value) => handleManualDataChange(rowIndex, placeholder.key, value)}
-                    auth={{ token, tenantId }}
-                    toast={toast}
                 />
             );
         }
@@ -620,3 +618,5 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
     </Dialog>
   );
 }
+
+    
