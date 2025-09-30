@@ -18,12 +18,14 @@ import { toPng, toJpeg } from 'html-to-image';
 import { SaveTemplateDialog } from '../save-template-dialog';
 import type { Template } from '@/lib/types';
 import { usePrint } from '@/contexts/print-context';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('templateId');
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const isEditor = pathname.includes('/editor');
   const isPrintPreview = pathname.includes('/print-preview');
@@ -86,15 +88,18 @@ export function Header() {
         });
     }
   };
+  
+  const buttonSize = isMobile ? 'icon' : 'sm';
+  const showButtonText = !isMobile;
 
   return (
     <>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-4">
+            <Button variant="outline" size={buttonSize} className="h-9 sm:h-10">
                 <ChevronLeft className="h-6 w-6 text-primary" />      
-                <span className="font-semibold font-headline hidden sm:inline">Back</span>
+                {showButtonText && <span className="font-semibold font-headline">Back</span>}
             </Button>
           </Link>
         </div>
@@ -104,9 +109,9 @@ export function Header() {
         
         {isEditor && (
           <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-3" onClick={() => fileInputRef.current?.click()}>
+              <Button variant="outline" size={buttonSize} className="h-9 sm:h-10" onClick={() => fileInputRef.current?.click()}>
                 <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">Load</span>
+                {showButtonText && <span className="ml-2">Load</span>}
               </Button>
                <input
                     type="file"
@@ -115,15 +120,16 @@ export function Header() {
                     accept=".json"
                     onChange={handleFileChange}
                 />
-              <Button variant="outline" size="sm" className="h-9 sm:h-10 px-2 sm:px-3" onClick={() => setIsSaveDialogOpen(true)}>
+              <Button variant="outline" size={buttonSize} className="h-9 sm:h-10" onClick={() => setIsSaveDialogOpen(true)}>
                 <Save className="h-4 w-4" />
-                <span className="hidden sm:inline">{templateId ? 'Update' : 'Save'}</span>
+                {showButtonText && <span className="ml-2">{templateId ? 'Update' : 'Save'}</span>}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button size="sm" className="h-9 sm:h-10 px-2 sm:px-3">
-                    <span className="hidden sm:inline">Export</span>
-                    <ChevronDown className="h-4 w-4 sm:ml-2" />
+                  <Button size={buttonSize} className="h-9 sm:h-10">
+                    <span className="sr-only">Export</span>
+                    {showButtonText ? <span>Export</span> : <ImageIcon className="h-4 w-4" />}
+                    <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -145,9 +151,9 @@ export function Header() {
         )}
 
         {isPrintPreview && (
-          <Button onClick={handleDownloadPdf} disabled={isPrinting} size="sm" className="h-9 sm:h-10 px-2 sm:px-3">
+          <Button onClick={handleDownloadPdf} disabled={isPrinting} size={buttonSize} className="h-9 sm:h-10">
               {isPrinting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
-              <span className="hidden sm:inline">{isPrinting ? 'Generating...' : 'Download PDF'}</span>
+              {showButtonText && <span className="ml-2">{isPrinting ? 'Generating...' : 'Download PDF'}</span>}
           </Button>
         )}
       </header>
@@ -162,3 +168,5 @@ export function Header() {
     </>
   );
 }
+
+    

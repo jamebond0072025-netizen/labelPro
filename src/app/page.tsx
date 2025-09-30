@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
-import { Header } from '@/components/header';
 
 
 export default function Home() {
@@ -219,6 +218,7 @@ const handleDelete = async () => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                       <div className="space-y-2">
                            <Skeleton className="h-10 w-64" />
+                           <Skeleton className="h-6 w-80" />
                       </div>
                       <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <Skeleton className="h-10 w-full sm:w-[300px]" />
@@ -376,3 +376,5 @@ const handleDelete = async () => {
     </div>
   );
 }
+
+    
