@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -21,8 +20,7 @@ interface LeftSidebarProps {
   objects: CanvasObject[];
   selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
-  onLayerAction: (action: 'delete') => void;
-  onReplaceData: (data: Record<string, any>) => void;
+  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
   defaultCollapsed?: boolean;
 }
 
@@ -31,7 +29,6 @@ export function LeftSidebar({
     selectedObjectIds, 
     onSelectObject, 
     onLayerAction,
-    onReplaceData,
     defaultCollapsed = false,
 }: LeftSidebarProps) {
   const [isOpen, setIsOpen] = useState(!defaultCollapsed);

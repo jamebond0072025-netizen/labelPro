@@ -3,7 +3,7 @@
 
 import { CanvasObject } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Layers, Type, Image as ImageIcon, Barcode, Trash2, QrCode } from 'lucide-react';
+import { Layers, Type, Image as ImageIcon, Barcode, Trash2, QrCode, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -11,7 +11,7 @@ interface LayersPanelProps {
   objects: CanvasObject[];
   selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
-  onLayerAction: (action: 'delete') => void;
+  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
 }
 
 const getObjectDisplayName = (object: CanvasObject) => {
@@ -70,15 +70,35 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
                   <span className="truncate">{getObjectDisplayName(obj)}</span>
               </div>
               {selectedObjectIds.includes(obj.id) && (
-                  <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
-                      title="Delete Layer"
-                  >
-                      <Trash2 className="h-4 w-4" />
-                  </Button>
+                 <div className="flex items-center opacity-0 group-hover:opacity-100">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={(e) => { e.stopPropagation(); onLayerAction('send-backward')}}
+                        title="Send Backward"
+                    >
+                        <ArrowDown className="h-4 w-4" />
+                    </Button>
+                     <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={(e) => { e.stopPropagation(); onLayerAction('bring-forward')}}
+                        title="Bring Forward"
+                    >
+                        <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6"
+                        onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
+                        title="Delete Layer"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                 </div>
               )}
             </button>
           ))}

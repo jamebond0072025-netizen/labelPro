@@ -18,6 +18,7 @@ import { useEditor } from '@/contexts/editor-context';
 export default function EditorPage() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('templateId');
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const [zoom, setZoom] = useState(1);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>({
@@ -40,7 +41,6 @@ export default function EditorPage() {
     handleLayerAction,
     handleUpdateObject,
     handleAlign,
-    handleReplaceData,
     handleLoadTemplateFromJson,
     canvasRef,
     setObjects,
@@ -72,9 +72,6 @@ export default function EditorPage() {
       setExistingTemplate(undefined);
     };
   }, [loadedTemplate, setExistingTemplate]);
-
-
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectIds[selectedObjectIds.length - 1]);
@@ -109,7 +106,6 @@ export default function EditorPage() {
           selectedObjectIds={selectedObjectIds}
           onSelectObject={(id) => setSelectedObjectIds([id])}
           onLayerAction={handleLayerAction}
-          onReplaceData={handleReplaceData}
           defaultCollapsed={true}
       />
 
@@ -117,7 +113,6 @@ export default function EditorPage() {
         <EditorToolbar
           onAddItem={handleAddItem}
           onClearAll={handleClearAll}
-          onLayerAction={handleLayerAction}
           onZoom={setZoom}
           zoom={zoom}
           selectedObjectIds={selectedObjectIds}

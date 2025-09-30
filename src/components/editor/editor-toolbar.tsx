@@ -23,9 +23,9 @@ import {
 } from '@/components/ui/tooltip';
 import {
   Undo, Redo, Plus, Type, ImageIcon, Barcode, Trash2, ZoomIn, ZoomOut,
-  ChevronsUp, ChevronsDown, MoreVertical, AlignCenter, AlignStartHorizontal,
+  MoreVertical, AlignCenter, AlignStartHorizontal,
   AlignCenterHorizontal, AlignEndHorizontal, AlignStartVertical, AlignCenterVertical, AlignEndVertical,
-  Columns, Rows, Save, FileJson, ChevronDown, Upload, QrCode,
+  Columns, Rows, QrCode,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -45,7 +45,6 @@ import type { ItemType } from '@/lib/types';
 interface EditorToolbarProps {
   onAddItem: (type: ItemType) => void;
   onClearAll: () => void;
-  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
   onZoom: (zoom: number) => void;
   zoom: number;
   selectedObjectIds: string[];
@@ -55,7 +54,6 @@ interface EditorToolbarProps {
 export function EditorToolbar({ 
     onAddItem, 
     onClearAll, 
-    onLayerAction,
     onZoom,
     zoom,
     selectedObjectIds,
@@ -225,13 +223,6 @@ export function EditorToolbar({
                 <ZoomOut className="mr-2" /> Zoom Out
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}>
-                <ChevronsUp className="mr-2" /> Bring Forward
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onLayerAction('send-backward')} disabled={!hasSelection}>
-                <ChevronsDown className="mr-2" /> Send Backward
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
                     <AlignCenter className="mr-2" /> Alignment
@@ -292,15 +283,6 @@ export function EditorToolbar({
         </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {addElementMenu}
-        <Separator orientation="vertical" className="h-8" />
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('bring-forward')} disabled={!hasSelection}><ChevronsUp /></Button></TooltipTrigger>
-            <TooltipContent><p>Bring Forward</p></TooltipContent>
-        </Tooltip>
-        <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => onLayerAction('send-backward')} disabled={!hasSelection}><ChevronsDown /></Button></TooltipTrigger>
-            <TooltipContent><p>Send Backward</p></TooltipContent>
-        </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {alignmentMenu}
       </div>
