@@ -145,7 +145,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     } else {
         setIsLoadingTemplate(false);
     }
-  }, [templateId, token, tenantId]);
+  }, [templateId, token, tenantId, loadTemplate]);
 
 
 
@@ -225,25 +225,21 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     objectCounters.current = { text: 0, image: 0, barcode: 0, qrcode: 0 };
   };
 
-  const handleLayerAction = (action: 'bring-forward' | 'send-backward' | 'delete') => {
-    if (selectedObjectIds.length === 0) return;
-    const selectedObjectId = selectedObjectIds[selectedObjectIds.length - 1];
-
-
+  const handleLayerAction = (id: string, action: 'bring-forward' | 'send-backward' | 'delete') => {
     if (action === 'delete') {
-      setObjects(objects.filter(o => !selectedObjectIds.includes(o.id)));
-      setSelectedObjectIds([]);
+      setObjects(objects.filter(o => o.id !== id));
+      setSelectedObjectIds(prev => prev.filter(selectedId => selectedId !== id));
       return;
     }
 
-    const currentIndex = objects.findIndex(obj => obj.id === selectedObjectId);
+    const currentIndex = objects.findIndex(obj => obj.id === id);
     if (currentIndex === -1) return;
 
     const newObjects = [...objects];
     const objectToMove = newObjects.splice(currentIndex, 1)[0];
 
     if (action === 'bring-forward') {
-      const newIndex = Math.min(objects.length -1, currentIndex + 1);
+      const newIndex = Math.min(objects.length, currentIndex + 1);
       newObjects.splice(newIndex, 0, objectToMove);
     } else if (action === 'send-backward') {
       const newIndex = Math.max(0, currentIndex - 1);
@@ -400,5 +396,3 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     isLoadingTemplate,
   };
 };
-
-    

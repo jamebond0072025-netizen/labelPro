@@ -20,7 +20,7 @@ interface LeftSidebarProps {
   objects: CanvasObject[];
   selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
-  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
+  onLayerAction: (id: string, action: 'bring-forward' | 'send-backward' | 'delete') => void;
   defaultCollapsed?: boolean;
 }
 

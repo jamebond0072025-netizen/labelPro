@@ -11,7 +11,7 @@ interface LayersPanelProps {
   objects: CanvasObject[];
   selectedObjectIds: string[];
   onSelectObject: (id: string) => void;
-  onLayerAction: (action: 'bring-forward' | 'send-backward' | 'delete') => void;
+  onLayerAction: (id: string, action: 'bring-forward' | 'send-backward' | 'delete') => void;
 }
 
 const getObjectDisplayName = (object: CanvasObject) => {
@@ -56,11 +56,11 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
       <div className="p-4 pt-4">
         <div className="space-y-1">
           {reversedObjects.map((obj) => (
-            <button
+            <div
               key={obj.id}
               onClick={() => onSelectObject(obj.id)}
               className={cn(
-                'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2',
+                'w-full text-left px-2 py-1.5 text-sm rounded-md flex items-center justify-between gap-2 cursor-pointer',
                 'hover:bg-muted',
                 selectedObjectIds.includes(obj.id) ? 'bg-muted' : 'bg-transparent'
               )}
@@ -69,38 +69,36 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
                   {getObjectIcon(obj)}
                   <span className="truncate">{getObjectDisplayName(obj)}</span>
               </div>
-              {selectedObjectIds.includes(obj.id) && (
-                 <div className="flex items-center">
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6"
-                        onClick={(e) => { e.stopPropagation(); onLayerAction('send-backward')}}
-                        title="Send Backward"
-                    >
-                        <ArrowDown className="h-4 w-4" />
-                    </Button>
-                     <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6"
-                        onClick={(e) => { e.stopPropagation(); onLayerAction('bring-forward')}}
-                        title="Bring Forward"
-                    >
-                        <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6"
-                        onClick={(e) => { e.stopPropagation(); onLayerAction('delete')}}
-                        title="Delete Layer"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
-                 </div>
-              )}
-            </button>
+               <div className="flex items-center">
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'send-backward')}}
+                      title="Send Backward"
+                  >
+                      <ArrowDown className="h-4 w-4" />
+                  </Button>
+                   <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'bring-forward')}}
+                      title="Bring Forward"
+                  >
+                      <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'delete')}}
+                      title="Delete Layer"
+                  >
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
+               </div>
+            </div>
           ))}
           {reversedObjects.length === 0 && (
             <p className="text-xs text-muted-foreground text-center py-4">No layers yet.</p>
