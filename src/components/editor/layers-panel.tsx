@@ -49,13 +49,12 @@ const getObjectIcon = (object: CanvasObject) => {
 }
 
 export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLayerAction }: LayersPanelProps) {
-  const reversedObjects = [...objects].reverse();
 
   return (
     <ScrollArea className="h-full">
       <div className="p-4 pt-4">
         <div className="space-y-1">
-          {reversedObjects.map((obj) => (
+          {objects.map((obj) => (
             <div
               key={obj.id}
               onClick={() => onSelectObject(obj.id)}
@@ -100,7 +99,7 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
                </div>
             </div>
           ))}
-          {reversedObjects.length === 0 && (
+          {objects.length === 0 && (
             <p className="text-xs text-muted-foreground text-center py-4">No layers yet.</p>
           )}
         </div>
