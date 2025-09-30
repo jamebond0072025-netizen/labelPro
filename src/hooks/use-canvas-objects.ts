@@ -9,8 +9,7 @@ import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
 import { getMockTemplates } from '@/lib/mock-api';
 import { apiCall } from '@/lib/api';
 import { useAuth } from './use-auth';
-
-const initialObjects: CanvasObject[] = [];
+import { useHistory } from './use-history';
 
 export type Alignment = 
   | 'left' | 'center' | 'right' 
@@ -19,7 +18,12 @@ export type Alignment =
 
 
 export const useCanvasObjects = (templateId: string | null, canvasSettings: CanvasSettings, onUpdateCanvasSettings: (settings: Partial<CanvasSettings>) => void) => {
-  const [objects, setObjects] = useState<CanvasObject[]>(initialObjects);
+  const [history, { set: setHistory, undo, redo, canUndo, canRedo, clear: clearHistory }] = useHistory<CanvasObject[]>([]);
+  const objects = history;
+  
+  // displayObjects maintains creation order for the layers panel
+  const [displayObjects, setDisplayObjects] = useState<CanvasObject[]>([]);
+
   const [selectedObjectIds, setSelectedObjectIds] = useState<string[]>([]);
   const [loadedTemplate, setLoadedTemplate] = useState<Template | undefined>(undefined);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
@@ -65,7 +69,11 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       const finalDesign = designJson as { settings: CanvasSettings; objects: CanvasObject[] };
 
       onUpdateCanvasSettings(finalDesign.settings);
-      setObjects(finalDesign.objects || []);
+      
+      const newObjects = finalDesign.objects || [];
+      setHistory(newObjects);
+      setDisplayObjects(newObjects);
+
       setLoadedTemplate(template);
       setSelectedObjectIds([]);
       
@@ -87,7 +95,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     } catch (error) {
       console.error("Error loading template:", error);
     }
-  }, [onUpdateCanvasSettings]);
+  }, [onUpdateCanvasSettings, setHistory]);
 
   const handleLoadTemplateFromJson = (file: File) => {
     const reader = new FileReader();
@@ -98,7 +106,8 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
         if (templateData.settings && templateData.objects) {
           onUpdateCanvasSettings(templateData.settings);
-          setObjects(templateData.objects);
+          setHistory(templateData.objects);
+          setDisplayObjects(templateData.objects);
           setSelectedObjectIds([]);
           setLoadedTemplate(undefined); // It's a new design, not an existing template
         } else {
@@ -144,9 +153,9 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         }
     } else {
         setIsLoadingTemplate(false);
+        clearHistory();
     }
-  }, [templateId, token, tenantId, loadTemplate]);
-
+  }, [templateId, token, tenantId, loadTemplate, clearHistory]);
 
 
   const handleAddItem = (type: ItemType) => {
@@ -214,28 +223,32 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         break;
     }
 
-    setObjects((prev) => [...prev, newObject]);
+    const newObjects = [...objects, newObject];
+    setHistory(newObjects);
+    setDisplayObjects(newObjects);
+
     setSelectedObjectIds([newId]);
   };
 
   const handleClearAll = () => {
-    setObjects([]);
+    setHistory([]);
+    setDisplayObjects([]);
     setSelectedObjectIds([]);
     setLoadedTemplate(undefined);
     objectCounters.current = { text: 0, image: 0, barcode: 0, qrcode: 0 };
   };
 
   const handleLayerAction = (id: string, action: 'bring-forward' | 'send-backward' | 'delete') => {
-    setObjects(currentObjects => {
-        if (action === 'delete') {
-            setSelectedObjectIds(prev => prev.filter(selectedId => selectedId !== id));
-            return currentObjects.filter(o => o.id !== id);
-        }
+    let newObjects = [...objects];
 
-        const currentIndex = currentObjects.findIndex(obj => obj.id === id);
-        if (currentIndex === -1) return currentObjects;
+    if (action === 'delete') {
+        setSelectedObjectIds(prev => prev.filter(selectedId => selectedId !== id));
+        newObjects = newObjects.filter(o => o.id !== id);
+        setDisplayObjects(prev => prev.filter(o => o.id !== id));
+    } else {
+        const currentIndex = newObjects.findIndex(obj => obj.id === id);
+        if (currentIndex === -1) return;
 
-        const newObjects = [...currentObjects];
         const [objectToMove] = newObjects.splice(currentIndex, 1);
 
         if (action === 'bring-forward') {
@@ -245,36 +258,35 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
             const newIndex = Math.max(0, currentIndex - 1);
             newObjects.splice(newIndex, 0, objectToMove);
         }
-        return newObjects;
-    });
+    }
+    setHistory(newObjects);
   };
 
   const handleUpdateObject = (id: string, newProps: Partial<CanvasObject>) => {
-    setObjects((prev) =>
-      prev.map((obj) => {
-        if (obj.id === id) {
-          const updatedObj = { ...obj, ...newProps };
+    const newObjects = objects.map((obj) => {
+      if (obj.id === id) {
+        const updatedObj = { ...obj, ...newProps };
 
-          if ('key' in newProps && newProps.key !== undefined && obj.key !== undefined) {
-            const newKey = newProps.key;
-            if (updatedObj.type === 'text' && updatedObj.key) {
-               (updatedObj as TextObject).text = `{{${newKey}}}`;
-            } else if (updatedObj.type === 'image' && updatedObj.key) {
-               (updatedObj as ImageObject).src = `https://placehold.co/200x200.png?text={{${newKey}}}`;
-            }
-             else if (updatedObj.type === 'qrcode' && updatedObj.key) {
-               (updatedObj as QRCodeObject).value = `{{${newKey}}}`;
-            }
+        if ('key' in newProps && newProps.key !== undefined && obj.key !== undefined) {
+          const newKey = newProps.key;
+          if (updatedObj.type === 'text' && updatedObj.key) {
+             (updatedObj as TextObject).text = `{{${newKey}}}`;
+          } else if (updatedObj.type === 'image' && updatedObj.key) {
+             (updatedObj as ImageObject).src = `https://placehold.co/200x200.png?text={{${newKey}}}`;
           }
-          return updatedObj;
+           else if (updatedObj.type === 'qrcode' && updatedObj.key) {
+             (updatedObj as QRCodeObject).value = `{{${newKey}}}`;
+          }
         }
-        return obj;
-      })
-    );
+        return updatedObj;
+      }
+      return obj;
+    });
+    setHistory(newObjects);
   };
 
   const handleReplaceData = (data: Record<string, any>) => {
-    setObjects(prev => prev.map(obj => {
+    const newObjects = objects.map(obj => {
         if ('key' in obj && obj.key && data[obj.key]) {
             const newValue = data[obj.key];
             if (obj.type === 'text') {
@@ -288,7 +300,8 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
             }
         }
         return obj;
-    }));
+    });
+    setHistory(newObjects);
   };
   
   const handleAlign = (alignment: Alignment) => {
@@ -318,7 +331,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         case 'bottom': newY = canvasHeight - obj.height; break;
       }
       newObjects[index] = { ...newObjects[index], x: newX, y: newY };
-      setObjects(newObjects);
+      setHistory(newObjects);
       return;
     }
   
@@ -330,7 +343,6 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       maxY = Math.max(maxY, obj.y + obj.height);
     });
 
-    const primaryObject = selectedObjects[0];
     switch(alignment) {
       case 'left':
         newObjects = newObjects.map(o => selectedObjectIds.includes(o.id) ? {...o, x: minX} : o);
@@ -377,12 +389,12 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
       });
     }
   
-    setObjects(newObjects);
+    setHistory(newObjects);
   };
 
   return {
     objects,
-    setObjects,
+    displayObjects,
     selectedObjectIds,
     setSelectedObjectIds,
     handleAddItem,
@@ -395,5 +407,9 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     canvasRef,
     loadedTemplate,
     isLoadingTemplate,
+    handleUndo: undo,
+    handleRedo: redo,
+    canUndo,
+    canRedo,
   };
 };

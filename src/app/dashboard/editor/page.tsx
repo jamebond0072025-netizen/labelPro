@@ -34,6 +34,7 @@ export default function EditorPage() {
   
   const {
     objects,
+    displayObjects,
     selectedObjectIds,
     setSelectedObjectIds,
     handleAddItem,
@@ -43,9 +44,12 @@ export default function EditorPage() {
     handleAlign,
     handleLoadTemplateFromJson,
     canvasRef,
-    setObjects,
     loadedTemplate,
-    isLoadingTemplate
+    isLoadingTemplate,
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo,
   } = useCanvasObjects(templateId, canvasSettings, handleUpdateCanvasSettings);
 
   const { setEditorState, loadTemplate, setExistingTemplate } = useEditor();
@@ -102,7 +106,7 @@ export default function EditorPage() {
   return (
     <div className="flex-1 flex flex-col grid grid-cols-[auto_1fr_auto] overflow-hidden">
       <LeftSidebar
-          objects={objects}
+          objects={displayObjects}
           selectedObjectIds={selectedObjectIds}
           onSelectObject={(id) => setSelectedObjectIds([id])}
           onLayerAction={handleLayerAction}
@@ -117,6 +121,10 @@ export default function EditorPage() {
           zoom={zoom}
           selectedObjectIds={selectedObjectIds}
           onAlign={handleAlign}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
         />
         <EditorCanvas
           canvasRef={canvasRef}
@@ -143,7 +151,7 @@ export default function EditorPage() {
             onUpdate={handleUpdateObject}
             canvasSettings={canvasSettings}
             onUpdateCanvasSettings={handleUpdateCanvasSettings}
-            onDelete={() => handleLayerAction('delete')}
+            onDelete={() => selectedObjectIds.forEach(id => handleLayerAction(id, 'delete'))}
             defaultCollapsed={!isDesktop}
         />
     </div>

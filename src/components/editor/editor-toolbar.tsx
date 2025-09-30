@@ -49,6 +49,10 @@ interface EditorToolbarProps {
   zoom: number;
   selectedObjectIds: string[];
   onAlign: (alignment: Alignment) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export function EditorToolbar({ 
@@ -58,6 +62,10 @@ export function EditorToolbar({
     zoom,
     selectedObjectIds,
     onAlign,
+    onUndo,
+    onRedo,
+    canUndo,
+    canRedo,
 }: EditorToolbarProps) {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const hasSelection = selectedObjectIds.length > 0;
@@ -216,6 +224,13 @@ export function EditorToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+                <Undo className="mr-2" /> Undo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+                <Redo className="mr-2" /> Redo
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onZoom(zoom + 0.1)}>
                 <ZoomIn className="mr-2" /> Zoom In
               </DropdownMenuItem>
@@ -274,12 +289,12 @@ export function EditorToolbar({
     <div className="w-full bg-card border-b p-2 flex items-center justify-between gap-2 z-20">
       <div className="flex items-center gap-2">
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" disabled><Undo /></Button></TooltipTrigger>
-            <TooltipContent><p>Undo (Coming Soon)</p></TooltipContent>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={onUndo} disabled={!canUndo}><Undo /></Button></TooltipTrigger>
+            <TooltipContent><p>Undo</p></TooltipContent>
         </Tooltip>
         <Tooltip>
-            <TooltipTrigger asChild><Button variant="ghost" size="icon" disabled><Redo /></Button></TooltipTrigger>
-            <TooltipContent><p>Redo (Coming Soon)</p></TooltipContent>
+            <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={onRedo} disabled={!canRedo}><Redo /></Button></TooltipTrigger>
+            <TooltipContent><p>Redo</p></TooltipContent>
         </Tooltip>
         <Separator orientation="vertical" className="h-8" />
         {addElementMenu}
