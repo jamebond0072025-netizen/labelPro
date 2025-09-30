@@ -54,7 +54,7 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
     <ScrollArea className="h-full">
       <div className="p-4 pt-4">
         <div className="space-y-1">
-          {objects.map((obj) => (
+          {[...objects].reverse().map((obj) => (
             <div
               key={obj.id}
               onClick={() => onSelectObject(obj.id)}
@@ -73,19 +73,19 @@ export function LayersPanel({ objects, selectedObjectIds, onSelectObject, onLaye
                       variant="ghost" 
                       size="icon" 
                       className="h-6 w-6"
-                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'send-backward')}}
-                      title="Send Backward"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'bring-forward')}}
+                      title="Bring Forward"
                   >
-                      <ArrowDown className="h-4 w-4" />
+                      <ArrowUp className="h-4 w-4" />
                   </Button>
                    <Button 
                       variant="ghost" 
                       size="icon" 
                       className="h-6 w-6"
-                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'bring-forward')}}
-                      title="Bring Forward"
+                      onClick={(e) => { e.stopPropagation(); onLayerAction(obj.id, 'send-backward')}}
+                      title="Send Backward"
                   >
-                      <ArrowUp className="h-4 w-4" />
+                      <ArrowDown className="h-4 w-4" />
                   </Button>
                   <Button 
                       variant="ghost" 

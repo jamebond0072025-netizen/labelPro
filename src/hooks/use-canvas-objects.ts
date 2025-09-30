@@ -145,7 +145,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     } else {
         setIsLoadingTemplate(false);
     }
-  }, [templateId, token, tenantId]);
+  }, [templateId, token, tenantId, loadTemplate]);
 
 
 
@@ -226,26 +226,27 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   };
 
   const handleLayerAction = (id: string, action: 'bring-forward' | 'send-backward' | 'delete') => {
-    if (action === 'delete') {
-      setObjects(objects.filter(o => o.id !== id));
-      setSelectedObjectIds(prev => prev.filter(selectedId => selectedId !== id));
-      return;
-    }
+    setObjects(currentObjects => {
+        if (action === 'delete') {
+            setSelectedObjectIds(prev => prev.filter(selectedId => selectedId !== id));
+            return currentObjects.filter(o => o.id !== id);
+        }
 
-    const currentIndex = objects.findIndex(obj => obj.id === id);
-    if (currentIndex === -1) return;
+        const currentIndex = currentObjects.findIndex(obj => obj.id === id);
+        if (currentIndex === -1) return currentObjects;
 
-    const newObjects = [...objects];
-    const objectToMove = newObjects.splice(currentIndex, 1)[0];
+        const newObjects = [...currentObjects];
+        const [objectToMove] = newObjects.splice(currentIndex, 1);
 
-    if (action === 'bring-forward') {
-      const newIndex = Math.min(objects.length, currentIndex + 1);
-      newObjects.splice(newIndex, 0, objectToMove);
-    } else if (action === 'send-backward') {
-      const newIndex = Math.max(0, currentIndex - 1);
-      newObjects.splice(newIndex, 0, objectToMove);
-    }
-    setObjects(newObjects);
+        if (action === 'bring-forward') {
+            const newIndex = Math.min(newObjects.length, currentIndex + 1);
+            newObjects.splice(newIndex, 0, objectToMove);
+        } else if (action === 'send-backward') {
+            const newIndex = Math.max(0, currentIndex - 1);
+            newObjects.splice(newIndex, 0, objectToMove);
+        }
+        return newObjects;
+    });
   };
 
   const handleUpdateObject = (id: string, newProps: Partial<CanvasObject>) => {
