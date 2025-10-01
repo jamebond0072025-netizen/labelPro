@@ -31,9 +31,9 @@ const nextConfig: NextConfig = {
       },
        {
       protocol: 'https',
-      hostname: 'crossbiz-api.apexpath.com',
+      hostname: 's3.ap-southeast-1.wasabisys.com',
       port: '',
-      pathname: '/inventory-service/images/labeltemplates/**',
+      pathname: '/**',
     },
     ],
   },

@@ -157,12 +157,12 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                 const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
                 const formData = new FormData();
-                formData.append('labelName', name);
+                formData.append('name', name);
                 formData.append('Description', description);
                 formData.append('Category', category);
                 formData.append('DesignJson', designJson);
                 formData.append('BulkDataJson', bulkDataJson);
-                formData.append('PreviewImageUrl', imageFile);
+                formData.append('PreviewImage', imageFile);
 
                 let endpoint, method;
                 if (existingTemplate) {

@@ -111,7 +111,7 @@ export const uploadImage = async (
   formData.append('File', compressedFile);
 
   try {
-    const response = await api.post('/inventory-service/api/LabelTemplate/UploadImage', formData, {
+    const response = await api.post('LabelTemplate/UploadImage', formData, {
       headers: {
         'Authorization': `Bearer ${auth.token}`,
         'X-Tenant-ID': auth.tenantId,
@@ -241,13 +241,6 @@ export const apiCall = async (
       auth.tenantId || "c6142cc8-4977-4b2f-92bf-b5f89a94a8fa";
   }
   
-  let finalUrl = config.url || '';
-  if (finalUrl.startsWith('/Inventory/global/') || finalUrl.startsWith('/Storage/signed-url')) {
-      finalUrl = `/inventory-service/api${finalUrl}`;
-  } else if (!finalUrl.startsWith('/inventory-service/api')) {
-      finalUrl = `/inventory-service/api${finalUrl}`;
-  }
-
 
   if (config.data instanceof FormData) {
     headers["Content-Type"] = "multipart/form-data";
@@ -255,7 +248,7 @@ export const apiCall = async (
     headers["Content-Type"] = "application/json";
   }
 
-  const finalConfig: AxiosRequestConfig = { ...config, headers, url: finalUrl };
+  const finalConfig: AxiosRequestConfig = { ...config, headers};
 
   try {
     return await api(finalConfig);
