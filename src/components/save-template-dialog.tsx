@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -22,7 +20,7 @@ import { Textarea } from './ui/textarea';
 import type { QRCodeObject, Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
-import { apiCall } from '@/lib/api';
+import { apiCall, uploadImage } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
@@ -157,18 +155,27 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
             } else {
                 const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
-                const formData = new FormData();
-                formData.append('Name', name);
-                formData.append('Description', description);
-                formData.append('Category', category);
-                formData.append('DesignJson', designJson);
-                formData.append('BulkDataJson', bulkDataJson);
-                formData.append('PreviewImage', imageFile);
+                const uploadedImageFileName = await uploadImage(imageFile, {token, tenantId}, toast);
 
-                const endpoint = existingTemplate ? `/LabelTemplate/${existingTemplate.id}` : '/LabelTemplate';
-                const method = existingTemplate ? 'PUT' : 'POST';
-
-                await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
+                const templatePayload = {
+                    labelName: name,
+                    Description: description,
+                    Category: category,
+                    DesignJson: designJson,
+                    BulkDataJson: bulkDataJson,
+                    PreviewImageUrl: uploadedImageFileName,
+                };
+                
+                let endpoint, method;
+                if (existingTemplate) {
+                    endpoint = `/LabelTemplate/${existingTemplate.id}`;
+                    method = 'PUT';
+                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
+                } else {
+                    endpoint = '/LabelTemplate';
+                    method = 'POST';
+                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
+                }
             }
             
             toast({ title: `Template ${existingTemplate ? 'Updated' : 'Saved'}!`, description: 'Your design has been saved successfully.' });

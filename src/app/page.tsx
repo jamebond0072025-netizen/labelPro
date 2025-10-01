@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -90,6 +89,30 @@ export default function Home() {
     };
   }
 
+  const getSignedUrl = useCallback(async (previewImageUrl: string) => {
+    if (!previewImageUrl || previewImageUrl.startsWith('http') || previewImageUrl.startsWith('data:')) {
+      return previewImageUrl;
+    }
+    try {
+      // The key is the part after "labeltemplates/" which includes tenantId and filename
+      const key = `labeltemplates/${tenantId}/${previewImageUrl}`;
+
+      const response = await apiCall(
+        { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
+        { token, tenantId }
+      );
+
+      if (response.data?.url) {
+        return response.data.url;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching signed URL for", previewImageUrl, error);
+      return null;
+    }
+  }, [token, tenantId]);
+
+
   const fetchTemplates = useCallback(async (query: string, pageNum: number, isNewSearch: boolean) => {
     if (isNewSearch && !templateCache) {
       setIsLoading(true);
@@ -143,7 +166,7 @@ export default function Home() {
         setHasMore(data.length === pageSize);
       }
       
-      const parsedData = data.map(t => {
+      const parsedData = await Promise.all(data.map(async (t) => {
         try {
           let design = t.designJson;
           if (typeof design === 'string') {
@@ -152,15 +175,14 @@ export default function Home() {
           if (typeof design === 'string') { // Double parse attempt
              try { design = JSON.parse(design); } catch (e) { design = {}; }
           }
-
-          let previewImageUrl = t.previewImageUrl ? `${IMAGE_URL}${tenantId}/${t.previewImageUrl}` : `https://picsum.photos/seed/${t.id}/300/420`;
-          if (t.previewImageUrl && t.previewImageUrl.startsWith('data:image')) {
-            previewImageUrl = t.previewImageUrl;
-          } else if (t.previewImageUrl) {
-             previewImageUrl =  `${IMAGE_URL}${tenantId}/${t.previewImageUrl}`;
-             if (t.updatedAt) {
-                previewImageUrl += `?updated=${new Date(t.updatedAt).getTime()}`;
-             }
+          
+          let previewImageUrl = t.previewImageUrl;
+          if (t.previewImageUrl && !t.previewImageUrl.startsWith('data:image')) {
+            previewImageUrl = await getSignedUrl(t.previewImageUrl);
+          }
+          
+          if (!previewImageUrl) {
+            previewImageUrl = `https://picsum.photos/seed/${t.id}/300/420`;
           }
      
           return { ...t, designJson: design, previewImageUrl };
@@ -168,7 +190,7 @@ export default function Home() {
           console.warn(`Could not parse designJson for template ${t.id}`);
           return { ...t, designJson: { settings: {}, objects: [] }, previewImageUrl: `https://picsum.photos/seed/${t.id}/300/420` };
         }
-      });
+      }));
       
       if (isNewSearch) {
         setTemplates(parsedData);
@@ -200,7 +222,7 @@ export default function Home() {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [token, tenantId, templates]);
+  }, [token, tenantId, templates, getSignedUrl]);
 
 
   useEffect(() => {

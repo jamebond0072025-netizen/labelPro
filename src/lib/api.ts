@@ -6,7 +6,7 @@ interface AuthTokens {
   tenantId: string | null;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://crossbiz-api.apexpath.com/inventory-service/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://crossbiz-api.apexpath.com";
 
 
 if (!API_BASE_URL) {
@@ -110,7 +110,7 @@ export const uploadImage = async (
   formData.append('File', compressedFile);
 
   try {
-    const response = await api.post('/LabelTemplate/UploadImage', formData, {
+    const response = await api.post('/inventory-service/api/LabelTemplate/UploadImage', formData, {
       headers: {
         'Authorization': `Bearer ${auth.token}`,
         'X-Tenant-ID': auth.tenantId,
@@ -121,7 +121,8 @@ export const uploadImage = async (
     const { fileName } = response.data;
     if (!fileName) throw new Error("API did not return a filename.");
 
-    return `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/${auth.tenantId}/${fileName}`;
+    // Return only the filename, not the full URL
+    return fileName;
   } catch (error) {
     const axiosError = error as AxiosError;
 
@@ -199,6 +200,14 @@ export const apiCall = async (
     headers["X-Tenant-ID"] =
       auth.tenantId || "c6142cc8-4977-4b2f-92bf-b5f89a94a8fa";
   }
+  
+  let finalUrl = config.url || '';
+  if (finalUrl.startsWith('/Inventory/global/') || finalUrl.startsWith('/Storage/signed-url')) {
+      finalUrl = `/inventory-service/api${finalUrl}`;
+  } else if (!finalUrl.startsWith('/inventory-service/api')) {
+      finalUrl = `/inventory-service/api${finalUrl}`;
+  }
+
 
   if (config.data instanceof FormData) {
     headers["Content-Type"] = "multipart/form-data";
@@ -206,7 +215,7 @@ export const apiCall = async (
     headers["Content-Type"] = "application/json";
   }
 
-  const finalConfig: AxiosRequestConfig = { ...config, headers };
+  const finalConfig: AxiosRequestConfig = { ...config, headers, url: finalUrl };
 
   try {
     return await api(finalConfig);
