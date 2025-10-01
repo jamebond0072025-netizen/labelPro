@@ -67,7 +67,7 @@ export default function Home() {
   const { token, tenantId } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -251,14 +251,12 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <main className="flex-1">
-        <div className="container w-full px-4 md:px-6 py-8">
+        <div className="container max-w-none px-4 md:px-6 py-8">
             <section id="templates" className="w-full">
                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                   <div className="space-y-2">
                       <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Templates</h1>
-                      <p className="text-muted-foreground md:text-lg/relaxed">
-                          Kickstart your project with one of our professionally designed templates.
-                      </p>
+                      
                   </div>
                   <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                     <div className="relative w-full sm:w-auto">
@@ -303,7 +301,7 @@ export default function Home() {
                       {templates.map(template => (
                           <Card key={template.id} className="overflow-hidden group hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
                               <CardContent className="p-0 flex flex-col flex-1">
-                                  <div className="relative aspect-[3/4] w-full bg-muted/30">
+                                  <div className="relative aspect-[1] w-full bg-muted/30">
                                       <Image
                                           src={template.previewImageUrl || `https://picsum.photos/seed/${template.id}/300/420`}
                                           alt={template.name}
@@ -359,10 +357,29 @@ export default function Home() {
                       </div>
                   )}
                   {templates.length === 0 && !isLoading && (
-                      <div className="mt-12 text-center text-muted-foreground">
-                          No templates found for &quot;{searchQuery}&quot;.
+                    <div className="flex flex-col items-center justify-center mt-20 text-center space-y-6">
+                      {/* Icon */}
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <Search className="h-8 w-8 text-muted-foreground" />
                       </div>
+
+                      {/* Message */}
+                      <div className="space-y-2">
+                        <h2 className="text-xl font-semibold">No templates found</h2>
+                        <p className="text-muted-foreground">
+                          Get started by creating your first design template.
+                        </p>
+                      </div>
+
+                      {/* Button */}
+                      <Button asChild size="lg" className="px-6">
+                        <Link href="/dashboard/editor">
+                          <Plus className="mr-2 h-5 w-5" /> Create New Design
+                        </Link>
+                      </Button>
+                    </div>
                   )}
+
                 </>
               )}
             </section>
