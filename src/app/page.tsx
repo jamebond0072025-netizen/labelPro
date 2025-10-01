@@ -72,8 +72,6 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const IMAGE_URL = `https://crossbiz-api.apexpath.com/inventory-service/images/labeltemplates/`;
-
   function transformLabelTemplate(original: any): Template {
     return {
       id: original.Id,
@@ -90,26 +88,30 @@ export default function Home() {
   }
 
   const getSignedUrl = useCallback(async (previewImageUrl: string) => {
-    if (!previewImageUrl || previewImageUrl.startsWith('http') || previewImageUrl.startsWith('data:')) {
-      return previewImageUrl;
-    }
-    try {
-      // The key is the part after "labeltemplates/" which includes tenantId and filename
-      const key = `labeltemplates/${tenantId}/${previewImageUrl}`;
-
-      const response = await apiCall(
-        { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
-        { token, tenantId }
-      );
-
-      if (response.data?.url) {
-        return response.data.url;
+      if (!previewImageUrl || !previewImageUrl.includes('upload/')) {
+        return previewImageUrl;
       }
-      return null;
-    } catch (error) {
-      console.error("Error fetching signed URL for", previewImageUrl, error);
-      return null;
-    }
+      try {
+        const uploadIndex = previewImageUrl.indexOf("upload/");
+        if (uploadIndex === -1) {
+            console.warn("Invalid file URL format. 'upload/' path not found in:", previewImageUrl);
+            return previewImageUrl; // Return original URL if format is unexpected
+        }
+        const key = previewImageUrl.substring(uploadIndex);
+
+        const response = await apiCall(
+            { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
+            { token, tenantId }
+        );
+
+        if (response.data?.url) {
+            return response.data.url;
+        }
+        return null;
+      } catch (error) {
+        console.error("Error fetching signed URL for", previewImageUrl, error);
+        return null;
+      }
   }, [token, tenantId]);
 
 
