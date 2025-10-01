@@ -16,7 +16,7 @@ import {
 import { Button } from '../ui/button';
 import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { uploadImage } from '@/lib/api';
+import { getSignedUrl, uploadImage } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -56,7 +56,10 @@ export function CanvasProperties({ settings, onUpdate }: CanvasPropertiesProps) 
       setIsUploading(true);
       try {
         const imageUrl = await uploadImage(file, { token, tenantId }, toast);
-        onUpdate({ backgroundImage: imageUrl });
+        const signedUrl= await getSignedUrl(imageUrl, { token, tenantId })
+        if(signedUrl){
+          onUpdate({ backgroundImage: signedUrl });
+        }
       } catch (error) {
         console.error("Image upload failed", error);
       } finally {

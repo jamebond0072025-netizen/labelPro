@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig, AxiosError } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosError } from "axios";
 import { USE_AUTH } from "./config";
 
 interface AuthTokens {
@@ -80,7 +80,7 @@ export const uploadImage = async (
   toast: (options: { variant: 'destructive'; title: string; description: string }) => void,
   retryCount = 0
 ): Promise<string> => {
-  const MAX_FILE_SIZE_KB = 50;
+  const MAX_FILE_SIZE_KB = 500;
 
   const compressedFile = await compressImage(file);
 
@@ -118,11 +118,11 @@ export const uploadImage = async (
       },
     });
 
-    const { fileName } = response.data;
-    if (!fileName) throw new Error("API did not return a filename.");
+    const { url } = response.data;
+    if (!url) throw new Error("API did not return a url.");
 
     // Return only the filename, not the full URL
-    return fileName;
+    return url;
   } catch (error) {
     const axiosError = error as AxiosError;
 

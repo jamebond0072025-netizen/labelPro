@@ -154,7 +154,7 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     await createMockTemplate(templateData);
                 }
             } else {
-                 const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
+                const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
                 const formData = new FormData();
                 formData.append('labelName', name);

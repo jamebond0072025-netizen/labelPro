@@ -22,7 +22,7 @@ import { Textarea } from '../ui/textarea';
 import { Separator } from '../ui/separator';
 import { useRef, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { uploadImage } from '@/lib/api';
+import { getSignedUrl, uploadImage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 const googleFonts = [
@@ -106,7 +106,10 @@ export function PropertiesPanel({
       setIsUploading(true);
       try {
         const imageUrl = await uploadImage(file, { token, tenantId }, toast);
-        handleImageUpdate({ src: imageUrl });
+        const signedUrl = await getSignedUrl(imageUrl, { token, tenantId });
+        if(signedUrl){
+            handleImageUpdate({ src: signedUrl });
+        }
       } catch (error) {
         console.error("Image upload failed", error);
       } finally {
