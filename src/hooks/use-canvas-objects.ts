@@ -7,7 +7,7 @@ import type { CanvasObject, TextObject, ImageObject, BarcodeObject, QRCodeObject
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
 import { getMockTemplates } from '@/lib/mock-api';
-import { apiCall } from '@/lib/api';
+import { apiCall, getSignedUrl } from '@/lib/api';
 import { useAuth } from './use-auth';
 import { useHistory } from './use-history';
 
@@ -33,7 +33,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
   const { token, tenantId } = useAuth();
 
 
-  const loadTemplate = useCallback((template: Template) => {
+  const loadTemplate = useCallback(async (template: Template) => {
     try {
       let designJson = template.designJson;
 
@@ -44,7 +44,6 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
             designJson = JSON.parse(designJson);
           } catch (e) {
             console.error("Primary parse failed, attempting secondary parse for doubly-escaped JSON", e);
-            // if the first parse fails, it may be a doubly-escaped string
           }
         } else {
             console.warn("designJson is not a valid JSON object string. Treating as empty.", designJson);
@@ -68,9 +67,25 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
 
       const finalDesign = designJson as { settings: CanvasSettings; objects: CanvasObject[] };
 
+      // Get signed URL for background image
+      if (finalDesign.settings.backgroundImage) {
+        const signedBgUrl = await getSignedUrl(finalDesign.settings.backgroundImage, { token, tenantId });
+        if (signedBgUrl) {
+            finalDesign.settings.backgroundImage = signedBgUrl;
+        }
+      }
       onUpdateCanvasSettings(finalDesign.settings);
       
-      const newObjects = finalDesign.objects || [];
+      const newObjects = await Promise.all((finalDesign.objects || []).map(async (obj) => {
+          if (obj.type === 'image' && obj.src) {
+              const signedSrc = await getSignedUrl(obj.src, { token, tenantId });
+              if (signedSrc) {
+                  return { ...obj, src: signedSrc };
+              }
+          }
+          return obj;
+      }));
+
       setHistory(newObjects);
       setDisplayObjects(newObjects);
 
@@ -95,19 +110,37 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     } catch (error) {
       console.error("Error loading template:", error);
     }
-  }, [onUpdateCanvasSettings, setHistory]);
+  }, [onUpdateCanvasSettings, setHistory, token, tenantId]);
 
   const handleLoadTemplateFromJson = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const jsonString = event.target?.result as string;
-        const templateData = JSON.parse(jsonString);
+        const templateData = JSON.parse(jsonString) as { settings: CanvasSettings; objects: CanvasObject[] };
 
         if (templateData.settings && templateData.objects) {
+          
+           if (templateData.settings.backgroundImage) {
+              const signedBgUrl = await getSignedUrl(templateData.settings.backgroundImage, { token, tenantId });
+              if (signedBgUrl) {
+                  templateData.settings.backgroundImage = signedBgUrl;
+              }
+           }
+          
+          const newObjects = await Promise.all(templateData.objects.map(async (obj) => {
+              if (obj.type === 'image' && obj.src) {
+                  const signedSrc = await getSignedUrl(obj.src, { token, tenantId });
+                  if (signedSrc) {
+                      return { ...obj, src: signedSrc };
+                  }
+              }
+              return obj;
+          }));
+
           onUpdateCanvasSettings(templateData.settings);
-          setHistory(templateData.objects);
-          setDisplayObjects(templateData.objects);
+          setHistory(newObjects);
+          setDisplayObjects(newObjects);
           setSelectedObjectIds([]);
           setLoadedTemplate(undefined); // It's a new design, not an existing template
         } else {
@@ -139,7 +172,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
           }
 
           if (template) {
-            loadTemplate(template);
+            await loadTemplate(template);
           }
         } catch (error) {
           console.error("Failed to fetch template for editing:", error);
@@ -155,7 +188,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         setIsLoadingTemplate(false);
         clearHistory();
     }
-  }, [templateId, token, tenantId,  clearHistory]);
+  }, [templateId, token, tenantId, clearHistory, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {

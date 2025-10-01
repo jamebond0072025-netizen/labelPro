@@ -149,6 +149,33 @@ export const uploadImage = async (
 };
 
 
+export const getSignedUrl = async (imageUrl: string, auth: AuthTokens): Promise<string | null> => {
+    if (!imageUrl || (!imageUrl.includes('upload/') && !imageUrl.startsWith('https://s3'))) {
+        return imageUrl;
+    }
+    try {
+        const uploadIndex = imageUrl.indexOf("upload/");
+        if (uploadIndex === -1) {
+            console.warn("Invalid file URL format. 'upload/' path not found in:", imageUrl);
+            return imageUrl;
+        }
+        const key = imageUrl.substring(uploadIndex);
+
+        const response = await apiCall(
+            { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
+            auth
+        );
+
+        if (response.data?.url) {
+            return response.data.url;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching signed URL for", imageUrl, error);
+        return null;
+    }
+};
+
 
 // --- Helper: wait for SET_AUTH message from parent ---
 function waitForAuth(): Promise<AuthTokens> {

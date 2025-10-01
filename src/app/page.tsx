@@ -35,7 +35,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import { getMockTemplates, deleteMockTemplate } from '@/lib/mock-api';
-import { apiCall } from '@/lib/api';
+import { apiCall, getSignedUrl } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 
 
@@ -86,34 +86,6 @@ export default function Home() {
       updatedAt: original.UpdatedAt,
     };
   }
-
-  const getSignedUrl = useCallback(async (previewImageUrl: string) => {
-      if (!previewImageUrl || !previewImageUrl.includes('upload/')) {
-        return previewImageUrl;
-      }
-      try {
-        const uploadIndex = previewImageUrl.indexOf("upload/");
-        if (uploadIndex === -1) {
-            console.warn("Invalid file URL format. 'upload/' path not found in:", previewImageUrl);
-            return previewImageUrl; // Return original URL if format is unexpected
-        }
-        const key = previewImageUrl.substring(uploadIndex);
-
-        const response = await apiCall(
-            { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
-            { token, tenantId }
-        );
-
-        if (response.data?.url) {
-            return response.data.url;
-        }
-        return null;
-      } catch (error) {
-        console.error("Error fetching signed URL for", previewImageUrl, error);
-        return null;
-      }
-  }, [token, tenantId]);
-
 
   const fetchTemplates = useCallback(async (query: string, pageNum: number, isNewSearch: boolean) => {
     if (isNewSearch && !templateCache) {
@@ -180,7 +152,7 @@ export default function Home() {
           
           let previewImageUrl = t.previewImageUrl;
           if (t.previewImageUrl && !t.previewImageUrl.startsWith('data:image')) {
-            previewImageUrl = await getSignedUrl(t.previewImageUrl);
+            previewImageUrl = await getSignedUrl(t.previewImageUrl, { token, tenantId });
           }
           
           if (!previewImageUrl) {
@@ -224,7 +196,7 @@ export default function Home() {
       setIsLoading(false);
       setIsFetchingMore(false);
     }
-  }, [token, tenantId, templates, getSignedUrl]);
+  }, [token, tenantId, templates]);
 
 
   useEffect(() => {
