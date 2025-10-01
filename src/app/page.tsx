@@ -144,11 +144,9 @@ export default function Home() {
         try {
           let design = t.designJson;
           if (typeof design === 'string') {
-            try { design = JSON.parse(design); } catch (e) { design = {}; }
+            try { design = JSON.parse(design); } catch (e) { design = { settings: { width: 300, height: 420, backgroundColor: "#ffffff" }, objects: [] }; }
           }
-          if (typeof design === 'string') { // Double parse attempt
-             try { design = JSON.parse(design); } catch (e) { design = {}; }
-          }
+          
           
           let previewImageUrl = t.previewImageUrl;
           if (t.previewImageUrl && !t.previewImageUrl.startsWith('data:image')) {
@@ -162,7 +160,14 @@ export default function Home() {
           return { ...t, designJson: design, previewImageUrl };
         } catch (e) {
           console.warn(`Could not parse designJson for template ${t.id}`);
-          return { ...t, designJson: { settings: {}, objects: [] }, previewImageUrl: `https://picsum.photos/seed/${t.id}/300/420` };
+          return { 
+            ...t, 
+            designJson: { 
+              settings: { width: 300, height: 420, backgroundColor: "#ffffff" }, 
+              objects: [] 
+            }, 
+            previewImageUrl: `https://picsum.photos/seed/${t.id}/300/420` 
+          };
         }
       }));
       
