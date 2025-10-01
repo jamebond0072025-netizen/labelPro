@@ -1,3 +1,4 @@
+
 import axios, { type AxiosRequestConfig, type AxiosError } from "axios";
 import { USE_AUTH } from "./config";
 
@@ -150,19 +151,31 @@ export const uploadImage = async (
 
 
 export const getSignedUrl = async (imageUrl: string, auth: AuthTokens): Promise<string | null> => {
-    if (!imageUrl || (!imageUrl.includes('upload/') && !imageUrl.startsWith('https://s3'))) {
+    if (
+        !imageUrl ||
+        (!imageUrl.includes("upload/") && !imageUrl.startsWith("https://s3"))
+    ) {
         return imageUrl;
     }
+
     try {
         const uploadIndex = imageUrl.indexOf("upload/");
         if (uploadIndex === -1) {
             console.warn("Invalid file URL format. 'upload/' path not found in:", imageUrl);
             return imageUrl;
         }
-        const key = imageUrl.substring(uploadIndex);
+
+        // Extract path starting from "upload/"
+        let key = imageUrl.substring(uploadIndex);
+
+        // Remove query params (anything after ?)
+        const queryIndex = key.indexOf("?");
+        if (queryIndex !== -1) {
+            key = key.substring(0, queryIndex);
+        }
 
         const response = await apiCall(
-            { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: 'GET' },
+            { url: `/Storage/signed-url?key=${encodeURIComponent(key)}`, method: "GET" },
             auth
         );
 
