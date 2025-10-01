@@ -483,6 +483,14 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
             </DialogFooter>
         </>
     );
+    
+    const getPlaceholderLabel = (placeholder: TemplatePlaceholder) => {
+        if (placeholder.type === 'qrcode' && placeholder.qrCodeType) {
+            return `${placeholder.key} (${placeholder.qrCodeType})`;
+        }
+        return placeholder.key;
+    };
+
 
      const renderManualDataInputs = (placeholder: TemplatePlaceholder, rowIndex: number, row: Record<string, any>) => {
         if (placeholder.type === 'image') {
@@ -528,7 +536,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
          <Table>
             <TableHeader>
                 <TableRow>
-                    {templatePlaceholders.map(p => <TableHead key={p.key}>{p.key}</TableHead>)}
+                    {templatePlaceholders.map(p => <TableHead key={p.key}>{getPlaceholderLabel(p)}</TableHead>)}
                     <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
             </TableHeader>
@@ -558,7 +566,7 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
                     <h4 className="font-semibold">Label #{rowIndex + 1}</h4>
                      {templatePlaceholders.map(p => (
                         <div key={p.key} className="space-y-2">
-                            <Label htmlFor={`manual-${rowIndex}-${p.key}`}>{p.key}</Label>
+                            <Label htmlFor={`manual-${rowIndex}-${p.key}`}>{getPlaceholderLabel(p)}</Label>
                             {renderManualDataInputs(p, rowIndex, row)}
                         </div>
                     ))}
@@ -619,4 +627,5 @@ export function UseTemplateDialog({ template, onOpenChange }: UseTemplateDialogP
   );
 }
 
+    
     
