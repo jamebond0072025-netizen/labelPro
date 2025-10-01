@@ -188,7 +188,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         setIsLoadingTemplate(false);
         clearHistory();
     }
-  }, [templateId, token, tenantId, clearHistory]);
+  }, [templateId, token, tenantId, clearHistory, loadTemplate]);
 
 
   const handleAddItem = (type: ItemType) => {
@@ -336,6 +336,50 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     });
     setHistory(newObjects);
   };
+
+   const handleDuplicate = () => {
+    if (selectedObjectIds.length === 0) return;
+
+    let newObjects = [...objects];
+    const newSelectedIds: string[] = [];
+
+    selectedObjectIds.forEach(id => {
+      const originalObject = objects.find(obj => obj.id === id);
+      if (!originalObject) return;
+
+      const newId = `${originalObject.type}-${Date.now()}-${Math.random()}`;
+      const duplicatedObject: CanvasObject = {
+        ...JSON.parse(JSON.stringify(originalObject)), // Deep copy
+        id: newId,
+        x: originalObject.x + 10,
+        y: originalObject.y + 10,
+      };
+
+      if (duplicatedObject.key) {
+        const type = duplicatedObject.type === 'qrcode' ? 'qrcode' : duplicatedObject.type as 'text' | 'image' | 'barcode';
+        if (objectCounters.current[type] !== undefined) {
+          objectCounters.current[type]++;
+          const newKey = `${type}_${objectCounters.current[type]}`;
+          duplicatedObject.key = newKey;
+          
+          if (duplicatedObject.type === 'text') {
+            duplicatedObject.text = `{{${newKey}}}`;
+          } else if (duplicatedObject.type === 'image') {
+            duplicatedObject.src = `https://placehold.co/200x200.png?text={{${newKey}}}`;
+          } else if (duplicatedObject.type === 'qrcode') {
+             duplicatedObject.value = `{{${newKey}}}`;
+          }
+        }
+      }
+
+      newObjects.push(duplicatedObject);
+      newSelectedIds.push(newId);
+    });
+
+    setHistory(newObjects);
+    setDisplayObjects(newObjects);
+    setSelectedObjectIds(newSelectedIds);
+  };
   
   const handleAlign = (alignment: Alignment) => {
     if (selectedObjectIds.length === 0) return;
@@ -435,6 +479,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
     handleLayerAction,
     handleUpdateObject,
     handleAlign,
+    handleDuplicate,
     handleReplaceData,
     handleLoadTemplateFromJson,
     canvasRef,

@@ -16,7 +16,7 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
-import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { Separator } from '../ui/separator';
@@ -43,6 +43,7 @@ interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
   onDelete: () => void;
+  onDuplicate: () => void;
   canvasSettings?: CanvasSettings;
   onUpdateCanvasSettings?: (newSettings: Partial<CanvasSettings>) => void;
 }
@@ -51,6 +52,7 @@ export function PropertiesPanel({
   selectedObject,
   onUpdate,
   onDelete,
+  onDuplicate,
   canvasSettings,
   onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
@@ -105,8 +107,7 @@ export function PropertiesPanel({
     if (file) {
       setIsUploading(true);
       try {
-        const imageUrl = await uploadImage(file, { token, tenantId }, toast);
-        const signedUrl = await getSignedUrl(imageUrl, { token, tenantId });
+        const signedUrl = await uploadImage(file, { token, tenantId }, toast, 'signedUrl');
         if(signedUrl){
             handleImageUpdate({ src: signedUrl });
         }
@@ -539,10 +540,14 @@ export function PropertiesPanel({
 
         <Separator />
         
-        <div className="pt-4">
+        <div className="pt-4 grid grid-cols-2 gap-2">
+             <Button variant="outline" className="w-full" onClick={onDuplicate}>
+                <Copy className="mr-2 h-4 w-4" />
+                Duplicate
+            </Button>
             <Button variant="destructive-outline" className="w-full" onClick={onDelete}>
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Object
+                Delete
             </Button>
         </div>
       </div>

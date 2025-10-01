@@ -43,6 +43,7 @@ export default function EditorPage() {
     handleUpdateObject,
     handleAlign,
     handleLoadTemplateFromJson,
+    handleDuplicate,
     canvasRef,
     loadedTemplate,
     isLoadingTemplate,
@@ -76,6 +77,48 @@ export default function EditorPage() {
       setExistingTemplate(undefined);
     };
   }, [loadedTemplate, setExistingTemplate]);
+
+   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts if an input is focused
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        selectedObjectIds.forEach(id => handleLayerAction(id, 'delete'));
+      }
+      if (isCmdOrCtrl && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      }
+      if (isCmdOrCtrl && e.key === 'd') {
+        e.preventDefault();
+        handleDuplicate();
+      }
+       if (isCmdOrCtrl && e.key === '=') {
+        e.preventDefault();
+        setZoom(z => Math.min(2, z + 0.1));
+      }
+      if (isCmdOrCtrl && e.key === '-') {
+        e.preventDefault();
+        setZoom(z => Math.max(0.1, z - 0.1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedObjectIds, handleLayerAction, handleUndo, handleRedo, handleDuplicate]);
 
 
   const selectedObject = objects.find((obj) => obj.id === selectedObjectIds[selectedObjectIds.length - 1]);
@@ -152,6 +195,7 @@ export default function EditorPage() {
             canvasSettings={canvasSettings}
             onUpdateCanvasSettings={handleUpdateCanvasSettings}
             onDelete={() => selectedObjectIds.forEach(id => handleLayerAction(id, 'delete'))}
+            onDuplicate={handleDuplicate}
             defaultCollapsed={!isDesktop}
         />
     </div>
