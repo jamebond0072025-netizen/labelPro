@@ -17,7 +17,6 @@ interface RightSidebarProps {
   canvasSettings: CanvasSettings;
   onUpdateCanvasSettings: (newSettings: Partial<CanvasSettings>) => void;
   onDelete: () => void;
-  onDuplicate: () => void;
   defaultCollapsed?: boolean;
 }
 
@@ -27,7 +26,6 @@ export function RightSidebar({
   canvasSettings,
   onUpdateCanvasSettings,
   onDelete,
-  onDuplicate,
   defaultCollapsed = false 
 }: RightSidebarProps) {
   const [isOpen, setIsOpen] = useState(!defaultCollapsed);
@@ -37,7 +35,6 @@ export function RightSidebar({
       selectedObject={selectedObject}
       onUpdate={onUpdate}
       onDelete={onDelete}
-      onDuplicate={onDuplicate}
       canvasSettings={canvasSettings}
       onUpdateCanvasSettings={onUpdateCanvasSettings}
     />

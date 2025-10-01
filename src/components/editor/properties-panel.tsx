@@ -16,14 +16,13 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import { CanvasProperties } from './canvas-properties';
 import { Button } from '../ui/button';
-import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2, Copy } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { Separator } from '../ui/separator';
 import { useRef, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getSignedUrl, uploadImage } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+import { uploadImage } from '@/lib/api';
 
 const googleFonts = [
     'Poppins', 'PT Sans', 'Roboto', 'Open Sans', 'Lato', 
@@ -43,7 +42,6 @@ interface PropertiesPanelProps {
   selectedObject: CanvasObject | undefined;
   onUpdate: (id: string, newProps: Partial<CanvasObject>) => void;
   onDelete: () => void;
-  onDuplicate: () => void;
   canvasSettings?: CanvasSettings;
   onUpdateCanvasSettings?: (newSettings: Partial<CanvasSettings>) => void;
 }
@@ -52,14 +50,12 @@ export function PropertiesPanel({
   selectedObject,
   onUpdate,
   onDelete,
-  onDuplicate,
   canvasSettings,
   onUpdateCanvasSettings,
 }: PropertiesPanelProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { token, tenantId } = useAuth();
     const [isUploading, setIsUploading] = useState(false);
-    const { toast } = useToast();
 
 
   if (!selectedObject) {
@@ -105,17 +101,18 @@ export function PropertiesPanel({
   const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setIsUploading(true);
-      try {
-        const signedUrl = await uploadImage(file, { token, tenantId }, toast, 'signedUrl');
-        if(signedUrl){
-            handleImageUpdate({ src: signedUrl });
-        }
-      } catch (error) {
-        console.error("Image upload failed", error);
-      } finally {
-        setIsUploading(false);
-      }
+        setIsUploading(true);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target?.result as string;
+            handleImageUpdate({ src: dataUrl });
+            setIsUploading(false);
+        };
+        reader.onerror = () => {
+            setIsUploading(false);
+            console.error("Failed to read image file");
+        };
+        reader.readAsDataURL(file);
     }
   };
 
@@ -540,11 +537,7 @@ export function PropertiesPanel({
 
         <Separator />
         
-        <div className="pt-4 grid grid-cols-2 gap-2">
-             <Button variant="outline" className="w-full" onClick={onDuplicate}>
-                <Copy className="mr-2 h-4 w-4" />
-                Duplicate
-            </Button>
+        <div className="pt-4 grid grid-cols-1 gap-2">
             <Button variant="destructive-outline" className="w-full" onClick={onDelete}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete

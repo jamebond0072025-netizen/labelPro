@@ -188,7 +188,7 @@ export const useCanvasObjects = (templateId: string | null, canvasSettings: Canv
         setIsLoadingTemplate(false);
         clearHistory();
     }
-  }, [templateId, token, tenantId, clearHistory, loadTemplate]);
+  }, [templateId, token, tenantId, clearHistory]);
 
 
   const handleAddItem = (type: ItemType) => {

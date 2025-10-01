@@ -178,6 +178,7 @@ export default function EditorPage() {
             setEditingObjectId(null);
           }}
           onUpdateObject={handleUpdateObject}
+          onDuplicate={handleDuplicate}
           zoom={zoom}
           canvasSettings={canvasSettings}
           onDeselectAll={handleDeselectAll}
@@ -195,7 +196,6 @@ export default function EditorPage() {
             canvasSettings={canvasSettings}
             onUpdateCanvasSettings={handleUpdateCanvasSettings}
             onDelete={() => selectedObjectIds.forEach(id => handleLayerAction(id, 'delete'))}
-            onDuplicate={handleDuplicate}
             defaultCollapsed={!isDesktop}
         />
     </div>

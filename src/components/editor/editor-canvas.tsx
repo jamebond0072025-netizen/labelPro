@@ -1,10 +1,11 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CanvasObject as CanvasObjectComponent } from './canvas-object';
 import { useEditorInteractions } from '@/hooks/use-editor-interactions';
 import type { CanvasObject, CanvasSettings } from '@/lib/types';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface EditorCanvasProps {
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -12,6 +13,7 @@ interface EditorCanvasProps {
   selectedObjectIds: string[];
   onSelectObject: (id: string | null) => void;
   onUpdateObject: (id: string, newProps: Partial<CanvasObject>) => void;
+  onDuplicate: (id: string) => void;
   zoom: number;
   canvasSettings: CanvasSettings;
   onDeselectAll: () => void;
@@ -27,6 +29,7 @@ export function EditorCanvas({
   selectedObjectIds,
   onSelectObject,
   onUpdateObject,
+  onDuplicate,
   zoom,
   canvasSettings,
   onDeselectAll,
@@ -50,12 +53,49 @@ export function EditorCanvas({
       selectedObjectIds,
       onSetSelectedObjectIds
     );
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [responsiveZoom, setResponsiveZoom] = useState(1);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  useEffect(() => {
+    const calculateZoom = () => {
+      if (!containerRef.current || !isMobile) {
+        setResponsiveZoom(1);
+        return;
+      }
+      
+      const padding = 32; // 16px padding on each side
+      const containerWidth = containerRef.current.offsetWidth - padding;
+      const containerHeight = containerRef.current.offsetHeight - padding;
+      
+      const widthScale = containerWidth / canvasSettings.width;
+      const heightScale = containerHeight / canvasSettings.height;
+      
+      const newZoom = Math.min(widthScale, heightScale, 1);
+      setResponsiveZoom(newZoom);
+    };
+
+    calculateZoom();
+    const resizeObserver = new ResizeObserver(calculateZoom);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    return () => {
+       if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+    };
+  }, [canvasSettings.width, canvasSettings.height, isMobile]);
+
+  const combinedZoom = zoom * responsiveZoom;
 
   const canvasStyle: React.CSSProperties = {
     width: canvasSettings.width,
     height: canvasSettings.height,
     backgroundColor: canvasSettings.backgroundColor,
-    transform: `scale(${zoom})`,
+    transform: `scale(${combinedZoom})`,
     transformOrigin: 'center center',
   };
 
@@ -68,13 +108,17 @@ export function EditorCanvas({
 
   return (
     <div 
+      ref={containerRef}
       className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-muted relative"
       onPointerDown={(e) => {
         if (editingObjectId) return;
-        handleInteractionStart(e, null, 'marquee', 'body')
+        // Check if the direct target is the container itself
+        if (e.target === canvasRef.current) {
+           handleInteractionStart(e, null, 'marquee', 'body')
+        }
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
+       onClick={(e) => {
+        if (e.target === containerRef.current) {
           onDeselectAll();
         }
       }}
@@ -86,6 +130,18 @@ export function EditorCanvas({
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         style={canvasStyle}
+         onClick={(e) => {
+            // Prevent deselecting when clicking on the canvas itself, only container
+            e.stopPropagation();
+            if (e.target === e.currentTarget) {
+                onDeselectAll();
+            }
+        }}
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) {
+            handleInteractionStart(e, null, 'marquee', 'body');
+          }
+        }}
       >
         {objects.map((obj) => (
           <CanvasObjectComponent
@@ -98,7 +154,8 @@ export function EditorCanvas({
             onDoubleClick={onObjectDoubleClick}
             onUpdate={onUpdateObject}
             onStopEditing={onStopEditing}
-            zoom={zoom}
+            onDuplicate={onDuplicate}
+            zoom={combinedZoom}
           />
         ))}
         {selectionBox && (

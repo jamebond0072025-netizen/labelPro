@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import JsBarcode from 'jsbarcode';
 import QRCode from 'qrcode';
-import { RotateCcw, QrCode } from 'lucide-react';
+import { RotateCcw, QrCode, Copy } from 'lucide-react';
 import type { InteractionType, InteractionHandle } from '@/hooks/use-editor-interactions';
 
 interface CanvasObjectProps {
@@ -25,6 +25,7 @@ interface CanvasObjectProps {
   onDoubleClick: (id: string) => void;
   onUpdate: (id: string, newProps: Partial<CanvasObjectType>) => void;
   onStopEditing: () => void;
+  onDuplicate: (id: string) => void;
   zoom: number;
 }
 
@@ -60,6 +61,7 @@ export function CanvasObject({
   onDoubleClick,
   onUpdate,
   onStopEditing,
+  onDuplicate,
   zoom,
 }: CanvasObjectProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -204,6 +206,12 @@ export function CanvasObject({
     e.stopPropagation();
     onInteractionStart(e, object.id, type, handle);
   };
+  
+  const handleDuplicateClick = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    onDuplicate(object.id);
+  };
+
 
   return (
     <div
@@ -223,6 +231,15 @@ export function CanvasObject({
           <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-accent rounded-full cursor-nesw-resize" onPointerDown={(e) => handlePointerDown(e, 'resize', 'sw')} />
           <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-accent rounded-full cursor-nwse-resize" onPointerDown={(e) => handlePointerDown(e, 'resize', 'se')} />
           
+           {/* Duplicate Handle */}
+          <div
+            className="absolute -top-6 left-1/2 -translate-x-1/2 p-1 bg-white border border-accent rounded-full cursor-pointer"
+            onPointerDown={handleDuplicateClick}
+            title="Duplicate"
+          >
+            <Copy className="w-3 h-3 text-accent" />
+          </div>
+
           {/* Rotate Handle */}
           <div 
             className="absolute -bottom-6 left-1/2 -translate-x-1/2 p-1 bg-white border border-accent rounded-full cursor-grab"
