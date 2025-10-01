@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -20,7 +21,7 @@ import { Textarea } from './ui/textarea';
 import type { QRCodeObject, Template } from '@/lib/types';
 import { createMockTemplate, updateMockTemplate } from '@/lib/mock-api';
 import { USE_DUMMY_TEMPLATES, USE_AUTH } from '@/lib/config';
-import { apiCall, uploadImage } from '@/lib/api';
+import { apiCall } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 
@@ -153,28 +154,25 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
                     await createMockTemplate(templateData);
                 }
             } else {
-                const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
+                 const imageFile = dataURLtoFile(previewImageDataUrl, `${name.replace(/\s+/g, '-')}-preview.jpg`);
                 
-                const uploadedImageFileName = await uploadImage(imageFile, {token, tenantId}, toast);
+                const formData = new FormData();
+                formData.append('labelName', name);
+                formData.append('Description', description);
+                formData.append('Category', category);
+                formData.append('DesignJson', designJson);
+                formData.append('BulkDataJson', bulkDataJson);
+                formData.append('PreviewImageUrl', imageFile);
 
-                const templatePayload = {
-                    labelName: name,
-                    Description: description,
-                    Category: category,
-                    DesignJson: designJson,
-                    BulkDataJson: bulkDataJson,
-                    PreviewImageUrl: uploadedImageFileName,
-                };
-                
                 let endpoint, method;
                 if (existingTemplate) {
                     endpoint = `/LabelTemplate/${existingTemplate.id}`;
                     method = 'PUT';
-                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
+                    await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
                 } else {
                     endpoint = '/LabelTemplate';
                     method = 'POST';
-                    await apiCall({ url: endpoint, method, data: templatePayload }, { token, tenantId });
+                    await apiCall({ url: endpoint, method, data: formData }, { token, tenantId });
                 }
             }
             
@@ -229,3 +227,5 @@ export function SaveTemplateDialog({ isOpen, onOpenChange, editorState, existing
     </Dialog>
   );
 }
+
+    
