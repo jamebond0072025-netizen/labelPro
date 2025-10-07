@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { EditorToolbar } from '@/components/editor/editor-toolbar';
@@ -15,7 +15,7 @@ import type { CanvasSettings } from '@/lib/types';
 import { useEditor } from '@/contexts/editor-context';
 
 
-export default function EditorPage() {
+function EditorContent() {
   const searchParams = useSearchParams();
   const templateId = searchParams.get('templateId');
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -199,5 +199,13 @@ export default function EditorPage() {
             defaultCollapsed={!isDesktop}
         />
     </div>
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+      <EditorContent />
+    </Suspense>
   );
 }

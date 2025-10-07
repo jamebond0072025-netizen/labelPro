@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrint } from '@/contexts/print-context';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ export const pageSizes = [
   { name: 'Legal (8.5" x 14")', width: '8.5in', height: '14in', pdf: { orientation: 'p', unit: 'in', format: 'legal' }, pxWidth: 816, pxHeight: 1344 },
 ];
 
-export default function PrintPreviewPage() {
+function PrintPreviewContent() {
   const router = useRouter();
   const { template, data, setData, setPrintPageSettings, printPageSettings } = usePrint();
   const { toast } = useToast();
@@ -242,5 +242,13 @@ export default function PrintPreviewPage() {
         }
       `}</style>
     </>
+  );
+}
+
+export default function PrintPreviewPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center">Loading...</div>}>
+      <PrintPreviewContent />
+    </Suspense>
   );
 }

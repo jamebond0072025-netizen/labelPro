@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import { usePrint } from '@/contexts/print-context';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 
-export function Header() {
+function HeaderContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('templateId');
@@ -167,5 +167,25 @@ export function Header() {
         />
       )}
     </>
+  );
+}
+
+export function Header() {
+  return (
+    <Suspense fallback={
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 print-hidden">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="h-9 sm:h-10">
+              <ChevronLeft className="h-6 w-6 text-primary" />      
+              <span className="font-semibold font-headline">Back</span>
+            </Button>
+          </Link>
+        </div>
+        <div className="flex-1"></div>
+      </header>
+    }>
+      <HeaderContent />
+    </Suspense>
   );
 }
